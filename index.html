@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MIA — Assistente Comercial</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0a0f;--surface:#111118;--surface2:#18181f;--surface3:#1e1e28;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);--accent:#c8f135;--accent2:#a8d420;--accent-dim:rgba(200,241,53,0.12);--accent-glow:rgba(200,241,53,0.25);--red:#ff4d6d;--red-dim:rgba(255,77,109,0.12);--amber:#ffb347;--amber-dim:rgba(255,179,71,0.12);--blue:#5b9cf6;--blue-dim:rgba(91,156,246,0.12);--teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.12);--purple:#a78bfa;--purple-dim:rgba(167,139,250,0.12);--green:#4ade80;--green-dim:rgba(74,222,128,0.12);--text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;--radius:10px;--radius-lg:16px;}
@@ -398,6 +399,25 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .meeting-card.clickable:hover{border-color:rgba(167,139,250,0.5);background:var(--surface3);}
 
 
+
+/* RELATÓRIO WORD */
+.rel-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn 0.3s ease;}
+.rel-modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:28px;max-width:520px;width:90%;box-shadow:0 24px 64px rgba(0,0,0,0.6);animation:slideUp 0.3s ease;}
+.rel-modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:var(--text);margin-bottom:6px;}
+.rel-modal-sub{font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.5;}
+.rel-preview{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;}
+.rel-preview-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;}
+.rel-stat-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);}
+.rel-stat-row:last-child{border-bottom:none;}
+.rel-stat-label{color:var(--text2);}
+.rel-stat-val{font-family:'DM Mono',monospace;color:var(--accent);font-weight:500;}
+.rel-estrutura{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.rel-estrutura-item{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:8px;}
+.rel-estrutura-item::before{content:'✓';color:var(--teal);font-weight:700;flex-shrink:0;}
+.rel-footer{display:flex;gap:10px;}
+.rel-btn{flex:1;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.rel-btn:hover{background:#4a8ae8;}
+.rel-btn-cancel{padding:10px 16px;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;}
 /* EXPORTAÇÃO */
 .export-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn 0.3s ease;}
 .export-modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:28px;max-width:480px;width:90%;box-shadow:0 24px 64px rgba(0,0,0,0.6);animation:slideUp 0.3s ease;}
@@ -479,6 +499,30 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 </head>
 <body>
 <div class="toast-container" id="toasts"></div>
+<div class="rel-modal-overlay" id="rel-modal" style="display:none;">
+  <div class="rel-modal">
+    <div class="rel-modal-title">📄 Relatório de Status</div>
+    <div class="rel-modal-sub">Gera o relatório no formato aprovado — Inteligência Comercial Yamá Cosméticos.</div>
+    <div class="rel-preview">
+      <div class="rel-preview-label">Conteúdo do relatório</div>
+      <div id="rel-preview-content"></div>
+    </div>
+    <div class="rel-preview-label" style="margin-bottom:8px;">Estrutura do documento</div>
+    <div class="rel-estrutura">
+      <div class="rel-estrutura-item">Cabeçalho — Inteligência Comercial · Yamá Cosméticos · Data · Analista</div>
+      <div class="rel-estrutura-item">Seção 1 — Status das demandas (tabela completa)</div>
+      <div class="rel-estrutura-item">Seção 2 — Riscos e pontos de atenção</div>
+      <div class="rel-estrutura-item">Seção 3 — Prioridades imediatas (próximas 48h)</div>
+      <div class="rel-estrutura-item">Seção 4 — Status dos projetos</div>
+      <div class="rel-estrutura-item">Rodapé — Data de geração</div>
+    </div>
+    <div class="rel-footer">
+      <button class="rel-btn-cancel" onclick="fecharRelatorioModal()">Cancelar</button>
+      <button class="rel-btn" onclick="gerarRelatorioWord()">📄 Baixar Word</button>
+    </div>
+  </div>
+</div>
+
 <div class="export-modal-overlay" id="export-modal" style="display:none;">
   <div class="export-modal">
     <div class="export-modal-title">⬇ Exportar tarefas</div>
@@ -507,7 +551,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
     <div class="export-footer">
       <button class="export-btn-cancel" onclick="fecharExportModal()">Cancelar</button>
-      <button class="export-btn" onclick="exportarExcel()">⬇ Baixar Excel</button>
+      <button class="export-btn" style="background:var(--blue);" onclick="fecharExportModal();abrirRelatorioModal()">📄 Relatório Word</button>
+      <button class="export-btn" onclick="exportarExcel()">⬇ Excel</button>
     </div>
   </div>
 </div>
@@ -1515,6 +1560,305 @@ function exportarExcel(){
 
   fecharExportModal();
   showToast('Excel exportado',filename);
+}
+
+
+// ── RELATÓRIO WORD ────────────────────────────────────
+function abrirRelatorioModal(){
+  var modal=document.getElementById('rel-modal');
+  if(!modal)return;
+  var total=tasks.length;
+  var done=tasks.filter(function(t){return t.done;}).length;
+  var open=tasks.filter(function(t){return !t.done;}).length;
+  var bloqueadas=tasks.filter(function(t){return !t.done&&t.subtasks&&t.subtasks.some(function(s){return s.status==='aguardando'&&!s.done;});}).length;
+  var urgentes=tasks.filter(function(t){return !t.done&&t.prio==='urgente';}).length;
+  var reunioes=tasks.filter(function(t){return t.task_type==='reuniao'&&!t.done;}).length;
+  var preview=document.getElementById('rel-preview-content');
+  if(preview){
+    preview.innerHTML=
+      '<div class="rel-stat-row"><span class="rel-stat-label">Total de tarefas</span><span class="rel-stat-val">'+total+'</span></div>'+
+      '<div class="rel-stat-row"><span class="rel-stat-label">Em andamento</span><span class="rel-stat-val">'+open+'</span></div>'+
+      '<div class="rel-stat-row"><span class="rel-stat-label">Concluídas</span><span class="rel-stat-val">'+done+'</span></div>'+
+      '<div class="rel-stat-row"><span class="rel-stat-label">Bloqueadas</span><span class="rel-stat-val" style="color:var(--amber)">'+bloqueadas+'</span></div>'+
+      '<div class="rel-stat-row"><span class="rel-stat-label">Urgentes abertas</span><span class="rel-stat-val" style="color:var(--red)">'+urgentes+'</span></div>'+
+      '<div class="rel-stat-row"><span class="rel-stat-label">Reuniões pendentes</span><span class="rel-stat-val">'+reunioes+'</span></div>'+
+      '<div class="rel-stat-row"><span class="rel-stat-label">Projetos ativos</span><span class="rel-stat-val">'+projects.filter(function(p){return p.status==='ativo'||p.status==='atencao';}).length+'</span></div>';
+  }
+  modal.style.display='flex';
+}
+
+function fecharRelatorioModal(){
+  var modal=document.getElementById('rel-modal');
+  if(modal)modal.style.display='none';
+}
+
+async function gerarRelatorioWord(){
+  if(typeof docx==='undefined'){
+    showToast('Biblioteca Word não carregada. Aguarde e tente novamente.','urgente');
+    return;
+  }
+
+  var now=new Date();
+  var dateStr=now.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  var dateFile=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+
+  var D=docx;
+  var prioLabels={urgente:'Urgente',alta:'Alta',normal:'Normal'};
+
+  // Cores
+  var COR_TITULO='1A3A5C';
+  var COR_HEADER_TABLE='1A3A5C';
+  var COR_CONCLUIDO='1F7A4A';
+  var COR_ANDAMENTO='C07A00';
+  var COR_BLOQUEADO='C0392B';
+  var COR_NORMAL='333333';
+  var COR_CINZA='F5F5F5';
+  var COR_BORDA='CCCCCC';
+
+  var border={style:D.BorderStyle.SINGLE,size:1,color:COR_BORDA};
+  var borders={top:border,bottom:border,left:border,right:border};
+  var cellMargins={top:80,bottom:80,left:120,right:120};
+
+  function makeText(text,opts){
+    opts=opts||{};
+    return new D.TextRun({text:text||'',bold:opts.bold||false,color:opts.color||COR_NORMAL,size:opts.size||20,font:'Arial',italics:opts.italics||false});
+  }
+
+  function makeCell(children,opts){
+    opts=opts||{};
+    return new D.TableCell({
+      borders:borders,
+      width:{size:opts.width||2000,type:D.WidthType.DXA},
+      shading:opts.shading?{fill:opts.shading,type:D.ShadingType.CLEAR}:undefined,
+      margins:cellMargins,
+      verticalAlign:D.VerticalAlign.CENTER,
+      children:[new D.Paragraph({children:children,alignment:opts.align||D.AlignmentType.LEFT})]
+    });
+  }
+
+  function statusIcon(task){
+    if(task.done)return{label:'CONCLUÍDO',cor:COR_CONCLUIDO};
+    var bloqueada=task.subtasks&&task.subtasks.some(function(s){return s.status==='aguardando'&&!s.done;});
+    if(bloqueada)return{label:'BLOQUEADO',cor:COR_BLOQUEADO};
+    return{label:'EM ANDAMENTO',cor:COR_ANDAMENTO};
+  }
+
+  // ── SEÇÃO 1: TABELA DE DEMANDAS ──
+  var headerRow=new D.TableRow({
+    tableHeader:true,
+    children:[
+      makeCell([makeText('Demanda',{bold:true,color:'FFFFFF',size:18})],{width:1800,shading:COR_HEADER_TABLE}),
+      makeCell([makeText('Descrição / Situação atual',{bold:true,color:'FFFFFF',size:18})],{width:3800,shading:COR_HEADER_TABLE}),
+      makeCell([makeText('Status',{bold:true,color:'FFFFFF',size:18})],{width:1400,shading:COR_HEADER_TABLE}),
+      makeCell([makeText('Próximos passos',{bold:true,color:'FFFFFF',size:18})],{width:2360,shading:COR_HEADER_TABLE}),
+    ]
+  });
+
+  var taskRows=tasks.map(function(t,i){
+    var st=statusIcon(t);
+    var desc=t.desc||'';
+    if(t.note)desc+=(desc?' ':'')+t.note;
+    var proxPassos='—';
+    if(!t.done){
+      var pendSubs=t.subtasks?t.subtasks.filter(function(s){return !s.done;}):[]; 
+      if(pendSubs.length>0) proxPassos=pendSubs[0].text;
+      else proxPassos='Concluir tarefa.';
+    }
+    var bg=i%2===0?'FFFFFF':'F9F9F9';
+    return new D.TableRow({
+      children:[
+        makeCell([makeText(t.name,{bold:true,size:18})],{width:1800,shading:bg}),
+        makeCell([makeText(desc||'—',{size:18})],{width:3800,shading:bg}),
+        makeCell([makeText(st.label,{bold:true,color:st.cor,size:18})],{width:1400,shading:bg}),
+        makeCell([makeText(proxPassos,{size:18,italics:!t.done})],{width:2360,shading:bg}),
+      ]
+    });
+  });
+
+  var tabelaDemandas=new D.Table({
+    width:{size:9360,type:D.WidthType.DXA},
+    columnWidths:[1800,3800,1400,2360],
+    rows:[headerRow].concat(taskRows)
+  });
+
+  // ── SEÇÃO 2: RISCOS ──
+  var bloqueadas=tasks.filter(function(t){return !t.done&&t.subtasks&&t.subtasks.some(function(s){return s.status==='aguardando'&&!s.done;});});
+  var urgentes=tasks.filter(function(t){return !t.done&&t.prio==='urgente';});
+
+  var riscosParas=[];
+  if(bloqueadas.length===0&&urgentes.length===0){
+    riscosParas.push(new D.Paragraph({children:[makeText('Nenhum risco crítico identificado no momento.',{size:20,italics:true,color:'666666'})]}));
+  } else {
+    bloqueadas.forEach(function(t){
+      var subs=t.subtasks.filter(function(s){return s.status==='aguardando'&&!s.done;});
+      riscosParas.push(new D.Paragraph({
+        numbering:{reference:'bullets',level:0},
+        children:[
+          makeText('⚠ '+t.name+': ',{bold:true,color:COR_BLOQUEADO,size:20}),
+          makeText('Tarefa bloqueada aguardando resposta externa ('+subs.map(function(s){return s.text;}).join(', ')+').',{size:20})
+        ]
+      }));
+    });
+    urgentes.forEach(function(t){
+      riscosParas.push(new D.Paragraph({
+        numbering:{reference:'bullets',level:0},
+        children:[
+          makeText('🔴 '+t.name+': ',{bold:true,color:COR_BLOQUEADO,size:20}),
+          makeText('Tarefa de prioridade urgente em aberto.',{size:20})
+        ]
+      }));
+    });
+  }
+
+  // ── SEÇÃO 3: PRIORIDADES 48H ──
+  var abertas=tasks.filter(function(t){return !t.done;}).sort(function(a,b){
+    var o={urgente:0,alta:1,normal:2};
+    return(o[a.prio]||2)-(o[b.prio]||2);
+  }).slice(0,5);
+
+  var priorParas=abertas.map(function(t,i){
+    return new D.Paragraph({
+      numbering:{reference:'numbers',level:0},
+      children:[makeText(t.name+(t.task_time?' ('+t.task_time+')':'')+(t.desc?' — '+t.desc.substring(0,60)+(t.desc.length>60?'...':''):''),{size:20})]
+    });
+  });
+  if(priorParas.length===0){
+    priorParas.push(new D.Paragraph({children:[makeText('Nenhuma tarefa aberta.',{size:20,italics:true,color:'666666'})]}));
+  }
+
+  // ── SEÇÃO 4: PROJETOS ──
+  var projHeaderRow=new D.TableRow({
+    tableHeader:true,
+    children:[
+      makeCell([makeText('Projeto',{bold:true,color:'FFFFFF',size:18})],{width:3500,shading:COR_HEADER_TABLE}),
+      makeCell([makeText('Status',{bold:true,color:'FFFFFF',size:18})],{width:1400,shading:COR_HEADER_TABLE}),
+      makeCell([makeText('Progresso',{bold:true,color:'FFFFFF',size:18})],{width:1500,shading:COR_HEADER_TABLE}),
+      makeCell([makeText('Próxima ação',{bold:true,color:'FFFFFF',size:18})],{width:2960,shading:COR_HEADER_TABLE}),
+    ]
+  });
+
+  var projRows=projects.map(function(p,i){
+    var total=p.actions.length;
+    var done=p.actions.filter(function(a){return a.done;}).length;
+    var pct=total>0?Math.round((done/total)*100):0;
+    var proxAcao=p.actions.find(function(a){return !a.done;});
+    var statusLabel={ativo:'EM ANDAMENTO',atencao:'ATENÇÃO',semPrazo:'PLANEJADO'};
+    var statusCor={ativo:COR_ANDAMENTO,atencao:COR_BLOQUEADO,semPrazo:'666666'};
+    var bg=i%2===0?'FFFFFF':'F9F9F9';
+    return new D.TableRow({
+      children:[
+        makeCell([makeText(p.name,{bold:true,size:18})],{width:3500,shading:bg}),
+        makeCell([makeText(statusLabel[p.status]||p.status,{bold:true,color:statusCor[p.status]||COR_NORMAL,size:18})],{width:1400,shading:bg}),
+        makeCell([makeText(done+'/'+total+' ('+pct+'%)',{size:18})],{width:1500,shading:bg}),
+        makeCell([makeText(proxAcao?proxAcao.text:'Concluído',{size:18,italics:true})],{width:2960,shading:bg}),
+      ]
+    });
+  });
+
+  var tabelaProjetos=new D.Table({
+    width:{size:9360,type:D.WidthType.DXA},
+    columnWidths:[3500,1400,1500,2960],
+    rows:[projHeaderRow].concat(projRows)
+  });
+
+  // ── MONTAR DOCUMENTO ──
+  var doc=new D.Document({
+    numbering:{
+      config:[
+        {reference:'bullets',levels:[{level:0,format:D.LevelFormat.BULLET,text:'•',alignment:D.AlignmentType.LEFT,style:{paragraph:{indent:{left:720,hanging:360}}}}]},
+        {reference:'numbers',levels:[{level:0,format:D.LevelFormat.DECIMAL,text:'%1.',alignment:D.AlignmentType.LEFT,style:{paragraph:{indent:{left:720,hanging:360}}}}]},
+      ]
+    },
+    styles:{
+      default:{document:{run:{font:'Arial',size:20}}},
+      paragraphStyles:[
+        {id:'Heading1',name:'Heading 1',basedOn:'Normal',next:'Normal',quickFormat:true,
+          run:{size:28,bold:true,font:'Arial',color:COR_TITULO},
+          paragraph:{spacing:{before:320,after:160},outlineLevel:0}},
+        {id:'Heading2',name:'Heading 2',basedOn:'Normal',next:'Normal',quickFormat:true,
+          run:{size:24,bold:true,font:'Arial',color:COR_TITULO},
+          paragraph:{spacing:{before:240,after:120},outlineLevel:1}},
+      ]
+    },
+    sections:[{
+      properties:{
+        page:{
+          size:{width:11906,height:16838},
+          margin:{top:1134,right:1134,bottom:1134,left:1134}
+        }
+      },
+      headers:{
+        default:new D.Header({
+          children:[
+            new D.Paragraph({
+              border:{bottom:{style:D.BorderStyle.SINGLE,size:6,color:COR_TITULO,space:1}},
+              children:[
+                makeText('INTELIGÊNCIA COMERCIAL — YAMÁ COSMÉTICOS',{bold:true,color:COR_TITULO,size:18}),
+                new D.TextRun({text:'  •  Analista: Caio Mancuso',font:'Arial',size:18,color:'666666'}),
+              ]
+            })
+          ]
+        })
+      },
+      footers:{
+        default:new D.Footer({
+          children:[
+            new D.Paragraph({
+              border:{top:{style:D.BorderStyle.SINGLE,size:4,color:COR_BORDA,space:1}},
+              children:[makeText('Documento gerado em '+now.toLocaleDateString('pt-BR')+' • Yamá Cosméticos — Inteligência Comercial',{size:16,color:'999999'})]
+            })
+          ]
+        })
+      },
+      children:[
+        // TÍTULO
+        new D.Paragraph({
+          children:[makeText('Relatório de Status de Demandas',{bold:true,color:COR_TITULO,size:36})],
+          spacing:{before:0,after:80}
+        }),
+        new D.Paragraph({
+          children:[makeText('Reunião de alinhamento  •  '+dateStr,{size:20,color:'666666'})],
+          spacing:{before:0,after:400},
+          border:{bottom:{style:D.BorderStyle.SINGLE,size:6,color:COR_TITULO,space:1}}
+        }),
+
+        // SEÇÃO 1
+        new D.Paragraph({heading:D.HeadingLevel.HEADING_1,children:[makeText('1. Status das Demandas em Andamento',{bold:true,color:COR_TITULO,size:28})]}),
+        tabelaDemandas,
+        new D.Paragraph({children:[makeText('')],spacing:{before:240}}),
+
+        // SEÇÃO 2
+        new D.Paragraph({heading:D.HeadingLevel.HEADING_1,children:[makeText('2. Riscos e Pontos de Atenção',{bold:true,color:COR_TITULO,size:28})]}),
+      ].concat(riscosParas).concat([
+        new D.Paragraph({children:[makeText('')],spacing:{before:120}}),
+
+        // SEÇÃO 3
+        new D.Paragraph({heading:D.HeadingLevel.HEADING_1,children:[makeText('3. Prioridades Imediatas (Próximas 48h)',{bold:true,color:COR_TITULO,size:28})]}),
+      ]).concat(priorParas).concat([
+        new D.Paragraph({children:[makeText('')],spacing:{before:120}}),
+
+        // SEÇÃO 4
+        new D.Paragraph({heading:D.HeadingLevel.HEADING_1,children:[makeText('4. Status dos Projetos',{bold:true,color:COR_TITULO,size:28})]}),
+        tabelaProjetos,
+        new D.Paragraph({children:[makeText('')],spacing:{before:240}}),
+      ])
+    }]
+  });
+
+  try{
+    var buffer=await D.Packer.toBlob(doc);
+    var link=document.createElement('a');
+    link.href=URL.createObjectURL(buffer);
+    link.download='MIA_Relatorio_Status_'+dateFile+'.docx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    fecharRelatorioModal();
+    showToast('Relatório gerado','MIA_Relatorio_Status_'+dateFile+'.docx');
+  } catch(e){
+    showToast('Erro ao gerar relatório: '+e.message,'urgente');
+    console.error(e);
+  }
 }
 
 // ── ROLLOVER / TAREFAS EM ATRASO ──────────────────────
