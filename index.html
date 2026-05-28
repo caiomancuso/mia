@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MIA — Assistente Comercial</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0a0f;--surface:#111118;--surface2:#18181f;--surface3:#1e1e28;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);--accent:#c8f135;--accent2:#a8d420;--accent-dim:rgba(200,241,53,0.12);--accent-glow:rgba(200,241,53,0.25);--red:#ff4d6d;--red-dim:rgba(255,77,109,0.12);--amber:#ffb347;--amber-dim:rgba(255,179,71,0.12);--blue:#5b9cf6;--blue-dim:rgba(91,156,246,0.12);--teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.12);--purple:#a78bfa;--purple-dim:rgba(167,139,250,0.12);--green:#4ade80;--green-dim:rgba(74,222,128,0.12);--text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;--radius:10px;--radius-lg:16px;}
@@ -396,6 +397,24 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .meeting-card.clickable{cursor:pointer;}
 .meeting-card.clickable:hover{border-color:rgba(167,139,250,0.5);background:var(--surface3);}
 
+
+/* EXPORTAÇÃO */
+.export-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn 0.3s ease;}
+.export-modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:28px;max-width:480px;width:90%;box-shadow:0 24px 64px rgba(0,0,0,0.6);animation:slideUp 0.3s ease;}
+.export-modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:var(--text);margin-bottom:6px;}
+.export-modal-sub{font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.5;}
+.export-preview{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:20px;}
+.export-preview-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;}
+.export-stat-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);}
+.export-stat-row:last-child{border-bottom:none;}
+.export-stat-label{color:var(--text2);}
+.export-stat-val{font-family:'DM Mono',monospace;color:var(--accent);font-weight:500;}
+.export-footer{display:flex;gap:10px;}
+.export-btn{flex:1;padding:10px;background:var(--accent);color:#0a0a0f;border:none;border-radius:var(--radius);font-size:13px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.export-btn:hover{background:var(--accent2);}
+.export-btn-cancel{padding:10px 16px;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.export-col-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+.export-col-chip{font-size:10px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:4px;background:var(--surface3);color:var(--text3);border:1px solid var(--border);}
 /* ROAD MAP */
 .roadmap-widget{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
 .roadmap-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
@@ -460,6 +479,39 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 </head>
 <body>
 <div class="toast-container" id="toasts"></div>
+<div class="export-modal-overlay" id="export-modal" style="display:none;">
+  <div class="export-modal">
+    <div class="export-modal-title">⬇ Exportar tarefas</div>
+    <div class="export-modal-sub">Exporta todo o histórico de tarefas para Excel (.xlsx) com todas as informações disponíveis.</div>
+    <div class="export-preview">
+      <div class="export-preview-label">Preview da exportação</div>
+      <div id="export-preview-content"></div>
+    </div>
+    <div class="export-preview-label" style="margin-bottom:8px;">Colunas incluídas</div>
+    <div class="export-col-list">
+      <span class="export-col-chip">ID</span>
+      <span class="export-col-chip">Nome</span>
+      <span class="export-col-chip">Descrição</span>
+      <span class="export-col-chip">Tipo</span>
+      <span class="export-col-chip">Prioridade</span>
+      <span class="export-col-chip">Status</span>
+      <span class="export-col-chip">Data</span>
+      <span class="export-col-chip">Horário</span>
+      <span class="export-col-chip">Tempo estimado</span>
+      <span class="export-col-chip">Tempo executado</span>
+      <span class="export-col-chip">SLA</span>
+      <span class="export-col-chip">Nota</span>
+      <span class="export-col-chip">Subtarefas</span>
+      <span class="export-col-chip">Criado em</span>
+      <span class="export-col-chip">Concluído em</span>
+    </div>
+    <div class="export-footer">
+      <button class="export-btn-cancel" onclick="fecharExportModal()">Cancelar</button>
+      <button class="export-btn" onclick="exportarExcel()">⬇ Baixar Excel</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="morning-modal" style="display:none;">
   <div class="modal-box">
     <div class="modal-icon">☀️</div>
@@ -502,6 +554,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <button class="tab-btn" onclick="switchTab('projetos',this)">Projetos</button>
     <button class="tab-btn" onclick="switchTab('dashboard',this)">Dashboard</button>
     <button class="tab-btn" onclick="switchTab('templates',this)">Templates</button>
+    <button class="tab-btn" style="margin-left:auto;color:var(--teal);border-color:rgba(45,212,191,0.2);background:var(--teal-dim);" onclick="abrirExportModal()">⬇ Exportar</button>
   </div>
 
   <div class="main-grid">
@@ -1307,6 +1360,162 @@ loadProjects();
 
 
 
+
+
+// ── EXPORTAÇÃO EXCEL ──────────────────────────────────
+function abrirExportModal(){
+  var modal=document.getElementById('export-modal');
+  if(!modal)return;
+  // Preview
+  var total=tasks.length;
+  var done=tasks.filter(function(t){return t.done;}).length;
+  var open=tasks.filter(function(t){return !t.done;}).length;
+  var comNota=tasks.filter(function(t){return t.note&&t.note.length>0;}).length;
+  var comSubs=tasks.filter(function(t){return t.subtasks&&t.subtasks.length>0;}).length;
+  var slaOk=tasks.filter(function(t){return t.done&&t.elapsed>0&&t.elapsed<=(t.mins*60);}).length;
+  var preview=document.getElementById('export-preview-content');
+  if(preview){
+    preview.innerHTML=
+      '<div class="export-stat-row"><span class="export-stat-label">Total de registros</span><span class="export-stat-val">'+total+'</span></div>'+
+      '<div class="export-stat-row"><span class="export-stat-label">Concluídas</span><span class="export-stat-val">'+done+'</span></div>'+
+      '<div class="export-stat-row"><span class="export-stat-label">Em aberto</span><span class="export-stat-val">'+open+'</span></div>'+
+      '<div class="export-stat-row"><span class="export-stat-label">Com nota</span><span class="export-stat-val">'+comNota+'</span></div>'+
+      '<div class="export-stat-row"><span class="export-stat-label">Com subtarefas</span><span class="export-stat-val">'+comSubs+'</span></div>'+
+      '<div class="export-stat-row"><span class="export-stat-label">Dentro do SLA</span><span class="export-stat-val">'+slaOk+' de '+done+'</span></div>';
+  }
+  modal.style.display='flex';
+}
+
+function fecharExportModal(){
+  var modal=document.getElementById('export-modal');
+  if(modal)modal.style.display='none';
+}
+
+function exportarExcel(){
+  if(typeof XLSX==='undefined'){
+    showToast('Erro: biblioteca Excel não carregada','urgente');
+    return;
+  }
+
+  var prioLabels={urgente:'Urgente',alta:'Alta',normal:'Normal'};
+  var dayLabels=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  // ── ABA 1: TODAS AS TAREFAS ──
+  var rows=[['ID','Nome','Descrição','Tipo','Prioridade','Status','Data','Horário','Dia semana','Tempo estimado (min)','Tempo executado (min)','SLA','% SLA','Nota','Qtd subtarefas','Subtarefas concluídas','Criado em','Concluído em']];
+
+  var sorted=tasks.slice().sort(function(a,b){
+    var da=a.task_date||'';var db=b.task_date||'';
+    return da.localeCompare(db);
+  });
+
+  sorted.forEach(function(t){
+    var execMin=t.elapsed>0?Math.round(t.elapsed/60):0;
+    var estMin=t.mins||0;
+    var slaOk=t.done&&t.elapsed>0&&t.elapsed<=(t.mins*60);
+    var slaPct=estMin>0&&execMin>0?Math.round((execMin/estMin)*100):0;
+    var slaStatus=!t.done?'Aberta':t.elapsed===0?'Sem timer':slaOk?'OK':'Acima';
+    var subsTotal=t.subtasks?t.subtasks.length:0;
+    var subsDone=t.subtasks?t.subtasks.filter(function(s){return s.done;}).length:0;
+    var subsTexto=t.subtasks&&t.subtasks.length>0?t.subtasks.map(function(s){return (s.done?'[✓] ':'[ ] ')+s.text;}).join(' | '):'';
+    var diaSemana='';
+    if(t.task_date){var d=new Date(t.task_date+'T12:00:00');diaSemana=dayLabels[d.getDay()];}
+    var criadoEm='';
+    if(t.created_at){var c=new Date(t.created_at);criadoEm=c.toLocaleDateString('pt-BR')+' '+c.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+    var concluidoEm='';
+    if(t.completed_at){var cc=new Date(t.completed_at);concluidoEm=cc.toLocaleDateString('pt-BR')+' '+cc.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+
+    rows.push([
+      t.id,
+      t.name,
+      t.desc||'',
+      t.task_type==='reuniao'?'Reunião':'Tarefa',
+      prioLabels[t.prio]||t.prio,
+      t.done?'Concluída':'Aberta',
+      t.task_date||'',
+      t.task_time||'',
+      diaSemana,
+      estMin,
+      execMin,
+      slaStatus,
+      slaPct>0?slaPct+'%':'',
+      t.note||'',
+      subsTotal,
+      subsDone,
+      criadoEm,
+      concluidoEm
+    ]);
+  });
+
+  // ── ABA 2: RESUMO ──
+  var done=tasks.filter(function(t){return t.done;});
+  var open=tasks.filter(function(t){return !t.done;});
+  var slaOkTotal=done.filter(function(t){return t.elapsed>0&&t.elapsed<=(t.mins*60);}).length;
+  var taxaSLA=done.length>0?Math.round((slaOkTotal/done.length)*100):0;
+  var avgExec=done.length>0?Math.round(done.reduce(function(a,t){return a+(t.elapsed||0);},0)/done.length/60):0;
+  var urgDone=done.filter(function(t){return t.prio==='urgente';}).length;
+  var urgTotal=tasks.filter(function(t){return t.prio==='urgente';}).length;
+  var reunioes=tasks.filter(function(t){return t.task_type==='reuniao';}).length;
+  var comNota=tasks.filter(function(t){return t.note&&t.note.length>0;}).length;
+
+  var resumo=[
+    ['Métrica','Valor'],
+    ['Total de tarefas',tasks.length],
+    ['Concluídas',done.length],
+    ['Em aberto',open.length],
+    ['Taxa de conclusão',tasks.length>0?Math.round((done.length/tasks.length)*100)+'%':'0%'],
+    ['',''],
+    ['SLA — dentro do prazo',slaOkTotal],
+    ['SLA — acima do prazo',done.length-slaOkTotal],
+    ['Taxa SLA',taxaSLA+'%'],
+    ['Tempo médio executado',avgExec+' min'],
+    ['',''],
+    ['Urgentes (total)',urgTotal],
+    ['Urgentes concluídas',urgDone],
+    ['Reuniões',reunioes],
+    ['Tarefas com nota',comNota],
+    ['',''],
+    ['Exportado em',new Date().toLocaleDateString('pt-BR')+' '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})],
+  ];
+
+  // ── ABA 3: PROJETOS ──
+  var projRows=[['Projeto','Status','Total ações','Concluídas','Em aberto','Progresso']];
+  projects.forEach(function(p){
+    var total=p.actions.length;
+    var pdone=p.actions.filter(function(a){return a.done;}).length;
+    var pct=total>0?Math.round((pdone/total)*100):0;
+    var statusLabel={ativo:'Ativo',atencao:'Atenção',semPrazo:'Sem prazo'};
+    projRows.push([p.name,statusLabel[p.status]||p.status,total,pdone,total-pdone,pct+'%']);
+  });
+
+  // ── MONTAR WORKBOOK ──
+  var wb=XLSX.utils.book_new();
+
+  var ws1=XLSX.utils.aoa_to_sheet(rows);
+  // Larguras das colunas
+  ws1['!cols']=[
+    {wch:8},{wch:35},{wch:40},{wch:10},{wch:12},{wch:12},
+    {wch:12},{wch:10},{wch:12},{wch:18},{wch:18},{wch:12},
+    {wch:10},{wch:30},{wch:14},{wch:18},{wch:18},{wch:18}
+  ];
+  XLSX.utils.book_append_sheet(wb,ws1,'Tarefas');
+
+  var ws2=XLSX.utils.aoa_to_sheet(resumo);
+  ws2['!cols']=[{wch:30},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Resumo');
+
+  var ws3=XLSX.utils.aoa_to_sheet(projRows);
+  ws3['!cols']=[{wch:35},{wch:12},{wch:14},{wch:14},{wch:12},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws3,'Projetos');
+
+  // ── DOWNLOAD ──
+  var now=new Date();
+  var dateStr=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  var filename='MIA_Tarefas_'+dateStr+'.xlsx';
+  XLSX.writeFile(wb,filename);
+
+  fecharExportModal();
+  showToast('Excel exportado',filename);
+}
 
 // ── ROLLOVER / TAREFAS EM ATRASO ──────────────────────
 function getAtrasadas(){
