@@ -137,7 +137,20 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 /* SUBTASKS */
 .subtask-list{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
 .subtask-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
-.subtask-item{display:flex;align-items:flex-start;gap:8px;padding:5px 0;}
+
+/* SUBTAREFA EDIT/DELETE */
+.subtask-item{display:flex;align-items:flex-start;gap:6px;padding:5px 0;position:relative;}
+.subtask-item:hover .subtask-actions{opacity:1;}
+.subtask-actions{display:flex;gap:3px;opacity:0;transition:opacity 0.2s;flex-shrink:0;margin-top:0;}
+.sub-edit-btn{width:18px;height:18px;border-radius:3px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;padding:0;}
+.sub-edit-btn:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-dim);}
+.sub-del-btn{width:18px;height:18px;border-radius:3px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;padding:0;}
+.sub-del-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-dim);}
+.subtask-inline-edit{display:flex;gap:4px;align-items:center;flex:1;margin-top:2px;}
+.subtask-inline-input{flex:1;background:var(--surface3);border:1px solid var(--purple);border-radius:5px;padding:4px 7px;color:var(--text);font-size:11px;font-family:'DM Sans',sans-serif;outline:none;}
+.subtask-inline-select{background:var(--surface3);border:1px solid var(--purple);border-radius:5px;padding:4px 5px;color:var(--text2);font-size:10px;font-family:'DM Sans',sans-serif;outline:none;cursor:pointer;width:96px;}
+.subtask-inline-save{font-size:10px;padding:3px 7px;border-radius:4px;border:1px solid rgba(167,139,250,0.3);background:var(--purple-dim);color:var(--purple);cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.subtask-inline-cancel{font-size:10px;padding:3px 7px;border-radius:4px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;}
 .subtask-check{width:14px;height:14px;border-radius:3px;border:1px solid var(--border2);flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent;}
 .subtask-check:hover{border-color:var(--accent);}
 .subtask-check.checked{background:var(--teal);border-color:var(--teal);color:#0a0a0f;font-weight:700;}
@@ -1377,7 +1390,49 @@ function renderTasks(){
     var createdStr='';if(task.created_at){var cd=new Date(task.created_at);createdStr=pad(cd.getDate())+'/'+pad(cd.getMonth()+1);}
 
     var subtasksHTML='';
-    if(sTotal>0&&!isEditing){subtasksHTML='<div class="subtask-list"><div class="subtask-label">Subtarefas ('+sDone+'/'+sTotal+')</div>';task.subtasks.forEach(function(sub){subtasksHTML+='<div class="subtask-item"><div class="subtask-check'+(sub.done?' checked':'')+'" onclick="event.stopPropagation();toggleSubtask('+task.id+',\''+sub.id+'\')">'+(sub.done?'✓':'')+'</div><span class="subtask-text'+(sub.done?' done':'')+'">'+sub.text+'</span>'+(sub.status&&statusLabels[sub.status]?'<span class="subtask-badge '+sub.status+'">'+statusLabels[sub.status]+'</span>':'')+'</div>';});subtasksHTML+='</div>';}
+    if(sTotal>0&&!isEditing){
+      var subWrap=document.createElement('div');subWrap.className='subtask-list';
+      var subLbl=document.createElement('div');subLbl.className='subtask-label';subLbl.textContent='Subtarefas ('+sDone+'/'+sTotal+')';
+      subWrap.appendChild(subLbl);
+      task.subtasks.forEach(function(sub){
+        var editKey=task.id+'::'+sub.id;
+        var isEditingSub=editingSubtaskId===editKey;
+        var row=document.createElement('div');row.className='subtask-item';
+        // Checkbox
+        var chk=document.createElement('div');chk.className='subtask-check'+(sub.done?' checked':'');chk.textContent=sub.done?'✓':'';
+        chk.onclick=(function(tid,sid){return function(e){e.stopPropagation();toggleSubtask(tid,sid);};})(task.id,sub.id);
+        row.appendChild(chk);
+        if(isEditingSub){
+          // Modo edição inline
+          var inlineWrap=document.createElement('div');inlineWrap.className='subtask-inline-edit';
+          var inpEl=document.createElement('input');inpEl.className='subtask-inline-input';inpEl.id='sub-inp-'+sub.id;inpEl.value=sub.text;
+          var selEl=document.createElement('select');selEl.className='subtask-inline-select';selEl.id='sub-sel-'+sub.id;
+          [{v:'hoje',l:'📌 Hoje'},{v:'semana',l:'📅 Semana'},{v:'ciclo',l:'🔄 Ciclo'},{v:'aguardando',l:'⏳ Aguardando'},{v:'reuniao',l:'🤝 Reunião'}].forEach(function(opt){
+            var o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if(sub.status===opt.v)o.selected=true;selEl.appendChild(o);
+          });
+          var saveBtn=document.createElement('button');saveBtn.className='subtask-inline-save';saveBtn.textContent='✓';
+          saveBtn.onclick=(function(tid,sid){return function(e){e.stopPropagation();saveEditSubtask(tid,sid);};})(task.id,sub.id);
+          var cancelBtn=document.createElement('button');cancelBtn.className='subtask-inline-cancel';cancelBtn.textContent='✕';
+          cancelBtn.onclick=function(e){e.stopPropagation();cancelEditSubtask();};
+          inlineWrap.appendChild(inpEl);inlineWrap.appendChild(selEl);inlineWrap.appendChild(saveBtn);inlineWrap.appendChild(cancelBtn);
+          row.appendChild(inlineWrap);
+        } else {
+          // Modo visualização
+          var txt=document.createElement('span');txt.className='subtask-text'+(sub.done?' done':'');txt.textContent=sub.text;
+          row.appendChild(txt);
+          if(sub.status&&statusLabels[sub.status]){var badge=document.createElement('span');badge.className='subtask-badge '+sub.status;badge.textContent=statusLabels[sub.status];row.appendChild(badge);}
+          // Botões editar/excluir
+          var actions=document.createElement('div');actions.className='subtask-actions';
+          var editBtn=document.createElement('button');editBtn.className='sub-edit-btn';editBtn.textContent='✏';editBtn.title='Editar';
+          editBtn.onclick=(function(tid,sid){return function(e){e.stopPropagation();startEditSubtask(tid,sid);};})(task.id,sub.id);
+          var delBtn=document.createElement('button');delBtn.className='sub-del-btn';delBtn.textContent='✕';delBtn.title='Excluir';
+          delBtn.onclick=(function(tid,sid){return function(e){e.stopPropagation();if(confirm('Excluir subtarefa?'))deleteSubtask(tid,sid);};})(task.id,sub.id);
+          actions.appendChild(editBtn);actions.appendChild(delBtn);row.appendChild(actions);
+        }
+        subWrap.appendChild(row);
+      });
+      subtasksHTML=subWrap;
+    }
 
     var noteHTML='';
     if(!task.done&&!isEditing){noteHTML='<div class="task-note-area'+(noteOpen||hasNote?' open':'')+'">'; if(hasNote&&!noteOpen)noteHTML+='<div class="task-note-display">'+task.note+'</div>';if(noteOpen)noteHTML+='<textarea class="task-note-input" id="note-input-'+task.id+'" placeholder="Adicione uma nota, número ou contexto...">'+(task.note||'')+'</textarea><div class="note-actions"><button class="note-save-btn" onclick="event.stopPropagation();saveNote('+task.id+')">Salvar</button><button class="note-cancel-btn" onclick="event.stopPropagation();openNoteId=null;renderTasks()">Cancelar</button></div>';noteHTML+='</div>';}
@@ -1406,6 +1461,81 @@ loadProjects();
 
 
 
+
+
+// ── EDIÇÃO/EXCLUSÃO DE SUBTAREFAS ─────────────────────
+var editingSubtaskId=null; // 'taskId::subtaskId'
+
+function startEditSubtask(taskId,subId){
+  editingSubtaskId=taskId+'::'+subId;
+  renderTasks();
+}
+
+function cancelEditSubtask(){
+  editingSubtaskId=null;
+  renderTasks();
+}
+
+async function saveEditSubtask(taskId,subId){
+  var task=tasks.find(function(t){return t.id===taskId;});
+  if(!task)return;
+  var sub=task.subtasks.find(function(s){return s.id===subId;});
+  if(!sub)return;
+  var inp=document.getElementById('sub-inp-'+subId);
+  var sel=document.getElementById('sub-sel-'+subId);
+  if(inp&&inp.value.trim())sub.text=inp.value.trim();
+  if(sel)sub.status=sel.value;
+  editingSubtaskId=null;
+  renderTasks();
+  await dbUpdate(taskId,{subtasks:task.subtasks});
+  showToast('Subtarefa atualizada','');
+}
+
+async function deleteSubtask(taskId,subId){
+  var task=tasks.find(function(t){return t.id===taskId;});
+  if(!task)return;
+  task.subtasks=task.subtasks.filter(function(s){return s.id!==subId;});
+  editingSubtaskId=null;
+  renderTasks();updateStats();
+  await dbUpdate(taskId,{subtasks:task.subtasks});
+  showToast('Subtarefa removida','');
+}
+
+// Versão para projetos (localStorage)
+function startEditProjectSub(projId,subId){
+  editingSubtaskId='proj::'+projId+'::'+subId;
+  renderProjects();
+}
+
+function cancelEditProjectSub(){
+  editingSubtaskId=null;
+  renderProjects();
+}
+
+function saveEditProjectSub(projId,subId){
+  var proj=projects.find(function(p){return p.id===projId;});
+  if(!proj)return;
+  var action=proj.actions.find(function(a){return a.id===subId;});
+  if(!action)return;
+  var inp=document.getElementById('sub-inp-'+subId);
+  var sel=document.getElementById('sub-sel-'+subId);
+  if(inp&&inp.value.trim())action.text=inp.value.trim();
+  if(sel)action.deadline=sel.value;
+  editingSubtaskId=null;
+  saveProjects();
+  renderProjects();
+  showToast('Ação atualizada','');
+}
+
+function deleteProjectSub(projId,subId){
+  var proj=projects.find(function(p){return p.id===projId;});
+  if(!proj)return;
+  proj.actions=proj.actions.filter(function(a){return a.id!==subId;});
+  editingSubtaskId=null;
+  saveProjects();
+  renderProjects();
+  showToast('Ação removida','');
+}
 
 // ── EXPORTAÇÃO EXCEL ──────────────────────────────────
 function abrirExportModal(){
