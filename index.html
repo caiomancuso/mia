@@ -1443,7 +1443,17 @@ function renderTasks(){
     var actionsHTML='';
     if(!task.done){actionsHTML='<div class="task-actions"><button class="task-btn start-timer" onclick="event.stopPropagation();selectTask('+task.id+')">▶ Timer</button><button class="task-btn edit-btn" onclick="event.stopPropagation();toggleEdit('+task.id+')">'+(isEditing?'✕ Fechar':'✏ Editar')+'</button><button class="task-btn note-btn" onclick="event.stopPropagation();toggleNote('+task.id+')">'+(hasNote?'📝 Nota':'+ Nota')+'</button><button class="task-btn help-btn" onclick="event.stopPropagation();openHelp('+task.id+')">✦ Ajuda</button></div>';}
 
-    div.innerHTML='<div class="task-top"><div class="task-check'+(task.done?' checked':'')+'" onclick="event.stopPropagation();toggleDone('+task.id+')"></div><div class="task-info"><div class="task-name">'+task.name+'</div>'+(task.desc&&!isEditing?'<div class="task-desc">'+task.desc+'</div>':'')+'<div class="task-meta">criado: '+createdStr+(task.done&&task.completed_at?' · concluído: '+pad(new Date(task.completed_at).getDate())+'/'+pad(new Date(task.completed_at).getMonth()+1):'')+'</div></div></div><div class="task-badges"><span class="badge '+prioClass+'">'+prioLabel+'</span><span class="task-timer-badge">⏱ '+task.mins+' min'+(elapsedMin>0?' · '+elapsedMin+' dec':'')+(hasNote?' · 📝':'')+(sTotal>0?' · ☑ '+sDone+'/'+sTotal:'')+'</span></div>'+subtasksHTML+noteHTML+editHTML+actionsHTML;
+    // Montar card em partes — subtasksHTML pode ser elemento DOM
+    div.innerHTML=
+      '<div class="task-top"><div class="task-check'+(task.done?' checked':'')+'" onclick="event.stopPropagation();toggleDone('+task.id+')"></div><div class="task-info"><div class="task-name">'+task.name+'</div>'+(task.desc&&!isEditing?'<div class="task-desc">'+task.desc+'</div>':'')+'<div class="task-meta">criado: '+createdStr+(task.done&&task.completed_at?' · concluído: '+pad(new Date(task.completed_at).getDate())+'/'+pad(new Date(task.completed_at).getMonth()+1):'')+'</div></div></div>'+
+      '<div class="task-badges"><span class="badge '+prioClass+'">'+prioLabel+'</span><span class="task-timer-badge">⏱ '+task.mins+' min'+(elapsedMin>0?' · '+elapsedMin+' dec':'')+(hasNote?' · 📝':'')+(sTotal>0?' · ☑ '+sDone+'/'+sTotal:'')+'</span></div>'+
+      noteHTML+editHTML+actionsHTML;
+    // Inserir subtarefas como elemento DOM após os badges
+    if(subtasksHTML&&typeof subtasksHTML==='object'&&subtasksHTML.nodeType){
+      var badgesEl=div.querySelector('.task-badges');
+      if(badgesEl&&badgesEl.nextSibling) div.insertBefore(subtasksHTML,badgesEl.nextSibling);
+      else div.insertBefore(subtasksHTML,div.querySelector('.task-note-area')||div.querySelector('.edit-panel')||div.querySelector('.task-actions')||null);
+    }
     div.onclick=function(){if(!task.done&&!isEditing)selectTask(task.id);};
     list.appendChild(div);
   });
