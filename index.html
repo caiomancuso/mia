@@ -2101,6 +2101,114 @@ function updateStats(){var total=tasks.length,done=tasks.filter(function(t){retu
 // ── INIT ──────────────────────────────────────────────
 if(Notification.permission==='granted'){notifPermission=true;document.getElementById('notif-dot').style.display='none';}
 setInterval(updateDate,60000);setInterval(function(){calcCiclo();},60000);
+
+// ── AUTENTICAÇÃO — SUPABASE AUTH ──────────────────────
+var AUTH_URL = SUPABASE_URL + '/auth/v1';
+var currentSession = null;
+
+function getSavedSession(){
+  try{
+    var raw=localStorage.getItem('mia_session');
+    if(!raw)return null;
+    var s=JSON.parse(raw);
+    if(s.expires_at&&Date.now()/1000>s.expires_at){localStorage.removeItem('mia_session');return null;}
+    return s;
+  }catch(e){return null;}
+}
+
+function saveSession(s){try{localStorage.setItem('mia_session',JSON.stringify(s));}catch(e){}}
+function clearSession(){try{localStorage.removeItem('mia_session');}catch(e){}currentSession=null;}
+
+async function fazerLogin(){
+  var email=document.getElementById('login-email').value.trim();
+  var password=document.getElementById('login-password').value;
+  var btn=document.getElementById('login-btn');
+  var errorEl=document.getElementById('login-error');
+  if(!email||!password){errorEl.textContent='Preencha email e senha.';errorEl.classList.add('show');return;}
+  btn.disabled=true;btn.textContent='Entrando...';errorEl.classList.remove('show');
+  try{
+    var res=await fetch(AUTH_URL+'/token?grant_type=password',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},
+      body:JSON.stringify({email:email,password:password})
+    });
+    var data=await res.json();
+    if(!res.ok||!data.access_token){throw new Error(data.error_description||data.msg||'Credenciais inválidas');}
+    currentSession=data;
+    saveSession(data);
+    iniciarMIA();
+  }catch(e){
+    errorEl.textContent=e.message||'Email ou senha incorretos.';
+    errorEl.classList.add('show');
+    btn.disabled=false;btn.textContent='Entrar';
+  }
+}
+
+async function fazerLogout(){
+  try{
+    if(currentSession&&currentSession.access_token){
+      await fetch(AUTH_URL+'/logout',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+currentSession.access_token}});
+    }
+  }catch(e){}
+  clearSession();
+  document.getElementById('login-overlay').style.display='flex';
+  document.getElementById('login-email').value='';
+  document.getElementById('login-password').value='';
+  document.getElementById('login-btn').disabled=false;
+  document.getElementById('login-btn').textContent='Entrar';
+  document.getElementById('login-error').classList.remove('show');
+  document.getElementById('session-badge').style.display='none';
+  document.getElementById('logout-btn').style.display='none';
+  tasks=[];cicloData=[];cicloConclData=[];pessoalContas=[];pessoalEventos=[];pessoalContasPagas=[];
+  document.getElementById('task-list').innerHTML='';
+  showToast('Sessão encerrada','Até logo!');
+}
+
+function iniciarMIA(){
+  document.getElementById('login-overlay').style.display='none';
+  if(currentSession&&currentSession.access_token){
+    HEADERS['Authorization']='Bearer '+currentSession.access_token;
+  }
+  var badge=document.getElementById('session-badge');
+  var logoutBtn=document.getElementById('logout-btn');
+  if(badge){
+    var email=currentSession&&currentSession.user?currentSession.user.email:'';
+    badge.textContent='🔒 '+email.split('@')[0];
+    badge.style.display='inline-flex';
+  }
+  if(logoutBtn)logoutBtn.style.display='inline-flex';
+  loadCiclo();loadCicloConclusions();loadPessoal();
+  loadTasksFromDB().then(function(){
+    renderMeetings();renderRoadmap();renderFoco();
+    setTimeout(function(){
+      var urgent=tasks.filter(function(t){return !t.done&&t.prio==='urgente';});
+      if(urgent.length>0)showToast('⚠ '+urgent.length+' tarefa(s) urgente(s)',urgent.map(function(t){return t.name;}).join(', '));
+      checkAndShowMorningModal();
+    },1000);
+  });
+}
+
+// Enter no login faz submit
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'){
+    var overlay=document.getElementById('login-overlay');
+    if(overlay&&overlay.style.display!=='none'){fazerLogin();return;}
+    if(document.getElementById('add-form').classList.contains('open'))addTask();
+  }
+});
+
+// ── INIT ──────────────────────────────────────────────
+(function(){
+  var saved=getSavedSession();
+  if(saved&&saved.access_token){
+    currentSession=saved;
+    iniciarMIA();
+  } else {
+    document.getElementById('login-overlay').style.display='flex';
+    setTimeout(function(){var el=document.getElementById('login-email');if(el)el.focus();},100);
+  }
+})();
+
 document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.getElementById('add-form').classList.contains('open'))addTask();});
 loadProjects();
 
