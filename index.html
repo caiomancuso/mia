@@ -2889,9 +2889,12 @@ async function despagarConta(contaId) {
 async function salvarConta(dados) {
   try {
     if (dados.id) {
-      await dbFetch(CONTAS_API + '?id=eq.' + dados.id, { method: 'PATCH', body: JSON.stringify(dados) });
+      var id = dados.id;
+      var body = {nome:dados.nome, valor:dados.valor, dia_vencimento:dados.dia_vencimento, categoria:dados.categoria, ativo:dados.ativo};
+      await dbFetch(CONTAS_API + '?id=eq.' + id, { method: 'PATCH', body: JSON.stringify(body) });
     } else {
-      await dbFetch(CONTAS_API, { method: 'POST', body: JSON.stringify(dados) });
+      var body = {nome:dados.nome, valor:dados.valor, dia_vencimento:dados.dia_vencimento, categoria:dados.categoria, ativo:true};
+      await dbFetch(CONTAS_API, { method: 'POST', body: JSON.stringify(body) });
     }
     await loadPessoal();
     pessoalAddingConta = false;
@@ -2899,7 +2902,7 @@ async function salvarConta(dados) {
     renderPessoal();
     renderCalendar();
     showToast(dados.id ? 'Conta atualizada' : 'Conta adicionada', dados.nome);
-  } catch(e) { showToast('Erro ao salvar conta', 'urgente'); }
+  } catch(e) { showToast('Erro ao salvar conta: ' + e.message, 'urgente'); }
 }
 
 async function excluirConta(id) {
@@ -2915,9 +2918,12 @@ async function excluirConta(id) {
 async function salvarEvento(dados) {
   try {
     if (dados.id) {
-      await dbFetch(EVENTOS_API + '?id=eq.' + dados.id, { method: 'PATCH', body: JSON.stringify(dados) });
+      var id = dados.id;
+      var body = {nome:dados.nome, tipo:dados.tipo, dia:dados.dia, mes:dados.mes, ano:dados.ano, notificacao_dias:dados.notificacao_dias, ativo:dados.ativo};
+      await dbFetch(EVENTOS_API + '?id=eq.' + id, { method: 'PATCH', body: JSON.stringify(body) });
     } else {
-      await dbFetch(EVENTOS_API, { method: 'POST', body: JSON.stringify(dados) });
+      var body = {nome:dados.nome, tipo:dados.tipo, dia:dados.dia, mes:dados.mes, ano:dados.ano, notificacao_dias:dados.notificacao_dias, ativo:true};
+      await dbFetch(EVENTOS_API, { method: 'POST', body: JSON.stringify(body) });
     }
     await loadPessoal();
     pessoalAddingEvento = false;
@@ -2925,7 +2931,7 @@ async function salvarEvento(dados) {
     renderPessoal();
     renderCalendar();
     showToast(dados.id ? 'Evento atualizado' : 'Evento adicionado', dados.nome);
-  } catch(e) { showToast('Erro ao salvar evento', 'urgente'); }
+  } catch(e) { showToast('Erro ao salvar evento: ' + e.message, 'urgente'); }
 }
 
 async function excluirEvento(id) {
