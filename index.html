@@ -59,11 +59,16 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .today-btn{font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;}
 .today-btn:hover{border-color:var(--accent);color:var(--accent);}
 /* CALENDAR */
-.calendar-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:12px;}
-.cal-day{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px;min-height:130px;}
-.cal-day.today{border-color:var(--accent);}
-.cal-day-header{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;}
-.cal-day-num{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--text);margin-bottom:8px;}
+.calendar-month-header{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:12px 12px 0;}
+.cal-month-wday{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;text-align:center;padding:4px 0;}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:8px 12px 12px;}
+.cal-day{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:6px;min-height:80px;cursor:pointer;transition:all 0.15s;}
+.cal-day:hover{border-color:var(--border2);}
+.cal-day.today{border-color:var(--accent);background:var(--surface3);}
+.cal-day.other-month{opacity:0.3;}
+.cal-day.past{opacity:0.6;}
+.cal-day-header{display:none;}
+.cal-day-num{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px;text-align:right;}
 .cal-day.today .cal-day-num{color:var(--accent);}
 .cal-task-chip{font-size:10px;padding:3px 6px;border-radius:4px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cal-task-chip.urgente{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,109,0.2);}
@@ -413,6 +418,145 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 
 
+
+/* CICLO MENSAL GERENCIÁVEL */
+.ciclo-manage-btn{width:24px;height:24px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.ciclo-manage-btn:hover{border-color:var(--accent);color:var(--accent);}
+.ciclo-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn 0.3s ease;}
+.ciclo-modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:0;max-width:520px;width:92%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,0.6);animation:slideUp 0.3s ease;overflow:hidden;}
+.ciclo-modal-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.ciclo-modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:var(--text);}
+.ciclo-modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.ciclo-modal-close:hover{border-color:var(--red);color:var(--red);}
+.ciclo-modal-body{flex:1;overflow-y:auto;padding:16px;}
+.ciclo-modal-body::-webkit-scrollbar{width:3px;}
+.ciclo-modal-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.ciclo-modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;}
+/* Lista de itens */
+.ciclo-item-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;transition:all 0.2s;}
+.ciclo-item-card:hover{border-color:var(--border2);}
+.ciclo-item-card.editing{border-color:var(--purple);background:var(--surface3);}
+.ciclo-item-left{flex:1;min-width:0;}
+.ciclo-item-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px;}
+.ciclo-item-detail{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);}
+.ciclo-item-cor{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ciclo-item-cor.critico{background:var(--red);}
+.ciclo-item-cor.atencao{background:var(--amber);}
+.ciclo-item-cor.ok{background:var(--teal);}
+.ciclo-item-cor.normal{background:var(--text3);}
+.ciclo-item-actions{display:flex;gap:4px;flex-shrink:0;}
+.ciclo-item-btn{width:26px;height:26px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.ciclo-item-btn.edit:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-dim);}
+.ciclo-item-btn.del:hover{border-color:var(--red);color:var(--red);background:var(--red-dim);}
+.ciclo-item-btn.save:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-dim);}
+/* Form de edição/adição */
+.ciclo-form{background:var(--surface3);border:1px solid rgba(167,139,250,0.2);border-radius:var(--radius);padding:14px;margin-bottom:8px;}
+.ciclo-form-title{font-size:11px;font-family:'DM Mono',monospace;color:var(--purple);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;}
+.ciclo-form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.ciclo-form-row.full{grid-template-columns:1fr;}
+.ciclo-form-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;}
+.ciclo-form-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;}
+.ciclo-form-input:focus{border-color:var(--purple);}
+.ciclo-form-input::placeholder{color:var(--text3);}
+.ciclo-form-select{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text2);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;cursor:pointer;}
+.ciclo-form-btns{display:flex;gap:8px;margin-top:12px;}
+.ciclo-form-save{flex:1;padding:8px;background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,0.3);border-radius:6px;font-size:12px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;}
+.ciclo-form-save:hover{background:rgba(167,139,250,0.2);}
+.ciclo-form-cancel{padding:8px 14px;background:transparent;color:var(--text3);border:1px solid var(--border2);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.ciclo-add-btn{width:100%;padding:9px;border-radius:var(--radius);border:1px dashed var(--border2);background:transparent;color:var(--text3);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;margin-top:4px;}
+.ciclo-add-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.ciclo-modal-save-btn{flex:1;padding:9px;background:var(--accent);color:#0a0a0f;border:none;border-radius:var(--radius);font-size:12px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;}
+.ciclo-modal-save-btn:hover{background:var(--accent2);}
+.ciclo-modal-cancel-btn{padding:9px 16px;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;}
+
+/* CICLO GERENCIÁVEL */
+.ciclo-widget-header{display:flex;align-items:center;justify-content:space-between;padding:0 0 12px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+.ciclo-gear-btn{width:24px;height:24px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.ciclo-gear-btn:hover{border-color:var(--accent);color:var(--accent);}
+.ciclo-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn 0.25s ease;}
+.ciclo-modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:0;max-width:540px;width:92%;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,0.5);animation:slideUp 0.25s ease;}
+.ciclo-modal-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.ciclo-modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--text);}
+.ciclo-modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.ciclo-modal-close:hover{border-color:var(--red);color:var(--red);}
+.ciclo-modal-body{padding:16px 20px;overflow-y:auto;flex:1;}
+.ciclo-modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;}
+/* Lista de itens no modal */
+.ciclo-list-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;transition:all 0.2s;}
+.ciclo-list-item:hover{border-color:var(--border2);}
+.ciclo-list-item.editing{border-color:var(--purple);background:var(--surface3);}
+.ciclo-item-left{flex:1;min-width:0;}
+.ciclo-item-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px;}
+.ciclo-item-detail{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.ciclo-item-btns{display:flex;gap:4px;flex-shrink:0;}
+.ciclo-item-edit-btn{width:26px;height:26px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.ciclo-item-edit-btn:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-dim);}
+.ciclo-item-del-btn{width:26px;height:26px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.ciclo-item-del-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-dim);}
+/* Formulário inline */
+.ciclo-form{background:var(--surface3);border:1px solid rgba(167,139,250,0.2);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+.ciclo-form-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;margin-top:12px;}
+.ciclo-form-label:first-child{margin-top:0;}
+.ciclo-form-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:0;}
+.ciclo-form-input:focus{border-color:var(--purple);}
+.ciclo-form-input::placeholder{color:var(--text3);}
+.ciclo-form-select{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;color:var(--text2);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;cursor:pointer;}
+.ciclo-form-row{display:flex;gap:8px;margin-top:8px;}
+.ciclo-form-save{flex:1;padding:8px;background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,0.3);border-radius:6px;font-size:12px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;}
+.ciclo-form-save:hover{background:rgba(167,139,250,0.2);}
+.ciclo-form-cancel{padding:8px 14px;background:transparent;color:var(--text3);border:1px solid var(--border2);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.ciclo-add-btn{width:100%;padding:9px;background:var(--accent-dim);color:var(--accent);border:1px dashed rgba(200,241,53,0.3);border-radius:var(--radius);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;transition:all 0.2s;margin-top:4px;}
+.ciclo-add-btn:hover{background:var(--accent-glow);}
+/* Notif badge */
+.ciclo-notif-badge{font-size:9px;font-family:'DM Mono',monospace;padding:1px 5px;border-radius:3px;background:var(--blue-dim);color:var(--blue);border:1px solid rgba(91,156,246,0.2);margin-left:4px;}
+
+/* CICLO MODAL */
+.ciclo-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn 0.3s ease;}
+.ciclo-modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:0;max-width:500px;width:94%;box-shadow:0 24px 64px rgba(0,0,0,0.6);animation:slideUp 0.3s ease;max-height:88vh;display:flex;flex-direction:column;}
+.ciclo-modal-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.ciclo-modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--text);}
+.ciclo-modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.ciclo-modal-close:hover{border-color:var(--red);color:var(--red);}
+.ciclo-modal-body{padding:16px;overflow-y:auto;flex:1;}
+.ciclo-modal-footer{padding:14px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;flex-shrink:0;}
+.ciclo-add-btn{font-size:12px;padding:7px 14px;border-radius:var(--radius);border:1px solid rgba(200,241,53,0.3);background:var(--accent-dim);color:var(--accent);cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;}
+.ciclo-add-btn:hover{background:var(--accent-glow);}
+/* Item do ciclo no modal */
+.ciclo-edit-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;transition:all 0.2s;}
+.ciclo-edit-item:hover{border-color:var(--border2);}
+.ciclo-edit-item.editing{border-color:var(--purple);background:var(--surface3);}
+.ciclo-item-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.ciclo-item-name{font-size:12px;font-weight:500;color:var(--text);flex:1;}
+.ciclo-item-meta{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);}
+.ciclo-item-btns{display:flex;gap:4px;flex-shrink:0;}
+.ciclo-item-btn{width:24px;height:24px;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.ciclo-item-btn.edit:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-dim);}
+.ciclo-item-btn.del:hover{border-color:var(--red);color:var(--red);background:var(--red-dim);}
+.ciclo-item-btn.toggle:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-dim);}
+/* Formulário inline */
+.ciclo-form{margin-top:10px;display:none;}
+.ciclo-form.open{display:block;}
+.ciclo-form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.ciclo-form-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;margin-top:10px;}
+.ciclo-form-label:first-child{margin-top:0;}
+.ciclo-form-input{flex:1;min-width:120px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;}
+.ciclo-form-input:focus{border-color:var(--purple);}
+.ciclo-form-select{flex:1;min-width:120px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text2);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;cursor:pointer;}
+.ciclo-form-select:focus{border-color:var(--purple);}
+.ciclo-form-footer{display:flex;gap:6px;margin-top:10px;}
+.ciclo-form-save{flex:1;padding:7px;background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,0.3);border-radius:6px;font-size:12px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;}
+.ciclo-form-cancel{padding:7px 12px;background:transparent;color:var(--text3);border:1px solid var(--border2);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;}
+/* Gear button */
+.ciclo-gear-btn{width:22px;height:22px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.ciclo-gear-btn:hover{border-color:var(--accent);color:var(--accent);}
+/* Indicador inativo */
+.ciclo-inactive{opacity:0.4;}
+
+/* EXPORT PERIOD SELECTOR */
+.export-period-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.export-period-btn{flex:1;min-width:60px;padding:7px 8px;border-radius:7px;border:1px solid var(--border2);background:var(--surface3);color:var(--text2);cursor:pointer;font-size:11px;font-family:'DM Mono',monospace;text-align:center;transition:all 0.2s;}
+.export-period-btn:hover{border-color:var(--accent);color:var(--accent);}
+.export-period-btn.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(200,241,53,0.3);}
 /* RELATÓRIO WORD */
 .rel-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn 0.3s ease;}
 .rel-modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:28px;max-width:520px;width:90%;box-shadow:0 24px 64px rgba(0,0,0,0.6);animation:slideUp 0.3s ease;}
@@ -512,6 +656,21 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 </head>
 <body>
 <div class="toast-container" id="toasts"></div>
+<div class="ciclo-modal-overlay" id="ciclo-modal" style="display:none;">
+  <div class="ciclo-modal">
+    <div class="ciclo-modal-header">
+      <div class="ciclo-modal-title">⚙ Gerenciar Ciclo Mensal</div>
+      <button class="ciclo-modal-close" onclick="fecharCicloModal()">✕</button>
+    </div>
+    <div class="ciclo-modal-body" id="ciclo-modal-body">
+      <div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Carregando...</div>
+    </div>
+    <div class="ciclo-modal-footer">
+      <button class="ciclo-modal-cancel-btn" onclick="fecharCicloModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <div class="rel-modal-overlay" id="rel-modal" style="display:none;">
   <div class="rel-modal">
     <div class="rel-modal-title">📄 Relatório de Status</div>
@@ -539,7 +698,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 <div class="export-modal-overlay" id="export-modal" style="display:none;">
   <div class="export-modal">
     <div class="export-modal-title">⬇ Exportar tarefas</div>
-    <div class="export-modal-sub">Exporta todo o histórico de tarefas para Excel (.xlsx) com todas as informações disponíveis.</div>
+    <div class="export-modal-sub">Selecione o período e exporte as tarefas para Excel (.xlsx).</div>
+    <div class="export-period-row">
+      <button class="export-period-btn active" onclick="setExportPeriod('dia',this)">Hoje</button>
+      <button class="export-period-btn" onclick="setExportPeriod('semana',this)">Semana</button>
+      <button class="export-period-btn" onclick="setExportPeriod('mes',this)">Mês</button>
+      <button class="export-period-btn" onclick="setExportPeriod('tudo',this)">Tudo</button>
+    </div>
     <div class="export-preview">
       <div class="export-preview-label">Preview da exportação</div>
       <div id="export-preview-content"></div>
@@ -566,6 +731,21 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <button class="export-btn-cancel" onclick="fecharExportModal()">Cancelar</button>
       <button class="export-btn" style="background:var(--blue);" onclick="fecharExportModal();abrirRelatorioModal()">📄 Relatório Word</button>
       <button class="export-btn" onclick="exportarExcel()">⬇ Excel</button>
+    </div>
+  </div>
+</div>
+
+<div class="ciclo-modal-overlay" id="ciclo-modal" style="display:none;">
+  <div class="ciclo-modal">
+    <div class="ciclo-modal-header">
+      <div class="ciclo-modal-title">⚙ Gerenciar Ciclo Mensal</div>
+      <button class="ciclo-modal-close" onclick="fecharCicloModal()">✕</button>
+    </div>
+    <div class="ciclo-modal-body" id="ciclo-modal-body">
+      <div class="loading-state">⟳ carregando...</div>
+    </div>
+    <div class="ciclo-modal-footer">
+      <button class="ciclo-add-btn" onclick="abrirFormNovoCiclo()">+ Novo item</button>
     </div>
   </div>
 </div>
@@ -671,7 +851,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <!-- CALENDÁRIO -->
       <div class="tab-content" id="tab-calendario">
         <div class="panel">
-          <div class="panel-header"><button class="date-nav-btn" onclick="navCalWeek(-1)" style="margin-right:4px;">‹</button><div class="panel-title" id="cal-week-label" style="flex:1;text-align:center;">Semana atual</div><button class="today-btn" onclick="goCalToday()" style="margin-right:4px;">Hoje</button><button class="date-nav-btn" onclick="navCalWeek(1)">›</button></div>
+          <div class="panel-header"><button class="date-nav-btn" onclick="navCalMonth(-1)" style="margin-right:4px;">‹</button><div class="panel-title" id="cal-week-label" style="flex:1;text-align:center;">Mês atual</div><button class="today-btn" onclick="goCalToday()" style="margin-right:4px;">Hoje</button><button class="date-nav-btn" onclick="navCalMonth(1)">›</button></div>
+          <div class="calendar-month-header" id="calendar-week-headers"></div>
           <div class="calendar-grid" id="calendar-grid"></div>
         </div>
       </div>
@@ -714,7 +895,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         </div>
       </div>
       <div class="ciclo-widget">
-        <div class="panel-header" style="padding:0 0 12px;border-bottom:1px solid var(--border);"><div class="panel-title">Ciclo mensal</div></div>
+        <div class="panel-header" style="padding:0 0 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;"><div class="panel-title">Ciclo mensal</div><button class="ciclo-manage-btn" onclick="abrirCicloModal()" title="Gerenciar ciclo">⚙</button></div>
         <div style="margin-top:8px;" id="ciclo-list"></div>
       </div>
 
@@ -765,6 +946,7 @@ var API=SUPABASE_URL+'/rest/v1/tasks';
 var HEADERS={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'};
 
 var tasks=[];
+var cicloData=[];
 var timerInterval=null,timerSeconds=0,timerMaxSeconds=0,timerRunning=false,activeTaskId=null;
 var notifPermission=false,subtaskCounter=0,openNoteId=null,editingTaskId=null;
 var currentFilter='todas',viewDate=new Date(),editSubCounter=0;
@@ -885,18 +1067,28 @@ function goToday(){viewDate=new Date();renderTasks();}
 function formatNavDate(d){var days=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];var months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];var now=new Date();if(d.toDateString()===now.toDateString())return'Hoje — '+days[d.getDay()]+', '+d.getDate()+' '+months[d.getMonth()];var tom=new Date(now);tom.setDate(now.getDate()+1);if(d.toDateString()===tom.toDateString())return'Amanhã — '+days[d.getDay()]+', '+d.getDate()+' '+months[d.getMonth()];return days[d.getDay()]+', '+d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();}
 function getViewDayIndex(){var dow=viewDate.getDay();return dow===0?6:dow-1;}
 
-// ── CICLO ─────────────────────────────────────────────
-function calcCiclo(){
-  var now=new Date(),year=now.getFullYear(),month=now.getMonth(),day=now.getDate(),dow=now.getDay();
-  function daysUntil(d){var t=new Date(year,month,d);if(d<day)t=new Date(year,month+1,d);return Math.round((t-now)/86400000);}
-  function firstMonday(){var d=new Date(year,month,1);while(d.getDay()!==1)d.setDate(d.getDate()+1);var diff=Math.round((d-now)/86400000);if(diff<0){d=new Date(year,month+1,1);while(d.getDay()!==1)d.setDate(d.getDate()+1);diff=Math.round((d-now)/86400000);}return diff;}
-  function nextWd(t){return(t-dow+7)%7;}
-  function cc(d){return d<=1?'critico':d<=3?'atencao':d<=7?'ok':'normal';}
-  function ct(d){return d===0?'hoje':d===1?'amanhã':'em '+d+' dias';}
-  var items=[{name:'Relatório PR',days:daysUntil(24),label:'Dia 24'},{name:'Fechamento Gerentes',days:daysUntil(5),label:'Dia 05'},{name:'Scanntech sell out',days:firstMonday(),label:'1ª segunda'},{name:'S&OP',days:nextWd(4),label:'Toda quinta'},{name:'Dir. Comercial',days:nextWd(5),label:'Toda sexta'}];
-  var html='';items.forEach(function(item){var cls=cc(item.days);html+='<div class="ciclo-item"><span class="ciclo-name">'+item.name+'</span><div class="ciclo-right"><span class="ciclo-date '+cls+'">'+item.label+'</span><span class="ciclo-countdown '+cls+'">'+ct(item.days)+'</span></div></div>';});
-  document.getElementById('ciclo-list').innerHTML=html;
+
+// ── CALCULAR CICLO ────────────────────────────────────
+// ── MODAL DE GESTÃO ───────────────────────────────────
+function fecharCicloModal(){
+  document.getElementById('ciclo-modal').style.display='none';
+  editingCicloId=null;
+  addingNewCiclo=false;
 }
+
+function abrirFormNovoCiclo(){
+  editingCicloId=null;
+  addingNewCiclo=true;
+  renderCicloModal();
+  // Scroll para o final
+  setTimeout(function(){
+    var body=document.getElementById('ciclo-modal-body');
+    if(body)body.scrollTop=body.scrollHeight;
+  },50);
+}
+
+// ── CICLO ─────────────────────────────────────────────
+// calcCiclo movida para o bloco de Ciclo Gerenciável acima
 calcCiclo();
 
 // ── TABS ──────────────────────────────────────────────
@@ -915,7 +1107,7 @@ function switchTab(tabId,btn){
 function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.filter-chip').forEach(function(c){c.classList.remove('active');});btn.classList.add('active');renderTasks();}
 
 // ── CALENDAR ──────────────────────────────────────────
-var calWeekOffset=0; // 0=semana atual, -1=anterior, +1=próxima
+var calMonthOffset=0; // 0=mês atual
 
 function getCalMonday(offset){
   var now=new Date(),dow=now.getDay();
@@ -925,8 +1117,9 @@ function getCalMonday(offset){
   return monday;
 }
 
-function navCalWeek(dir){calWeekOffset+=dir;renderCalendar();}
-function goCalToday(){calWeekOffset=0;renderCalendar();}
+function navCalMonth(dir){calMonthOffset+=dir;renderCalendar();}
+function navCalWeek(dir){calMonthOffset+=dir;renderCalendar();}
+function goCalToday(){calMonthOffset=0;renderCalendar();}
 
 function toDateStr(d){
   var y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');
@@ -936,8 +1129,7 @@ function toDateStr(d){
 function getTasksForDate(dateStr){
   return tasks.filter(function(t){
     if(t.task_date) return t.task_date===dateStr;
-    // fallback para tarefas sem task_date: usar campo day na semana atual
-    if(calWeekOffset===0){
+    if(calMonthOffset===0){
       var dow=new Date(dateStr).getDay();
       var dayIdx=dow===0?6:dow-1;
       return(t.day===undefined?4:t.day)===dayIdx;
@@ -946,43 +1138,93 @@ function getTasksForDate(dateStr){
   });
 }
 
-// Reuniões gerenciadas como tarefas na MIA
 var fixedMeetings={};
 
 function renderCalendar(){
   var now=new Date();
-  var monday=getCalMonday(calWeekOffset);
-  var dayNames=['Seg','Ter','Qua','Qui','Sex'];
-  var months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  var fl=new Date(monday),ll=new Date(monday);ll.setDate(monday.getDate()+4);
-  var weekLabel=fl.getDate()+' '+months[fl.getMonth()];
-  if(fl.getMonth()!==ll.getMonth()) weekLabel+=' — '+ll.getDate()+' '+months[ll.getMonth()]+' '+ll.getFullYear();
-  else weekLabel+=' — '+ll.getDate()+' '+months[ll.getMonth()]+' '+ll.getFullYear();
-  document.getElementById('cal-week-label').textContent=weekLabel;
+  var months=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var dayNames=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  // Mês a exibir
+  var refDate=new Date(now.getFullYear(),now.getMonth()+calMonthOffset,1);
+  var year=refDate.getFullYear(),month=refDate.getMonth();
+
+  // Label
+  document.getElementById('cal-week-label').textContent=months[month]+' '+year;
+
+  // Header dias da semana
+  var headersEl=document.getElementById('calendar-week-headers');
+  if(headersEl){
+    headersEl.innerHTML='';
+    dayNames.forEach(function(d){
+      var el=document.createElement('div');el.className='cal-month-wday';el.textContent=d;headersEl.appendChild(el);
+    });
+  }
 
   var grid=document.getElementById('calendar-grid');grid.innerHTML='';
-  for(var i=0;i<5;i++){
-    var d=new Date(monday);d.setDate(monday.getDate()+i);
-    var dateStr=toDateStr(d);
-    var isToday=d.toDateString()===now.toDateString();
-    var isPast=d<now&&!isToday;
+
+  // Primeiro dia do mês e quantos dias tem
+  var firstDay=new Date(year,month,1).getDay(); // 0=Dom
+  var daysInMonth=new Date(year,month+1,0).getDate();
+  var daysInPrev=new Date(year,month,0).getDate();
+
+  // Dias do mês anterior (preenchimento)
+  for(var i=firstDay-1;i>=0;i--){
+    var d=daysInPrev-i;
+    var div=document.createElement('div');div.className='cal-day other-month';
+    div.innerHTML='<div class="cal-day-num" style="color:var(--text3);">'+d+'</div>';
+    grid.appendChild(div);
+  }
+
+  // Dias do mês atual
+  for(var day=1;day<=daysInMonth;day++){
+    var dateObj=new Date(year,month,day);
+    var dateStr=toDateStr(dateObj);
+    var isToday=dateStr===toDateStr(now);
+    var isPast=dateObj<now&&!isToday;
+
     var dayTasks=getTasksForDate(dateStr);
-    var chipsHtml='';
-    // Reuniões fixas
-    if(fixedMeetings[dateStr]){
-      fixedMeetings[dateStr].forEach(function(m){
-        chipsHtml+='<div class="cal-meeting-chip">⏰ '+m.time+' '+m.name+'</div>';
-      });
-    }
-    // Tarefas
-    dayTasks.forEach(function(t){
-      var cls=t.done?'done':t.prio;
-      chipsHtml+='<div class="cal-task-chip '+cls+'" title="'+t.name+'">'+t.name+'</div>';
-    });
+    var meetings=fixedMeetings[dateStr]||[];
+
     var div=document.createElement('div');
-    div.className='cal-day'+(isToday?' today':'')+(isPast?' style="opacity:0.6"':'');
-    if(isPast)div.style.opacity='0.65';
-    div.innerHTML='<div class="cal-day-header">'+dayNames[i]+'</div><div class="cal-day-num">'+d.getDate()+'</div>'+chipsHtml;
+    div.className='cal-day'+(isToday?' today':'')+(isPast&&!isToday?' past':'');
+    div.onclick=(function(ds){return function(){
+      viewDate=new Date(ds+'T12:00:00');
+      switchTab('tarefas',document.querySelectorAll('.tab-btn')[1]);
+      renderTasks();
+    };})(dateStr);
+
+    var numEl=document.createElement('div');numEl.className='cal-day-num';numEl.textContent=day;
+    div.appendChild(numEl);
+
+    // Chips de reuniões
+    meetings.forEach(function(m){
+      var chip=document.createElement('div');chip.className='cal-meeting-chip';chip.textContent='⏰ '+m.time+' '+m.name;div.appendChild(chip);
+    });
+
+    // Chips de tarefas (máximo 3, depois "+N")
+    var maxChips=3;
+    var shown=0;
+    dayTasks.forEach(function(t){
+      if(shown>=maxChips)return;
+      var cls=t.done?'done':t.prio;
+      var chip=document.createElement('div');chip.className='cal-task-chip '+cls;chip.title=t.name;
+      chip.textContent=t.name.length>14?t.name.substring(0,13)+'…':t.name;
+      div.appendChild(chip);shown++;
+    });
+    if(dayTasks.length>maxChips){
+      var more=document.createElement('div');more.className='cal-task-chip normal';more.textContent='+'+(dayTasks.length-maxChips)+' mais';div.appendChild(more);
+    }
+
+    grid.appendChild(div);
+  }
+
+  // Dias do próximo mês (completar grid)
+  var totalCells=firstDay+daysInMonth;
+  var remainder=totalCells%7===0?0:7-(totalCells%7);
+  for(var nd=1;nd<=remainder;nd++){
+    var div=document.createElement('div');div.className='cal-day other-month';
+    div.innerHTML='<div class="cal-day-num" style="color:var(--text3);">'+nd+'</div>';
     grid.appendChild(div);
   }
 }
@@ -1470,7 +1712,7 @@ function updateStats(){var total=tasks.length,done=tasks.filter(function(t){retu
 
 // ── INIT ──────────────────────────────────────────────
 if(Notification.permission==='granted'){notifPermission=true;document.getElementById('notif-dot').style.display='none';}
-setInterval(updateDate,60000);setInterval(calcCiclo,60000);
+setInterval(updateDate,60000);setInterval(function(){calcCiclo();},60000);
 document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.getElementById('add-form').classList.contains('open'))addTask();});
 loadProjects();
 
@@ -1553,27 +1795,453 @@ function deleteProjectSub(projId,subId){
   showToast('Ação removida','');
 }
 
+
+
+var editingCicloId=null;
+var showingCicloAddForm=false;
+var CICLO_API='https://rmuvwntvubiojiqjdyye.supabase.co/rest/v1/ciclo';
+
+async function loadCicloFromDB(){
+  try{
+    var res=await fetch(CICLO_API+'?ativo=eq.true&order=ordem.asc',{headers:HEADERS});
+    if(!res.ok)throw new Error();
+    var data=await res.json();
+    cicloData=data||[];
+  }catch(e){
+    // Fallback para array vazio — calcCiclo usa cicloData se disponível
+    cicloData=[];
+  }
+  calcCiclo();
+}
+
+
+// ── CICLO MENSAL GERENCIÁVEL ──────────────────────────
+var cicloData=[];
+var cicloEditingId=null;
+var cicloShowForm=false;
+var API_CICLO=SUPABASE_URL+'/rest/v1/ciclo';
+
+async function loadCiclo(){
+  try{
+    var data=await dbFetch(API_CICLO+'?ativo=eq.true&order=ordem.asc');
+    cicloData=(data||[]);
+    calcCiclo();
+  } catch(e){
+    // fallback para dados padrão se tabela não carregar
+    cicloData=[];
+    calcCiclo();
+  }
+}
+
+async function saveCicloItem(item){
+  setSyncStatus('syncing','⟳ salvando');
+  try{
+    if(item.id){
+      var body={nome:item.nome,tipo:item.tipo,dia_fixo:item.dia_fixo||null,recorrencia:item.recorrencia||null,cor:item.cor,notificacao_dias:item.notificacao_dias,ativo:item.ativo,ordem:item.ordem};
+      await dbFetch(API_CICLO+'?id=eq.'+item.id,{method:'PATCH',body:JSON.stringify(body)});
+    } else {
+      var maxOrdem=(cicloData&&cicloData.length>0)?Math.max.apply(null,cicloData.map(function(c){return c.ordem||0;})):0;
+      var bodyNew={nome:item.nome,tipo:item.tipo,dia_fixo:item.dia_fixo||null,recorrencia:item.recorrencia||null,cor:item.cor,notificacao_dias:item.notificacao_dias,ativo:true,ordem:maxOrdem+1};
+      var created=await dbFetch(API_CICLO,{method:'POST',body:JSON.stringify(bodyNew)});
+      if(created&&created[0])item.id=created[0].id;
+    }
+    setSyncStatus('synced','✓ salvo');
+    return true;
+  } catch(e){setSyncStatus('error','✗ erro');return false;}
+}
+
+function fecharCicloModal(){
+  document.getElementById('ciclo-modal').style.display='none';
+  cicloEditingId=null;cicloShowForm=false;
+}
+
+function mostrarFormCiclo(editId){
+  cicloEditingId=editId||null;
+  cicloShowForm=true;
+  renderCicloModal();
+  setTimeout(function(){var el=document.getElementById('ciclo-form-nome');if(el)el.focus();},50);
+}
+
+function toggleCicloTipoFields(){
+  var tipo=document.getElementById('ciclo-form-tipo');
+  if(!tipo)return;
+  var diaDiv=document.getElementById('ciclo-campo-dia');
+  var recDiv=document.getElementById('ciclo-campo-rec');
+  if(tipo.value==='dia_fixo'){if(diaDiv)diaDiv.style.display='';if(recDiv)recDiv.style.display='none';}
+  else{if(diaDiv)diaDiv.style.display='none';if(recDiv)recDiv.style.display='';}
+}
+
+async function salvarCicloForm(){
+  var nome=document.getElementById('ciclo-form-nome');
+  var tipo=document.getElementById('ciclo-form-tipo');
+  var dia=document.getElementById('ciclo-form-dia');
+  var rec=document.getElementById('ciclo-form-rec');
+  var cor=document.getElementById('ciclo-form-cor');
+  var notif=document.getElementById('ciclo-form-notif');
+  if(!nome||!nome.value.trim()){showToast('Digite o nome do item','urgente');return;}
+  var item={
+    id:cicloEditingId||null,
+    nome:nome.value.trim(),
+    tipo:tipo?tipo.value:'dia_fixo',
+    dia_fixo:tipo&&tipo.value==='dia_fixo'?(parseInt(dia&&dia.value)||null):null,
+    recorrencia:tipo&&tipo.value==='recorrente'?(rec&&rec.value||null):null,
+    cor:cor?cor.value:'normal',
+    notificacao_dias:parseInt(notif&&notif.value)||3,
+    ativo:true,
+    ordem:0
+  };
+  var ok=await saveCicloItem(item);
+  if(ok){
+    await loadCiclo();
+    cicloShowForm=false;cicloEditingId=null;
+    renderCicloModal();
+    showToast(cicloEditingId?'Item atualizado':'Item adicionado',item.nome);
+  }
+}
+
+async function deleteCicloItemUI(id){
+  var ok=await deleteCicloItem(id);
+  if(ok){
+    await loadCiclo();
+    renderCicloModal();
+    showToast('Item removido do ciclo','');
+  }
+}
+
+function recorrenciaLabel(rec){
+  var map={toda_segunda:'Toda segunda',toda_terca:'Toda terça',toda_quarta:'Toda quarta',toda_quinta:'Toda quinta',toda_sexta:'Toda sexta',primeira_segunda:'1ª segunda',primeira_sexta:'1ª sexta',segunda_sexta:'2ª sexta'};
+  return map[rec]||rec||'—';
+}
+function corLabel(cor){
+  var map={ok:'Verde',atencao:'Atenção',urgente:'Urgente',normal:'Normal'};
+  return map[cor]||cor;
+}
+
+function calcCiclo(){
+  var now=new Date(),year=now.getFullYear(),month=now.getMonth(),day=now.getDate(),dow=now.getDay();
+
+  function daysUntilFixo(d){
+    var t=new Date(year,month,d);
+    if(d<day)t=new Date(year,month+1,d);
+    return Math.round((t-now)/86400000);
+  }
+  function firstMondayOfMonth(){
+    var d=new Date(year,month,1);while(d.getDay()!==1)d.setDate(d.getDate()+1);
+    var diff=Math.round((d-now)/86400000);
+    if(diff<0){d=new Date(year,month+1,1);while(d.getDay()!==1)d.setDate(d.getDate()+1);diff=Math.round((d-now)/86400000);}
+    return diff;
+  }
+  function nextWeekday(t){return(t-dow+7)%7;}
+
+  function getDays(item){
+    if(item.tipo==='dia_fixo'&&item.dia_fixo) return daysUntilFixo(item.dia_fixo);
+    if(item.tipo==='recorrente'){
+      if(item.recorrencia==='primeira_segunda') return firstMondayOfMonth();
+      if(item.recorrencia==='toda_segunda') return nextWeekday(1);
+      if(item.recorrencia==='toda_terca') return nextWeekday(2);
+      if(item.recorrencia==='toda_quarta') return nextWeekday(3);
+      if(item.recorrencia==='toda_quinta') return nextWeekday(4);
+      if(item.recorrencia==='toda_sexta') return nextWeekday(5);
+    }
+    return 99;
+  }
+
+  function colorClass(days,cor,notif){
+    var threshold=notif||3;
+    if(days<=0) return 'critico';
+    if(days<=1) return 'critico';
+    if(days<=threshold) return cor==='urgente'?'critico':'atencao';
+    if(days<=7) return cor==='ok'?'ok':'normal';
+    return 'normal';
+  }
+  function countdownText(d){return d===0?'hoje':d===1?'amanhã':'em '+d+' dias';}
+
+  var list=document.getElementById('ciclo-list');
+  if(!list)return;
+
+  // Usar cicloData do Supabase se disponível, senão defaults
+  var items=(cicloData&&cicloData.length>0)?cicloData:[
+    {nome:'Relatório PR',tipo:'dia_fixo',dia_fixo:24,recorrencia:null,cor:'ok',notificacao_dias:3},
+    {nome:'Fechamento Gerentes',tipo:'dia_fixo',dia_fixo:5,recorrencia:null,cor:'urgente',notificacao_dias:5},
+    {nome:'Scanntech sell out',tipo:'recorrente',dia_fixo:null,recorrencia:'primeira_segunda',cor:'normal',notificacao_dias:2},
+    {nome:'S&OP',tipo:'recorrente',dia_fixo:null,recorrencia:'toda_quinta',cor:'normal',notificacao_dias:1},
+    {nome:'Dir. Comercial',tipo:'recorrente',dia_fixo:null,recorrencia:'toda_sexta',cor:'normal',notificacao_dias:1},
+  ];
+
+  list.innerHTML='';
+  items.forEach(function(item){
+    var days=getDays(item);
+    var cls=colorClass(days,item.cor,item.notificacao_dias);
+    var ct=countdownText(days);
+    var labelMap={dia_fixo:'Dia '+item.dia_fixo,primeira_segunda:'1ª segunda',toda_segunda:'Toda segunda',toda_terca:'Toda terça',toda_quarta:'Toda quarta',toda_quinta:'Toda quinta',toda_sexta:'Toda sexta'};
+    var label=item.tipo==='dia_fixo'?'Dia '+item.dia_fixo:(labelMap[item.recorrencia]||item.recorrencia||'—');
+    var row=document.createElement('div');row.className='ciclo-item';
+    var nameSpan=document.createElement('span');nameSpan.className='ciclo-name';nameSpan.textContent=item.nome;
+    var right=document.createElement('div');right.className='ciclo-right';
+    var dateSpan=document.createElement('span');dateSpan.className='ciclo-date '+cls;dateSpan.textContent=label;
+    var countSpan=document.createElement('span');countSpan.className='ciclo-countdown '+cls;countSpan.textContent=ct;
+    right.appendChild(dateSpan);right.appendChild(countSpan);
+    row.appendChild(nameSpan);row.appendChild(right);
+    list.appendChild(row);
+
+    // Alerta de notificação
+    if(days>=0&&days<=item.notificacao_dias&&days>0){
+      var key='ciclo_notif_'+item.id+'_'+new Date().toDateString();
+      if(!sessionStorage.getItem(key)){
+        sessionStorage.setItem(key,'1');
+        if(Notification.permission==='granted') new Notification('⏰ Ciclo MIA',{body:item.nome+' vence em '+ct});
+      }
+    }
+  });
+}
+
+// ── MODAL ─────────────────────────────────────────────
+function abrirCicloModal(){
+  document.getElementById('ciclo-modal').style.display='flex';
+  editingCicloId=null;showingCicloAddForm=false;
+  renderCicloModal();
+}
+
+function fecharCicloModal(){
+  document.getElementById('ciclo-modal').style.display='none';
+  editingCicloId=null;showingCicloAddForm=false;
+}
+
+function renderCicloModal(){
+  var body=document.getElementById('ciclo-modal-body');
+  body.innerHTML='';
+
+  var recLabels={primeira_segunda:'1ª Segunda',toda_segunda:'Toda Segunda',toda_terca:'Toda Terça',toda_quarta:'Toda Quarta',toda_quinta:'Toda Quinta',toda_sexta:'Toda Sexta'};
+  var corLabels={critico:'🔴 Crítico',atencao:'🟡 Atenção',ok:'🟢 OK',normal:'⚪ Normal',urgente:'🔴 Urgente'};
+
+  // Lista de itens
+  var items=(cicloData&&cicloData.length>0)?cicloData:[
+    {id:'_1',nome:'Relatório PR',tipo:'dia_fixo',dia_fixo:24,recorrencia:null,cor:'ok',notificacao_dias:3,ativo:true,ordem:1},
+    {id:'_2',nome:'Fechamento Gerentes',tipo:'dia_fixo',dia_fixo:5,recorrencia:null,cor:'urgente',notificacao_dias:5,ativo:true,ordem:2},
+    {id:'_3',nome:'Scanntech sell out',tipo:'recorrente',dia_fixo:null,recorrencia:'primeira_segunda',cor:'normal',notificacao_dias:2,ativo:true,ordem:3},
+    {id:'_4',nome:'S&OP',tipo:'recorrente',dia_fixo:null,recorrencia:'toda_quinta',cor:'normal',notificacao_dias:1,ativo:true,ordem:4},
+    {id:'_5',nome:'Dir. Comercial',tipo:'recorrente',dia_fixo:null,recorrencia:'toda_sexta',cor:'normal',notificacao_dias:1,ativo:true,ordem:5},
+  ];
+
+  items.forEach(function(item){
+    var isEditing=editingCicloId===item.id;
+    var card=document.createElement('div');
+    card.className='ciclo-item-card'+(isEditing?' editing':'');
+
+    if(isEditing){
+      // Formulário de edição
+      var form=buildCicloForm(item,false);
+      card.appendChild(form);
+    } else {
+      // Visualização
+      var dot=document.createElement('div');dot.className='ciclo-item-cor '+(item.cor||'normal');
+      var left=document.createElement('div');left.className='ciclo-item-left';
+      var name=document.createElement('div');name.className='ciclo-item-name';name.textContent=item.nome;
+      var detail=document.createElement('div');detail.className='ciclo-item-detail';
+      var label=item.tipo==='dia_fixo'?'Dia '+item.dia_fixo:(recLabels[item.recorrencia]||item.recorrencia||'—');
+      detail.textContent=label+' · Notif. '+item.notificacao_dias+' dias antes · '+(corLabels[item.cor]||item.cor);
+      left.appendChild(name);left.appendChild(detail);
+      var acts=document.createElement('div');acts.className='ciclo-item-actions';
+      var editBtn=document.createElement('button');editBtn.className='ciclo-item-btn edit';editBtn.textContent='✏';editBtn.title='Editar';
+      editBtn.onclick=(function(id){return function(){editingCicloId=id;renderCicloModal();};})(item.id);
+      var delBtn=document.createElement('button');delBtn.className='ciclo-item-btn del';delBtn.textContent='✕';delBtn.title='Excluir';
+      delBtn.onclick=(function(id,nome){return function(){if(confirm('Excluir "'+nome+'" do ciclo?'))deleteCicloItem(id);};})(item.id,item.nome);
+      acts.appendChild(editBtn);acts.appendChild(delBtn);
+      card.appendChild(dot);card.appendChild(left);card.appendChild(acts);
+    }
+    body.appendChild(card);
+  });
+
+  // Formulário de adição
+  if(showingCicloAddForm){
+    var addForm=buildCicloForm(null,true);
+    body.appendChild(addForm);
+  }
+
+  // Botão adicionar
+  if(!showingCicloAddForm){
+    var addBtn=document.createElement('button');addBtn.className='ciclo-add-btn';addBtn.textContent='+ Adicionar item ao ciclo';
+    addBtn.onclick=function(){showingCicloAddForm=true;renderCicloModal();};
+    body.appendChild(addBtn);
+  }
+}
+
+function buildCicloForm(item,isNew){
+  var wrap=document.createElement('div');wrap.style.cssText='width:100%';
+  var title=document.createElement('div');title.className='ciclo-form-title';title.textContent=isNew?'Novo item':'Editar item';
+  wrap.appendChild(title);
+
+  function row(label1,el1,label2,el2){
+    var r=document.createElement('div');r.className='ciclo-form-row'+(el2?'':' full');
+    var g1=document.createElement('div');
+    var l1=document.createElement('div');l1.className='ciclo-form-label';l1.textContent=label1;
+    g1.appendChild(l1);g1.appendChild(el1);r.appendChild(g1);
+    if(el2){var g2=document.createElement('div');var l2=document.createElement('div');l2.className='ciclo-form-label';l2.textContent=label2;g2.appendChild(l2);g2.appendChild(el2);r.appendChild(g2);}
+    wrap.appendChild(r);
+  }
+
+  var nomeInp=document.createElement('input');nomeInp.className='ciclo-form-input';nomeInp.id='cf-nome';nomeInp.placeholder='Nome do item';nomeInp.value=item?item.nome:'';
+  var tipoSel=document.createElement('select');tipoSel.className='ciclo-form-select';tipoSel.id='cf-tipo';
+  [{v:'dia_fixo',l:'Dia fixo do mês'},{v:'recorrente',l:'Recorrente'}].forEach(function(o){var op=document.createElement('option');op.value=o.v;op.textContent=o.l;if(item&&item.tipo===o.v)op.selected=true;tipoSel.appendChild(op);});
+  row('Nome',nomeInp,'Tipo',tipoSel);
+
+  var diaInp=document.createElement('input');diaInp.className='ciclo-form-input';diaInp.id='cf-dia';diaInp.type='number';diaInp.min='1';diaInp.max='31';diaInp.placeholder='Ex: 5';diaInp.value=item&&item.dia_fixo?item.dia_fixo:'';
+  diaInp.style.display=(!item||item.tipo==='dia_fixo')?'':'none';
+  var recSel=document.createElement('select');recSel.className='ciclo-form-select';recSel.id='cf-rec';
+  recSel.style.display=(item&&item.tipo==='recorrente')?'':'none';
+  [{v:'primeira_segunda',l:'1ª Segunda'},{v:'toda_segunda',l:'Toda Segunda'},{v:'toda_terca',l:'Toda Terça'},{v:'toda_quarta',l:'Toda Quarta'},{v:'toda_quinta',l:'Toda Quinta'},{v:'toda_sexta',l:'Toda Sexta'}].forEach(function(o){var op=document.createElement('option');op.value=o.v;op.textContent=o.l;if(item&&item.recorrencia===o.v)op.selected=true;recSel.appendChild(op);});
+
+  tipoSel.onchange=function(){
+    diaInp.style.display=tipoSel.value==='dia_fixo'?'':'none';
+    recSel.style.display=tipoSel.value==='recorrente'?'':'none';
+  };
+
+  var prazoWrap=document.createElement('div');
+  var prazoLbl=document.createElement('div');prazoLbl.className='ciclo-form-label';prazoLbl.textContent='Prazo';
+  prazoWrap.appendChild(prazoLbl);prazoWrap.appendChild(diaInp);prazoWrap.appendChild(recSel);
+  var rPrazo=document.createElement('div');rPrazo.className='ciclo-form-row';
+
+  var corSel=document.createElement('select');corSel.className='ciclo-form-select';corSel.id='cf-cor';
+  [{v:'critico',l:'🔴 Crítico'},{v:'urgente',l:'🔴 Urgente'},{v:'atencao',l:'🟡 Atenção'},{v:'ok',l:'🟢 OK'},{v:'normal',l:'⚪ Normal'}].forEach(function(o){var op=document.createElement('option');op.value=o.v;op.textContent=o.l;if(item&&item.cor===o.v)op.selected=true;corSel.appendChild(op);});
+
+  var notifInp=document.createElement('input');notifInp.className='ciclo-form-input';notifInp.id='cf-notif';notifInp.type='number';notifInp.min='0';notifInp.max='14';notifInp.placeholder='3';notifInp.value=item?item.notificacao_dias:3;
+
+  row('Prazo',prazoWrap,'Cor/Urgência',corSel);
+  row('Notificar X dias antes',notifInp,null,null);
+
+  var btns=document.createElement('div');btns.className='ciclo-form-btns';
+  var saveBtn=document.createElement('button');saveBtn.className='ciclo-form-save';saveBtn.textContent=isNew?'Adicionar':'Salvar';
+  saveBtn.onclick=(function(itm,novo){return function(){
+    var nome=document.getElementById('cf-nome').value.trim();
+    if(!nome){showToast('Informe o nome','urgente');return;}
+    var tipo=document.getElementById('cf-tipo').value;
+    var dia=parseInt(document.getElementById('cf-dia').value)||null;
+    var rec=document.getElementById('cf-rec').value||null;
+    var cor=document.getElementById('cf-cor').value;
+    var notif=parseInt(document.getElementById('cf-notif').value)||3;
+    if(novo) addCicloItem({nome:nome,tipo:tipo,dia_fixo:tipo==='dia_fixo'?dia:null,recorrencia:tipo==='recorrente'?rec:null,cor:cor,notificacao_dias:notif,ativo:true,ordem:(cicloData?cicloData.length:0)+1});
+    else updateCicloItem(itm.id,{nome:nome,tipo:tipo,dia_fixo:tipo==='dia_fixo'?dia:null,recorrencia:tipo==='recorrente'?rec:null,cor:cor,notificacao_dias:notif});
+  };})(item,isNew);
+  var cancelBtn=document.createElement('button');cancelBtn.className='ciclo-form-cancel';cancelBtn.textContent='Cancelar';
+  cancelBtn.onclick=function(){editingCicloId=null;showingCicloAddForm=false;renderCicloModal();};
+  btns.appendChild(cancelBtn);btns.appendChild(saveBtn);
+  wrap.appendChild(btns);
+  return wrap;
+}
+
+async function addCicloItem(data){
+  setSyncStatus('syncing','⟳ salvando');
+  try{
+    var res=await fetch(CICLO_API,{method:'POST',headers:HEADERS,body:JSON.stringify(data)});
+    if(!res.ok)throw new Error();
+    var newItem=await res.json();
+    if(newItem&&newItem[0])cicloData.push(newItem[0]);
+    showingCicloAddForm=false;editingCicloId=null;
+    setSyncStatus('synced','✓ salvo');
+    renderCicloModal();calcCiclo();
+    showToast('Item adicionado',data.nome);
+  }catch(e){setSyncStatus('error','✗ erro');showToast('Erro ao salvar','urgente');}
+}
+
+async function updateCicloItem(id,data){
+  setSyncStatus('syncing','⟳ atualizando');
+  try{
+    data.updated_at=new Date().toISOString();
+    await fetch(CICLO_API+'?id=eq.'+id,{method:'PATCH',headers:HEADERS,body:JSON.stringify(data)});
+    var idx=cicloData.findIndex(function(c){return c.id===id;});
+    if(idx>=0)Object.assign(cicloData[idx],data);
+    editingCicloId=null;
+    setSyncStatus('synced','✓ atualizado');
+    renderCicloModal();calcCiclo();
+    showToast('Ciclo atualizado',data.nome||'');
+  }catch(e){setSyncStatus('error','✗ erro');showToast('Erro ao atualizar','urgente');}
+}
+
+async function deleteCicloItem(id){
+  setSyncStatus('syncing','⟳ removendo');
+  try{
+    await fetch(CICLO_API+'?id=eq.'+id,{method:'DELETE',headers:HEADERS});
+    cicloData=cicloData.filter(function(c){return c.id!==id;});
+    setSyncStatus('synced','✓ removido');
+    renderCicloModal();calcCiclo();
+    showToast('Item removido do ciclo','');
+  }catch(e){setSyncStatus('error','✗ erro');showToast('Erro ao remover','urgente');}
+}
+
 // ── EXPORTAÇÃO EXCEL ──────────────────────────────────
-function abrirExportModal(){
-  var modal=document.getElementById('export-modal');
-  if(!modal)return;
-  // Preview
-  var total=tasks.length;
-  var done=tasks.filter(function(t){return t.done;}).length;
-  var open=tasks.filter(function(t){return !t.done;}).length;
-  var comNota=tasks.filter(function(t){return t.note&&t.note.length>0;}).length;
-  var comSubs=tasks.filter(function(t){return t.subtasks&&t.subtasks.length>0;}).length;
-  var slaOk=tasks.filter(function(t){return t.done&&t.elapsed>0&&t.elapsed<=(t.mins*60);}).length;
+var exportPeriod='dia';
+
+function setExportPeriod(period,btn){
+  exportPeriod=period;
+  document.querySelectorAll('.export-period-btn').forEach(function(b){b.classList.remove('active');});
+  if(btn)btn.classList.add('active');
+  atualizarExportPreview();
+}
+
+function getTasksByPeriod(period){
+  var now=new Date();
+  var todayStr=toDateStr(now);
+  // Semana: segunda a domingo atual
+  var dow=now.getDay();
+  var monday=new Date(now);monday.setDate(now.getDate()-(dow===0?6:dow-1));monday.setHours(0,0,0,0);
+  var sunday=new Date(monday);sunday.setDate(monday.getDate()+6);sunday.setHours(23,59,59,999);
+  var mondayStr=toDateStr(monday);
+  var sundayStr=toDateStr(sunday);
+  // Mês atual
+  var mesStart=new Date(now.getFullYear(),now.getMonth(),1);
+  var mesEnd=new Date(now.getFullYear(),now.getMonth()+1,0);
+  var mesStartStr=toDateStr(mesStart);
+  var mesEndStr=toDateStr(mesEnd);
+
+  return tasks.filter(function(t){
+    var d=t.task_date||'';
+    if(period==='dia') return d===todayStr;
+    if(period==='semana') return d>=mondayStr&&d<=sundayStr;
+    if(period==='mes') return d>=mesStartStr&&d<=mesEndStr;
+    return true; // tudo
+  });
+}
+
+function getPeriodLabel(period){
+  var now=new Date();
+  var months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  if(period==='dia') return 'Hoje — '+now.getDate()+'/'+( now.getMonth()+1)+'/'+now.getFullYear();
+  if(period==='semana'){
+    var dow=now.getDay();
+    var monday=new Date(now);monday.setDate(now.getDate()-(dow===0?6:dow-1));
+    var sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
+    return monday.getDate()+'/'+( monday.getMonth()+1)+' – '+sunday.getDate()+'/'+( sunday.getMonth()+1);
+  }
+  if(period==='mes') return months[now.getMonth()]+' '+now.getFullYear();
+  return 'Histórico completo';
+}
+
+function atualizarExportPreview(){
+  var filtered=getTasksByPeriod(exportPeriod);
+  var total=filtered.length;
+  var done=filtered.filter(function(t){return t.done;}).length;
+  var open=filtered.filter(function(t){return !t.done;}).length;
+  var comNota=filtered.filter(function(t){return t.note&&t.note.length>0;}).length;
+  var slaOk=filtered.filter(function(t){return t.done&&t.elapsed>0&&t.elapsed<=(t.mins*60);}).length;
   var preview=document.getElementById('export-preview-content');
   if(preview){
     preview.innerHTML=
+      '<div class="export-stat-row"><span class="export-stat-label">Período</span><span class="export-stat-val" style="font-size:10px;">'+getPeriodLabel(exportPeriod)+'</span></div>'+
       '<div class="export-stat-row"><span class="export-stat-label">Total de registros</span><span class="export-stat-val">'+total+'</span></div>'+
       '<div class="export-stat-row"><span class="export-stat-label">Concluídas</span><span class="export-stat-val">'+done+'</span></div>'+
       '<div class="export-stat-row"><span class="export-stat-label">Em aberto</span><span class="export-stat-val">'+open+'</span></div>'+
       '<div class="export-stat-row"><span class="export-stat-label">Com nota</span><span class="export-stat-val">'+comNota+'</span></div>'+
-      '<div class="export-stat-row"><span class="export-stat-label">Com subtarefas</span><span class="export-stat-val">'+comSubs+'</span></div>'+
       '<div class="export-stat-row"><span class="export-stat-label">Dentro do SLA</span><span class="export-stat-val">'+slaOk+' de '+done+'</span></div>';
   }
+}
+
+function abrirExportModal(){
+  var modal=document.getElementById('export-modal');
+  if(!modal)return;
+  // Resetar para "Hoje" por padrão
+  exportPeriod='dia';
+  document.querySelectorAll('.export-period-btn').forEach(function(b,i){b.classList.toggle('active',i===0);});
+  atualizarExportPreview();
   modal.style.display='flex';
 }
 
@@ -1594,7 +2262,10 @@ function exportarExcel(){
   // ── ABA 1: TODAS AS TAREFAS ──
   var rows=[['ID','Nome','Descrição','Tipo','Prioridade','Status','Data','Horário','Dia semana','Tempo estimado (min)','Tempo executado (min)','SLA','% SLA','Nota','Qtd subtarefas','Subtarefas concluídas','Criado em','Concluído em']];
 
-  var sorted=tasks.slice().sort(function(a,b){
+  // Filtrar pelo período selecionado
+  var filteredByPeriod=getTasksByPeriod(exportPeriod||'tudo');
+  var periodSuffix=exportPeriod?'_'+exportPeriod:'';
+  var sorted=filteredByPeriod.slice().sort(function(a,b){
     var da=a.task_date||'';var db=b.task_date||'';
     return da.localeCompare(db);
   });
@@ -1701,7 +2372,8 @@ function exportarExcel(){
   // ── DOWNLOAD ──
   var now=new Date();
   var dateStr=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-  var filename='MIA_Tarefas_'+dateStr+'.xlsx';
+  var periodNames={dia:'Dia',semana:'Semana',mes:'Mes',tudo:'Historico'};
+  var filename='MIA_Tarefas_'+(periodNames[exportPeriod]||'Historico')+'_'+dateStr+'.xlsx';
   XLSX.writeFile(wb,filename);
 
   fecharExportModal();
@@ -2657,7 +3329,7 @@ function openTaskFromModal(){
   switchTab('tarefas',document.querySelector('.tab-btn'));
   setTimeout(function(){toggleAddForm();},200);
 }
-loadTasksFromDB().then(function(){renderMeetings();renderRoadmap();renderFoco();setTimeout(function(){var urgent=tasks.filter(function(t){return !t.done&&t.prio==='urgente';});if(urgent.length>0)showToast('⚠ '+urgent.length+' tarefa(s) urgente(s)',urgent.map(function(t){return t.name;}).join(', ')); checkAndShowMorningModal();},1000);});
+loadCicloFromDB();loadCiclo();loadCiclo();loadTasksFromDB().then(function(){renderMeetings();renderRoadmap();renderFoco();setTimeout(function(){var urgent=tasks.filter(function(t){return !t.done&&t.prio==='urgente';});if(urgent.length>0)showToast('⚠ '+urgent.length+' tarefa(s) urgente(s)',urgent.map(function(t){return t.name;}).join(', ')); checkAndShowMorningModal();},1000);});
 </script>
 </body>
 </html>
