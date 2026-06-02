@@ -263,8 +263,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .timer-control-btn:hover{border-color:var(--accent);color:var(--accent);}
 .timer-control-btn.active{background:var(--accent-dim);border-color:rgba(200,241,53,0.4);color:var(--accent);}
 .ciclo-widget{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;}
-.ciclo-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px;}
-.ciclo-item:last-child{border-bottom:none;}
+
 .ciclo-name{color:var(--text2);flex:1;}
 .ciclo-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
 .ciclo-date{font-family:'DM Mono',monospace;font-size:11px;}
@@ -510,6 +509,32 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 /* Notif badge */
 .ciclo-notif-badge{font-size:9px;font-family:'DM Mono',monospace;padding:1px 5px;border-radius:3px;background:var(--blue-dim);color:var(--blue);border:1px solid rgba(91,156,246,0.2);margin-left:4px;}
 
+
+/* CICLO CONCLUSÕES */
+.ciclo-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.ciclo-item:last-child{border-bottom:none;}
+.ciclo-item.concluido-mes .ciclo-name{text-decoration:line-through;color:var(--text3);}
+.ciclo-item.concluido-mes .ciclo-date{color:var(--teal)!important;}
+.ciclo-item.concluido-mes .ciclo-countdown{color:var(--teal)!important;}
+.ciclo-check-btn{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all 0.2s;flex-shrink:0;margin-right:6px;color:transparent;}
+.ciclo-check-btn:hover{border-color:var(--teal);color:var(--teal);}
+.ciclo-check-btn.done{background:var(--teal);border-color:var(--teal);color:#0a0a0f;font-weight:700;}
+.ciclo-item-left{display:flex;align-items:center;flex:1;min-width:0;}
+/* CALENDÁRIO — chips de ciclo */
+.cal-ciclo-chip{font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:2px;background:rgba(91,156,246,0.15);color:var(--blue);border:1px solid rgba(91,156,246,0.25);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;}
+.cal-ciclo-chip.concluido{background:rgba(45,212,191,0.12);color:var(--teal);border-color:rgba(45,212,191,0.2);text-decoration:line-through;opacity:0.7;}
+.cal-ciclo-chip.urgente{background:var(--red-dim);color:var(--red);border-color:rgba(255,77,109,0.25);}
+.cal-ciclo-chip.atencao{background:var(--amber-dim);color:var(--amber);border-color:rgba(255,179,71,0.25);}
+/* Modal de detalhe do ciclo no calendário */
+.ciclo-cal-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn 0.2s ease;}
+.ciclo-cal-modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:24px;max-width:380px;width:90%;box-shadow:0 24px 64px rgba(0,0,0,0.5);animation:slideUp 0.2s ease;}
+.ciclo-cal-modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--text);margin-bottom:4px;}
+.ciclo-cal-modal-sub{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:16px;}
+.ciclo-cal-modal-status{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.5;}
+.ciclo-cal-btn-concluir{width:100%;padding:10px;background:var(--teal-dim);color:var(--teal);border:1px solid rgba(45,212,191,0.3);border-radius:var(--radius);font-size:13px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;margin-bottom:8px;transition:all 0.2s;}
+.ciclo-cal-btn-concluir:hover{background:rgba(45,212,191,0.2);}
+.ciclo-cal-btn-reabrir{width:100%;padding:10px;background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,179,71,0.3);border-radius:var(--radius);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;margin-bottom:8px;}
+.ciclo-cal-btn-close{width:100%;padding:8px;background:transparent;color:var(--text3);border:1px solid var(--border2);border-radius:var(--radius);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;}
 /* CICLO MODAL */
 .ciclo-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn 0.3s ease;}
 .ciclo-modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:0;max-width:500px;width:94%;box-shadow:0 24px 64px rgba(0,0,0,0.6);animation:slideUp 0.3s ease;max-height:88vh;display:flex;flex-direction:column;}
@@ -747,6 +772,17 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="ciclo-modal-footer">
       <button class="ciclo-add-btn" onclick="abrirFormNovoCiclo()">+ Novo item</button>
     </div>
+  </div>
+</div>
+
+<div class="ciclo-cal-modal-overlay" id="ciclo-cal-modal" style="display:none;" onclick="fecharCicloCalModal()">
+  <div class="ciclo-cal-modal" onclick="event.stopPropagation()">
+    <div class="ciclo-cal-modal-title" id="ciclo-cal-modal-title">—</div>
+    <div class="ciclo-cal-modal-sub" id="ciclo-cal-modal-sub">—</div>
+    <div class="ciclo-cal-modal-status" id="ciclo-cal-modal-status">—</div>
+    <button class="ciclo-cal-btn-concluir" id="ciclo-cal-btn-concluir" onclick="concluirCicloDoCalendario()">✓ Marcar como concluído</button>
+    <button class="ciclo-cal-btn-reabrir" id="ciclo-cal-btn-reabrir" style="display:none;" onclick="reabrirCicloDoCalendario()">↩ Reabrir para este mês</button>
+    <button class="ciclo-cal-btn-close" onclick="fecharCicloCalModal()">Fechar</button>
   </div>
 </div>
 
@@ -1201,6 +1237,31 @@ function renderCalendar(){
     meetings.forEach(function(m){
       var chip=document.createElement('div');chip.className='cal-meeting-chip';chip.textContent='⏰ '+m.time+' '+m.name;div.appendChild(chip);
     });
+
+    // Chips do ciclo mensal para este dia
+    if (cicloData && cicloData.length > 0) {
+      cicloData.forEach(function(item) {
+        if (item.ativo === false) return;
+        var dueDate = getCicloDueDate(item, year, month);
+        if (!dueDate) return;
+        var dueDateStr = toDateStr(dueDate);
+        if (dueDateStr !== dateStr) return;
+        var concluido = item.id ? isCicloConcluidoMes(item.id) : false;
+        var d = Math.round((dueDate - now) / 86400000);
+        var chipCls = concluido ? 'concluido' : d <= 0 ? 'urgente' : d <= 3 ? 'atencao' : '';
+        var chip = document.createElement('div');
+        chip.className = 'cal-ciclo-chip ' + chipCls;
+        chip.title = item.nome + (concluido ? ' — Concluído' : ' — Ciclo mensal');
+        chip.textContent = (concluido ? '✓ ' : '📅 ') + item.nome;
+        chip.onclick = (function(itm, ds) {
+          return function(e) {
+            e.stopPropagation();
+            abrirCicloCalModal(itm, ds);
+          };
+        })(item, dateStr);
+        div.appendChild(chip);
+      });
+    }
 
     // Chips de tarefas (máximo 3, depois "+N")
     var maxChips=3;
@@ -1814,6 +1875,161 @@ async function loadCicloFromDB(){
   calcCiclo();
 }
 
+
+
+// ── CICLO — CONCLUSÕES MENSAIS ────────────────────────
+var CICLO_CONCL_API = SUPABASE_URL + '/rest/v1/ciclo_conclusoes';
+var cicloConclData = [];   // [{ciclo_id, mes, ano, concluido_em}]
+var cicloCalModalItem = null; // item do ciclo sendo visualizado no calendário
+
+async function loadCicloConclusions() {
+  var now = new Date();
+  try {
+    var data = await dbFetch(
+      CICLO_CONCL_API + '?mes=eq.' + (now.getMonth()+1) + '&ano=eq.' + now.getFullYear()
+    );
+    cicloConclData = data || [];
+  } catch(e) {
+    cicloConclData = [];
+  }
+}
+
+function isCicloConcluidoMes(cicloId) {
+  var now = new Date();
+  return cicloConclData.some(function(c) {
+    return c.ciclo_id == cicloId &&
+           c.mes === (now.getMonth()+1) &&
+           c.ano === now.getFullYear();
+  });
+}
+
+async function concluirCicloMes(cicloId) {
+  var now = new Date();
+  try {
+    await dbFetch(CICLO_CONCL_API, {
+      method: 'POST',
+      body: JSON.stringify({
+        ciclo_id: cicloId,
+        mes: now.getMonth()+1,
+        ano: now.getFullYear()
+      })
+    });
+    await loadCicloConclusions();
+    calcCiclo();
+    showToast('Ciclo concluído', 'Item marcado como concluído para ' + getMonthLabel(now.getMonth()));
+  } catch(e) {
+    showToast('Erro ao concluir ciclo', 'urgente');
+  }
+}
+
+async function reabrirCicloMes(cicloId) {
+  var now = new Date();
+  try {
+    await dbFetch(
+      CICLO_CONCL_API + '?ciclo_id=eq.' + cicloId +
+      '&mes=eq.' + (now.getMonth()+1) + '&ano=eq.' + now.getFullYear(),
+      { method: 'DELETE' }
+    );
+    await loadCicloConclusions();
+    calcCiclo();
+    showToast('Ciclo reaberto', 'Item marcado como pendente');
+  } catch(e) {
+    showToast('Erro ao reabrir ciclo', 'urgente');
+  }
+}
+
+function getMonthLabel(monthIdx) {
+  var months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return months[monthIdx];
+}
+
+// ── MODAL CICLO NO CALENDÁRIO ─────────────────────────
+function abrirCicloCalModal(item, dateStr) {
+  cicloCalModalItem = item;
+  var now = new Date();
+  var concluido = item.id ? isCicloConcluidoMes(item.id) : false;
+  var d = new Date(dateStr + 'T12:00:00');
+  var months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  document.getElementById('ciclo-cal-modal-title').textContent = item.nome;
+  document.getElementById('ciclo-cal-modal-sub').textContent =
+    (item.tipo === 'dia_fixo' ? 'Dia ' + item.dia_fixo : recorrenciaLabelCal(item.recorrencia)) +
+    ' · ' + months[d.getMonth()] + ' ' + d.getFullYear();
+
+  var statusEl = document.getElementById('ciclo-cal-modal-status');
+  if (concluido) {
+    statusEl.innerHTML = '<span style="color:var(--teal);font-weight:500;">✓ Concluído</span> neste mês.';
+  } else {
+    var diff = Math.round((d - now) / 86400000);
+    var urgText = diff <= 0 ? '<span style="color:var(--red);font-weight:500;">Prazo hoje!</span>' :
+                  diff <= 3 ? '<span style="color:var(--amber);font-weight:500;">Em ' + diff + ' dias</span>' :
+                  'Em ' + diff + ' dias';
+    statusEl.innerHTML = urgText + ' · Ainda pendente para este mês.';
+  }
+
+  var btnConcluir = document.getElementById('ciclo-cal-btn-concluir');
+  var btnReabrir = document.getElementById('ciclo-cal-btn-reabrir');
+  if (concluido) {
+    btnConcluir.style.display = 'none';
+    btnReabrir.style.display = 'block';
+  } else {
+    btnConcluir.style.display = 'block';
+    btnReabrir.style.display = 'none';
+  }
+
+  document.getElementById('ciclo-cal-modal').style.display = 'flex';
+}
+
+function fecharCicloCalModal() {
+  document.getElementById('ciclo-cal-modal').style.display = 'none';
+  cicloCalModalItem = null;
+}
+
+function concluirCicloDoCalendario() {
+  if (!cicloCalModalItem || !cicloCalModalItem.id) return;
+  concluirCicloMes(cicloCalModalItem.id);
+  fecharCicloCalModal();
+  renderCalendar();
+}
+
+function reabrirCicloDoCalendario() {
+  if (!cicloCalModalItem || !cicloCalModalItem.id) return;
+  reabrirCicloMes(cicloCalModalItem.id);
+  fecharCicloCalModal();
+  renderCalendar();
+}
+
+function recorrenciaLabelCal(rec) {
+  var map = {
+    toda_segunda:'Toda segunda', toda_terca:'Toda terça', toda_quarta:'Toda quarta',
+    toda_quinta:'Toda quinta', toda_sexta:'Toda sexta',
+    primeira_segunda:'1ª segunda', primeira_sexta:'1ª sexta', ultima_sexta:'Última sexta'
+  };
+  return map[rec] || rec || '—';
+}
+
+// Retorna a data do próximo prazo de um item do ciclo
+function getCicloDueDate(item, year, month) {
+  function firstWeekday(dow) {
+    var d = new Date(year, month, 1);
+    while (d.getDay() !== dow) d.setDate(d.getDate()+1);
+    return d;
+  }
+  function lastWeekday(dow) {
+    var d = new Date(year, month+1, 0);
+    while (d.getDay() !== dow) d.setDate(d.getDate()-1);
+    return d;
+  }
+  if (item.tipo === 'dia_fixo') return new Date(year, month, item.dia_fixo);
+  var rec = item.recorrencia || '';
+  if (rec === 'toda_segunda' || rec === 'primeira_segunda') return firstWeekday(1);
+  if (rec === 'toda_terca') return firstWeekday(2);
+  if (rec === 'toda_quarta') return firstWeekday(3);
+  if (rec === 'toda_quinta') return firstWeekday(4);
+  if (rec === 'toda_sexta' || rec === 'primeira_sexta') return firstWeekday(5);
+  if (rec === 'ultima_sexta') return lastWeekday(5);
+  return null;
+}
 
 // ── CICLO MENSAL GERENCIÁVEL ──────────────────────────
 var cicloData=[];
@@ -3329,7 +3545,7 @@ function openTaskFromModal(){
   switchTab('tarefas',document.querySelector('.tab-btn'));
   setTimeout(function(){toggleAddForm();},200);
 }
-loadCicloFromDB();loadCiclo();loadCiclo();loadTasksFromDB().then(function(){renderMeetings();renderRoadmap();renderFoco();setTimeout(function(){var urgent=tasks.filter(function(t){return !t.done&&t.prio==='urgente';});if(urgent.length>0)showToast('⚠ '+urgent.length+' tarefa(s) urgente(s)',urgent.map(function(t){return t.name;}).join(', ')); checkAndShowMorningModal();},1000);});
+loadCicloFromDB();loadCiclo();loadCiclo();loadCicloConclusions();loadTasksFromDB().then(function(){renderMeetings();renderRoadmap();renderFoco();setTimeout(function(){var urgent=tasks.filter(function(t){return !t.done&&t.prio==='urgente';});if(urgent.length>0)showToast('⚠ '+urgent.length+' tarefa(s) urgente(s)',urgent.map(function(t){return t.name;}).join(', ')); checkAndShowMorningModal();},1000);});
 </script>
 </body>
 </html>
