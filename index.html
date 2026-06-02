@@ -510,6 +510,79 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .ciclo-notif-badge{font-size:9px;font-family:'DM Mono',monospace;padding:1px 5px;border-radius:3px;background:var(--blue-dim);color:var(--blue);border:1px solid rgba(91,156,246,0.2);margin-left:4px;}
 
 
+
+/* ABA PESSOAL */
+.pessoal-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.pessoal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+.pessoal-card.full{grid-column:1/-1;}
+.pessoal-card-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.pessoal-card-title{font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--text);}
+.pessoal-add-btn{font-size:11px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Mono',monospace;transition:all 0.2s;}
+.pessoal-add-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.pessoal-card-body{padding:12px;}
+/* Conta item */
+.conta-item{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);transition:all 0.2s;}
+.conta-item:last-child{border-bottom:none;}
+.conta-item:hover .conta-actions{opacity:1;}
+.conta-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all 0.2s;flex-shrink:0;color:transparent;}
+.conta-check:hover{border-color:var(--teal);color:var(--teal);}
+.conta-check.pago{background:var(--teal);border-color:var(--teal);color:#0a0a0f;font-weight:700;}
+.conta-info{flex:1;min-width:0;}
+.conta-nome{font-size:12px;font-weight:500;color:var(--text);margin-bottom:2px;}
+.conta-nome.pago{text-decoration:line-through;color:var(--text3);}
+.conta-meta{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
+.conta-valor{font-size:12px;font-family:'DM Mono',monospace;font-weight:600;color:var(--amber);flex-shrink:0;}
+.conta-valor.pago{color:var(--teal);}
+.conta-venc-badge{font-size:9px;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:3px;flex-shrink:0;}
+.conta-venc-badge.hoje{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,109,0.2);}
+.conta-venc-badge.breve{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,179,71,0.2);}
+.conta-venc-badge.ok{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(45,212,191,0.2);}
+.conta-venc-badge.normal{background:var(--surface3);color:var(--text3);border:1px solid var(--border);}
+.conta-actions{display:flex;gap:3px;opacity:0;transition:opacity 0.2s;flex-shrink:0;}
+.conta-action-btn{width:18px;height:18px;border-radius:3px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.conta-action-btn:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-dim);}
+.conta-action-btn.del:hover{border-color:var(--red);color:var(--red);background:var(--red-dim);}
+/* Resumo financeiro */
+.pessoal-summary{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+.pessoal-sum-item{flex:1;min-width:80px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;text-align:center;}
+.pessoal-sum-val{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;margin-bottom:2px;}
+.pessoal-sum-val.red{color:var(--red);}
+.pessoal-sum-val.teal{color:var(--teal);}
+.pessoal-sum-val.amber{color:var(--amber);}
+.pessoal-sum-label{font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;}
+/* Evento/aniversário item */
+.evento-item{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);}
+.evento-item:last-child{border-bottom:none;}
+.evento-item:hover .conta-actions{opacity:1;}
+.evento-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.evento-icon.aniversario{background:rgba(167,139,250,0.15);}
+.evento-icon.evento{background:rgba(91,156,246,0.15);}
+.evento-icon.lembrete{background:rgba(255,179,71,0.15);}
+.evento-info{flex:1;min-width:0;}
+.evento-nome{font-size:12px;font-weight:500;color:var(--text);margin-bottom:2px;}
+.evento-meta{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
+.evento-dias-badge{font-size:9px;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:3px;flex-shrink:0;}
+.evento-dias-badge.hoje{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,0.2);}
+.evento-dias-badge.breve{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,179,71,0.2);}
+.evento-dias-badge.normal{background:var(--surface3);color:var(--text3);border:1px solid var(--border);}
+/* Chips no calendário */
+.cal-pessoal-chip{font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cal-pessoal-chip.aniversario{background:rgba(167,139,250,0.15);color:var(--purple);border:1px solid rgba(167,139,250,0.2);}
+.cal-pessoal-chip.evento{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(91,156,246,0.2);}
+.cal-pessoal-chip.conta{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,179,71,0.2);}
+.cal-pessoal-chip.pago{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(45,212,191,0.2);text-decoration:line-through;opacity:0.7;}
+/* Formulário pessoal */
+.pessoal-form{background:var(--surface3);border:1px solid rgba(167,139,250,0.2);border-radius:var(--radius);padding:14px;margin-top:10px;}
+.pessoal-form-row{display:flex;gap:8px;flex-wrap:wrap;}
+.pessoal-form-input{flex:1;min-width:100px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;}
+.pessoal-form-input:focus{border-color:var(--purple);}
+.pessoal-form-input::placeholder{color:var(--text3);}
+.pessoal-form-select{flex:1;min-width:100px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text2);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;cursor:pointer;}
+.pessoal-form-footer{display:flex;gap:8px;margin-top:10px;}
+.pessoal-form-save{flex:1;padding:8px;background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,0.3);border-radius:6px;font-size:12px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;}
+.pessoal-form-cancel{padding:8px 12px;background:transparent;color:var(--text3);border:1px solid var(--border2);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.pessoal-empty{text-align:center;padding:20px;color:var(--text3);font-size:11px;font-family:'DM Mono',monospace;}
+@media(max-width:700px){.pessoal-grid{grid-template-columns:1fr;}}
 /* CICLO CONCLUSÕES */
 .ciclo-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px;}
 .ciclo-item:last-child{border-bottom:none;}
@@ -828,6 +901,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <button class="tab-btn" onclick="switchTab('projetos',this)">Projetos</button>
     <button class="tab-btn" onclick="switchTab('dashboard',this)">Dashboard</button>
     <button class="tab-btn" onclick="switchTab('templates',this)">Templates</button>
+    <button class="tab-btn" onclick="switchTab('pessoal',this)">🏠 Pessoal</button>
     <button class="tab-btn" style="margin-left:auto;color:var(--teal);border-color:rgba(45,212,191,0.2);background:var(--teal-dim);" onclick="abrirExportModal()">⬇ Exportar</button>
   </div>
 
@@ -891,6 +965,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <div class="calendar-month-header" id="calendar-week-headers"></div>
           <div class="calendar-grid" id="calendar-grid"></div>
         </div>
+      </div>
+
+      <!-- PESSOAL -->
+      <div class="tab-content" id="tab-pessoal">
+        <div id="pessoal-container"></div>
       </div>
 
       <!-- FOCO DIÁRIO -->
@@ -1137,6 +1216,7 @@ function switchTab(tabId,btn){
   if(tabId==='projetos')renderProjects();
   if(tabId==='foco')renderFoco();
   if(tabId==='templates')renderTemplates();
+  if(tabId==='pessoal'){loadPessoal().then(function(){renderPessoal();});}
 }
 
 // ── FILTER ────────────────────────────────────────────
@@ -1236,6 +1316,17 @@ function renderCalendar(){
     // Chips de reuniões
     meetings.forEach(function(m){
       var chip=document.createElement('div');chip.className='cal-meeting-chip';chip.textContent='⏰ '+m.time+' '+m.name;div.appendChild(chip);
+    });
+
+    // Chips pessoais (contas, aniversários, eventos)
+    var pessoalChips = getPessoalChipsForDate(dateStr);
+    pessoalChips.forEach(function(chip) {
+      var el = document.createElement('div');
+      el.className = 'cal-pessoal-chip ' + chip.tipo + (chip.pago ? ' pago' : '');
+      var icon = chip.tipo === 'aniversario' ? '🎂 ' : chip.tipo === 'conta' ? '💳 ' : '📅 ';
+      el.textContent = icon + chip.nome;
+      el.title = chip.nome;
+      div.appendChild(el);
     });
 
     // Chips do ciclo mensal para este dia
@@ -2382,6 +2473,561 @@ async function deleteCicloItem(id){
     renderCicloModal();calcCiclo();
     showToast('Item removido do ciclo','');
   }catch(e){setSyncStatus('error','✗ erro');showToast('Erro ao remover','urgente');}
+}
+
+
+// ── ABA PESSOAL ───────────────────────────────────────
+var CONTAS_API = SUPABASE_URL + '/rest/v1/pessoal_contas';
+var CONTAS_PAGAS_API = SUPABASE_URL + '/rest/v1/pessoal_contas_pagas';
+var EVENTOS_API = SUPABASE_URL + '/rest/v1/pessoal_eventos';
+
+var pessoalContas = [];
+var pessoalContasPagas = [];
+var pessoalEventos = [];
+var pessoalAddingConta = false;
+var pessoalAddingEvento = false;
+var pessoalEditingContaId = null;
+var pessoalEditingEventoId = null;
+
+// ── LOAD ──────────────────────────────────────────────
+async function loadPessoal() {
+  var now = new Date();
+  try {
+    pessoalContas = await dbFetch(CONTAS_API + '?ativo=eq.true&order=dia_vencimento.asc') || [];
+  } catch(e) { pessoalContas = []; }
+  try {
+    pessoalContasPagas = await dbFetch(
+      CONTAS_PAGAS_API + '?mes=eq.' + (now.getMonth()+1) + '&ano=eq.' + now.getFullYear()
+    ) || [];
+  } catch(e) { pessoalContasPagas = []; }
+  try {
+    pessoalEventos = await dbFetch(EVENTOS_API + '?ativo=eq.true&order=mes.asc,dia.asc') || [];
+  } catch(e) { pessoalEventos = []; }
+}
+
+function isContaPaga(contaId) {
+  var now = new Date();
+  return pessoalContasPagas.some(function(p) {
+    return p.conta_id == contaId && p.mes === (now.getMonth()+1) && p.ano === now.getFullYear();
+  });
+}
+
+async function pagarConta(contaId) {
+  var now = new Date();
+  try {
+    await dbFetch(CONTAS_PAGAS_API, {
+      method: 'POST',
+      body: JSON.stringify({ conta_id: contaId, mes: now.getMonth()+1, ano: now.getFullYear() })
+    });
+    var conta = pessoalContas.find(function(c) { return c.id == contaId; });
+    showToast('Conta paga', conta ? conta.nome : '');
+    await loadPessoal();
+    renderPessoal();
+    renderCalendar();
+  } catch(e) { showToast('Erro ao registrar pagamento', 'urgente'); }
+}
+
+async function despagarConta(contaId) {
+  var now = new Date();
+  try {
+    await dbFetch(
+      CONTAS_PAGAS_API + '?conta_id=eq.' + contaId +
+      '&mes=eq.' + (now.getMonth()+1) + '&ano=eq.' + now.getFullYear(),
+      { method: 'DELETE' }
+    );
+    showToast('Pagamento desfeito', '');
+    await loadPessoal();
+    renderPessoal();
+    renderCalendar();
+  } catch(e) { showToast('Erro', 'urgente'); }
+}
+
+async function salvarConta(dados) {
+  try {
+    if (dados.id) {
+      await dbFetch(CONTAS_API + '?id=eq.' + dados.id, { method: 'PATCH', body: JSON.stringify(dados) });
+    } else {
+      await dbFetch(CONTAS_API, { method: 'POST', body: JSON.stringify(dados) });
+    }
+    await loadPessoal();
+    pessoalAddingConta = false;
+    pessoalEditingContaId = null;
+    renderPessoal();
+    renderCalendar();
+    showToast(dados.id ? 'Conta atualizada' : 'Conta adicionada', dados.nome);
+  } catch(e) { showToast('Erro ao salvar conta', 'urgente'); }
+}
+
+async function excluirConta(id) {
+  try {
+    await dbFetch(CONTAS_API + '?id=eq.' + id, { method: 'PATCH', body: JSON.stringify({ ativo: false }) });
+    await loadPessoal();
+    renderPessoal();
+    renderCalendar();
+    showToast('Conta removida', '');
+  } catch(e) { showToast('Erro', 'urgente'); }
+}
+
+async function salvarEvento(dados) {
+  try {
+    if (dados.id) {
+      await dbFetch(EVENTOS_API + '?id=eq.' + dados.id, { method: 'PATCH', body: JSON.stringify(dados) });
+    } else {
+      await dbFetch(EVENTOS_API, { method: 'POST', body: JSON.stringify(dados) });
+    }
+    await loadPessoal();
+    pessoalAddingEvento = false;
+    pessoalEditingEventoId = null;
+    renderPessoal();
+    renderCalendar();
+    showToast(dados.id ? 'Evento atualizado' : 'Evento adicionado', dados.nome);
+  } catch(e) { showToast('Erro ao salvar evento', 'urgente'); }
+}
+
+async function excluirEvento(id) {
+  try {
+    await dbFetch(EVENTOS_API + '?id=eq.' + id, { method: 'PATCH', body: JSON.stringify({ ativo: false }) });
+    await loadPessoal();
+    renderPessoal();
+    renderCalendar();
+    showToast('Evento removido', '');
+  } catch(e) { showToast('Erro', 'urgente'); }
+}
+
+// ── HELPERS ───────────────────────────────────────────
+function diasParaEvento(dia, mes) {
+  var now = new Date();
+  var year = now.getFullYear();
+  var target = new Date(year, mes - 1, dia);
+  if (target < now) target = new Date(year + 1, mes - 1, dia);
+  return Math.round((target - now) / 86400000);
+}
+
+function diasParaConta(diaVenc) {
+  var now = new Date();
+  var target = new Date(now.getFullYear(), now.getMonth(), diaVenc);
+  if (diaVenc < now.getDate()) target = new Date(now.getFullYear(), now.getMonth() + 1, diaVenc);
+  return Math.round((target - now) / 86400000);
+}
+
+function formatCurrency(val) {
+  if (!val && val !== 0) return '—';
+  return 'R$ ' + parseFloat(val).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function eventoIcon(tipo) {
+  return tipo === 'aniversario' ? '🎂' : tipo === 'evento' ? '📅' : '⏰';
+}
+
+function contaVencBadge(dias, pago) {
+  if (pago) return { cls: 'ok', label: 'Pago' };
+  if (dias <= 0) return { cls: 'hoje', label: 'Vence hoje' };
+  if (dias <= 3) return { cls: 'breve', label: 'Em ' + dias + 'd' };
+  if (dias <= 7) return { cls: 'ok', label: 'Em ' + dias + 'd' };
+  return { cls: 'normal', label: 'Dia ' + String(dias).padStart(2, '0') };
+}
+
+// ── RENDER PESSOAL ────────────────────────────────────
+function renderPessoal() {
+  var container = document.getElementById('pessoal-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  var now = new Date();
+  var months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  // ── RESUMO FINANCEIRO ──
+  var totalContas = pessoalContas.reduce(function(s, c) { return s + (parseFloat(c.valor) || 0); }, 0);
+  var pagas = pessoalContas.filter(function(c) { return isContaPaga(c.id); });
+  var totalPago = pagas.reduce(function(s, c) { return s + (parseFloat(c.valor) || 0); }, 0);
+  var totalPendente = totalContas - totalPago;
+
+  var summaryDiv = document.createElement('div');
+  summaryDiv.className = 'pessoal-summary';
+  summaryDiv.innerHTML =
+    '<div class="pessoal-sum-item"><div class="pessoal-sum-val amber">' + formatCurrency(totalPendente) + '</div><div class="pessoal-sum-label">A pagar</div></div>' +
+    '<div class="pessoal-sum-item"><div class="pessoal-sum-val teal">' + formatCurrency(totalPago) + '</div><div class="pessoal-sum-label">Pago</div></div>' +
+    '<div class="pessoal-sum-item"><div class="pessoal-sum-val">' + pagas.length + '/' + pessoalContas.length + '</div><div class="pessoal-sum-label">Contas</div></div>';
+  container.appendChild(summaryDiv);
+
+  var grid = document.createElement('div');
+  grid.className = 'pessoal-grid';
+
+  // ── CARD CONTAS ──
+  var contasCard = document.createElement('div');
+  contasCard.className = 'pessoal-card full';
+
+  var contasHeader = document.createElement('div');
+  contasHeader.className = 'pessoal-card-header';
+  contasHeader.innerHTML = '<div class="pessoal-card-title">💳 Contas a pagar — ' + months[now.getMonth()] + '</div>';
+  var addContaBtn = document.createElement('button');
+  addContaBtn.className = 'pessoal-add-btn';
+  addContaBtn.textContent = '+ Nova';
+  addContaBtn.onclick = function() { pessoalAddingConta = !pessoalAddingConta; pessoalEditingContaId = null; renderPessoal(); };
+  contasHeader.appendChild(addContaBtn);
+  contasCard.appendChild(contasHeader);
+
+  var contasBody = document.createElement('div');
+  contasBody.className = 'pessoal-card-body';
+
+  if (pessoalContas.length === 0 && !pessoalAddingConta) {
+    contasBody.innerHTML = '<div class="pessoal-empty">Nenhuma conta cadastrada.<br>Clique em "+ Nova" para adicionar.</div>';
+  }
+
+  pessoalContas.forEach(function(conta) {
+    var pago = isContaPaga(conta.id);
+    var dias = diasParaConta(conta.dia_vencimento);
+    var badge = contaVencBadge(dias, pago);
+    var isEditing = pessoalEditingContaId === conta.id;
+
+    var row = document.createElement('div');
+    row.className = 'conta-item';
+
+    // Check
+    var chk = document.createElement('button');
+    chk.className = 'conta-check' + (pago ? ' pago' : '');
+    chk.textContent = pago ? '✓' : '';
+    chk.title = pago ? 'Desmarcar' : 'Marcar como pago';
+    chk.onclick = (function(id, pg) {
+      return function() { if (pg) despagarConta(id); else pagarConta(id); };
+    })(conta.id, pago);
+
+    // Info
+    var info = document.createElement('div');
+    info.className = 'conta-info';
+    var nome = document.createElement('div');
+    nome.className = 'conta-nome' + (pago ? ' pago' : '');
+    nome.textContent = conta.nome;
+    var meta = document.createElement('div');
+    meta.className = 'conta-meta';
+    meta.textContent = 'Vence dia ' + conta.dia_vencimento + (conta.categoria ? ' · ' + conta.categoria : '');
+    info.appendChild(nome);
+    info.appendChild(meta);
+
+    // Valor
+    var valor = document.createElement('div');
+    valor.className = 'conta-valor' + (pago ? ' pago' : '');
+    valor.textContent = formatCurrency(conta.valor);
+
+    // Badge
+    var badgeEl = document.createElement('span');
+    badgeEl.className = 'conta-venc-badge ' + badge.cls;
+    badgeEl.textContent = badge.label;
+
+    // Actions
+    var actions = document.createElement('div');
+    actions.className = 'conta-actions';
+    var editBtn = document.createElement('button');
+    editBtn.className = 'conta-action-btn';
+    editBtn.textContent = '✏';
+    editBtn.title = 'Editar';
+    editBtn.onclick = (function(id) {
+      return function(e) { e.stopPropagation(); pessoalEditingContaId = id; pessoalAddingConta = false; renderPessoal(); };
+    })(conta.id);
+    var delBtn = document.createElement('button');
+    delBtn.className = 'conta-action-btn del';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Excluir';
+    delBtn.onclick = (function(id, nm) {
+      return function(e) { e.stopPropagation(); if (confirm('Excluir "' + nm + '"?')) excluirConta(id); };
+    })(conta.id, conta.nome);
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+
+    row.appendChild(chk);
+    row.appendChild(info);
+    row.appendChild(valor);
+    row.appendChild(badgeEl);
+    row.appendChild(actions);
+    contasBody.appendChild(row);
+
+    // Formulário de edição inline
+    if (isEditing) contasBody.appendChild(makeContaForm(conta));
+  });
+
+  // Formulário novo
+  if (pessoalAddingConta) contasBody.appendChild(makeContaForm(null));
+  contasCard.appendChild(contasBody);
+  grid.appendChild(contasCard);
+
+  // ── CARD ANIVERSÁRIOS E EVENTOS ──
+  var eventosCard = document.createElement('div');
+  eventosCard.className = 'pessoal-card full';
+
+  var eventosHeader = document.createElement('div');
+  eventosHeader.className = 'pessoal-card-header';
+  eventosHeader.innerHTML = '<div class="pessoal-card-title">🎂 Aniversários & Eventos</div>';
+  var addEventoBtn = document.createElement('button');
+  addEventoBtn.className = 'pessoal-add-btn';
+  addEventoBtn.textContent = '+ Novo';
+  addEventoBtn.onclick = function() { pessoalAddingEvento = !pessoalAddingEvento; pessoalEditingEventoId = null; renderPessoal(); };
+  eventosHeader.appendChild(addEventoBtn);
+  eventosCard.appendChild(eventosHeader);
+
+  var eventosBody = document.createElement('div');
+  eventosBody.className = 'pessoal-card-body';
+
+  // Ordenar por proximidade
+  var sortedEventos = pessoalEventos.slice().sort(function(a, b) {
+    return diasParaEvento(a.dia, a.mes) - diasParaEvento(b.dia, b.mes);
+  });
+
+  if (sortedEventos.length === 0 && !pessoalAddingEvento) {
+    eventosBody.innerHTML = '<div class="pessoal-empty">Nenhum evento cadastrado.<br>Clique em "+ Novo" para adicionar.</div>';
+  }
+
+  sortedEventos.forEach(function(ev) {
+    var dias = diasParaEvento(ev.dia, ev.mes);
+    var isEditing = pessoalEditingEventoId === ev.id;
+
+    var row = document.createElement('div');
+    row.className = 'evento-item';
+
+    var icon = document.createElement('div');
+    icon.className = 'evento-icon ' + (ev.tipo || 'evento');
+    icon.textContent = eventoIcon(ev.tipo);
+
+    var info = document.createElement('div');
+    info.className = 'evento-info';
+    var nome = document.createElement('div');
+    nome.className = 'evento-nome';
+    nome.textContent = ev.nome;
+    var meta = document.createElement('div');
+    meta.className = 'evento-meta';
+    var dataStr = String(ev.dia).padStart(2,'0') + '/' + String(ev.mes).padStart(2,'0');
+    if (ev.ano) dataStr += '/' + ev.ano;
+    if (ev.tipo === 'aniversario' && !ev.ano) {
+      meta.textContent = dataStr;
+    } else if (ev.tipo === 'aniversario' && ev.ano) {
+      var idade = new Date().getFullYear() - ev.ano;
+      meta.textContent = dataStr + ' · ' + idade + ' anos';
+    } else {
+      meta.textContent = dataStr;
+    }
+    info.appendChild(nome);
+    info.appendChild(meta);
+
+    var diasBadge = document.createElement('span');
+    var diasCls = dias === 0 ? 'hoje' : dias <= (ev.notificacao_dias || 7) ? 'breve' : 'normal';
+    diasBadge.className = 'evento-dias-badge ' + diasCls;
+    diasBadge.textContent = dias === 0 ? 'Hoje!' : dias === 1 ? 'Amanhã' : 'Em ' + dias + 'd';
+
+    var actions = document.createElement('div');
+    actions.className = 'conta-actions';
+    var editBtn = document.createElement('button');
+    editBtn.className = 'conta-action-btn';
+    editBtn.textContent = '✏';
+    editBtn.onclick = (function(id) {
+      return function(e) { e.stopPropagation(); pessoalEditingEventoId = id; pessoalAddingEvento = false; renderPessoal(); };
+    })(ev.id);
+    var delBtn = document.createElement('button');
+    delBtn.className = 'conta-action-btn del';
+    delBtn.textContent = '✕';
+    delBtn.onclick = (function(id, nm) {
+      return function(e) { e.stopPropagation(); if (confirm('Excluir "' + nm + '"?')) excluirEvento(id); };
+    })(ev.id, ev.nome);
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+
+    row.appendChild(icon);
+    row.appendChild(info);
+    row.appendChild(diasBadge);
+    row.appendChild(actions);
+    eventosBody.appendChild(row);
+
+    if (isEditing) eventosBody.appendChild(makeEventoForm(ev));
+  });
+
+  if (pessoalAddingEvento) eventosBody.appendChild(makeEventoForm(null));
+  eventosCard.appendChild(eventosBody);
+  grid.appendChild(eventosCard);
+
+  container.appendChild(grid);
+}
+
+// ── FORMULÁRIOS ───────────────────────────────────────
+function makeContaForm(conta) {
+  var form = document.createElement('div');
+  form.className = 'pessoal-form';
+
+  var row1 = document.createElement('div');
+  row1.className = 'pessoal-form-row';
+  var nomeInp = document.createElement('input');
+  nomeInp.className = 'pessoal-form-input';
+  nomeInp.placeholder = 'Nome da conta (ex: Aluguel)';
+  nomeInp.value = conta ? conta.nome : '';
+  var valorInp = document.createElement('input');
+  valorInp.className = 'pessoal-form-input';
+  valorInp.placeholder = 'Valor (R$)';
+  valorInp.type = 'number';
+  valorInp.step = '0.01';
+  valorInp.value = conta ? conta.valor : '';
+  row1.appendChild(nomeInp);
+  row1.appendChild(valorInp);
+
+  var row2 = document.createElement('div');
+  row2.className = 'pessoal-form-row';
+  row2.style.marginTop = '8px';
+  var diaInp = document.createElement('input');
+  diaInp.className = 'pessoal-form-input';
+  diaInp.placeholder = 'Dia vencimento';
+  diaInp.type = 'number';
+  diaInp.min = '1'; diaInp.max = '31';
+  diaInp.value = conta ? conta.dia_vencimento : '';
+  var catSel = document.createElement('select');
+  catSel.className = 'pessoal-form-select';
+  ['Moradia','Transporte','Alimentação','Saúde','Educação','Lazer','Serviços','Outros'].forEach(function(cat) {
+    var o = document.createElement('option');
+    o.value = cat.toLowerCase();
+    o.textContent = cat;
+    if (conta && conta.categoria === cat.toLowerCase()) o.selected = true;
+    catSel.appendChild(o);
+  });
+  row2.appendChild(diaInp);
+  row2.appendChild(catSel);
+
+  var footer = document.createElement('div');
+  footer.className = 'pessoal-form-footer';
+  var cancelBtn = document.createElement('button');
+  cancelBtn.className = 'pessoal-form-cancel';
+  cancelBtn.textContent = 'Cancelar';
+  cancelBtn.onclick = function() { pessoalAddingConta = false; pessoalEditingContaId = null; renderPessoal(); };
+  var saveBtn = document.createElement('button');
+  saveBtn.className = 'pessoal-form-save';
+  saveBtn.textContent = conta ? 'Salvar' : 'Adicionar conta';
+  saveBtn.onclick = function() {
+    var nome = nomeInp.value.trim();
+    if (!nome) { showToast('Digite o nome da conta', 'urgente'); return; }
+    var dados = {
+      nome: nome,
+      valor: parseFloat(valorInp.value) || 0,
+      dia_vencimento: parseInt(diaInp.value) || 1,
+      categoria: catSel.value,
+      ativo: true
+    };
+    if (conta) dados.id = conta.id;
+    salvarConta(dados);
+  };
+  footer.appendChild(cancelBtn);
+  footer.appendChild(saveBtn);
+
+  form.appendChild(row1);
+  form.appendChild(row2);
+  form.appendChild(footer);
+  return form;
+}
+
+function makeEventoForm(ev) {
+  var form = document.createElement('div');
+  form.className = 'pessoal-form';
+
+  var row1 = document.createElement('div');
+  row1.className = 'pessoal-form-row';
+  var nomeInp = document.createElement('input');
+  nomeInp.className = 'pessoal-form-input';
+  nomeInp.placeholder = 'Nome (ex: Aniv. João)';
+  nomeInp.value = ev ? ev.nome : '';
+  var tipoSel = document.createElement('select');
+  tipoSel.className = 'pessoal-form-select';
+  [{v:'aniversario',l:'🎂 Aniversário'},{v:'evento',l:'📅 Evento'},{v:'lembrete',l:'⏰ Lembrete'}].forEach(function(opt) {
+    var o = document.createElement('option');
+    o.value = opt.v; o.textContent = opt.l;
+    if (ev && ev.tipo === opt.v) o.selected = true;
+    tipoSel.appendChild(o);
+  });
+  row1.appendChild(nomeInp);
+  row1.appendChild(tipoSel);
+
+  var row2 = document.createElement('div');
+  row2.className = 'pessoal-form-row';
+  row2.style.marginTop = '8px';
+  var diaInp = document.createElement('input');
+  diaInp.className = 'pessoal-form-input';
+  diaInp.placeholder = 'Dia';
+  diaInp.type = 'number'; diaInp.min = '1'; diaInp.max = '31';
+  diaInp.value = ev ? ev.dia : '';
+  var mesInp = document.createElement('input');
+  mesInp.className = 'pessoal-form-input';
+  mesInp.placeholder = 'Mês';
+  mesInp.type = 'number'; mesInp.min = '1'; mesInp.max = '12';
+  mesInp.value = ev ? ev.mes : '';
+  var anoInp = document.createElement('input');
+  anoInp.className = 'pessoal-form-input';
+  anoInp.placeholder = 'Ano (opc.)';
+  anoInp.type = 'number'; anoInp.min = '1900';
+  anoInp.value = ev ? (ev.ano || '') : '';
+  row2.appendChild(diaInp);
+  row2.appendChild(mesInp);
+  row2.appendChild(anoInp);
+
+  var row3 = document.createElement('div');
+  row3.className = 'pessoal-form-row';
+  row3.style.marginTop = '8px';
+  var notifInp = document.createElement('input');
+  notifInp.className = 'pessoal-form-input';
+  notifInp.placeholder = 'Notif. X dias antes';
+  notifInp.type = 'number'; notifInp.min = '0'; notifInp.max = '30';
+  notifInp.value = ev ? (ev.notificacao_dias || 3) : 3;
+  row3.appendChild(notifInp);
+
+  var footer = document.createElement('div');
+  footer.className = 'pessoal-form-footer';
+  var cancelBtn = document.createElement('button');
+  cancelBtn.className = 'pessoal-form-cancel';
+  cancelBtn.textContent = 'Cancelar';
+  cancelBtn.onclick = function() { pessoalAddingEvento = false; pessoalEditingEventoId = null; renderPessoal(); };
+  var saveBtn = document.createElement('button');
+  saveBtn.className = 'pessoal-form-save';
+  saveBtn.textContent = ev ? 'Salvar' : 'Adicionar';
+  saveBtn.onclick = function() {
+    var nome = nomeInp.value.trim();
+    var dia = parseInt(diaInp.value);
+    var mes = parseInt(mesInp.value);
+    if (!nome || !dia || !mes) { showToast('Preencha nome, dia e mês', 'urgente'); return; }
+    var dados = {
+      nome: nome,
+      tipo: tipoSel.value,
+      dia: dia,
+      mes: mes,
+      ano: parseInt(anoInp.value) || null,
+      notificacao_dias: parseInt(notifInp.value) || 3,
+      ativo: true
+    };
+    if (ev) dados.id = ev.id;
+    salvarEvento(dados);
+  };
+  footer.appendChild(cancelBtn);
+  footer.appendChild(saveBtn);
+
+  form.appendChild(row1);
+  form.appendChild(row2);
+  form.appendChild(row3);
+  form.appendChild(footer);
+  return form;
+}
+
+// ── CHIPS PESSOAIS NO CALENDÁRIO ──────────────────────
+function getPessoalChipsForDate(dateStr) {
+  var chips = [];
+  var d = new Date(dateStr + 'T12:00:00');
+  var dia = d.getDate(), mes = d.getMonth() + 1, ano = d.getFullYear();
+
+  // Contas com vencimento neste dia
+  pessoalContas.forEach(function(c) {
+    if (c.dia_vencimento === dia) {
+      var pago = isContaPaga(c.id);
+      chips.push({ tipo: 'conta', nome: c.nome, pago: pago, id: c.id });
+    }
+  });
+
+  // Eventos/aniversários neste dia/mês
+  pessoalEventos.forEach(function(ev) {
+    if (ev.dia === dia && ev.mes === mes) {
+      chips.push({ tipo: ev.tipo || 'evento', nome: ev.nome, pago: false, id: ev.id });
+    }
+  });
+
+  return chips;
 }
 
 // ── EXPORTAÇÃO EXCEL ──────────────────────────────────
@@ -3545,7 +4191,7 @@ function openTaskFromModal(){
   switchTab('tarefas',document.querySelector('.tab-btn'));
   setTimeout(function(){toggleAddForm();},200);
 }
-loadCicloFromDB();loadCiclo();loadCiclo();loadCicloConclusions();loadTasksFromDB().then(function(){renderMeetings();renderRoadmap();renderFoco();setTimeout(function(){var urgent=tasks.filter(function(t){return !t.done&&t.prio==='urgente';});if(urgent.length>0)showToast('⚠ '+urgent.length+' tarefa(s) urgente(s)',urgent.map(function(t){return t.name;}).join(', ')); checkAndShowMorningModal();},1000);});
+loadCicloFromDB();loadCiclo();loadCiclo();loadCicloConclusions();loadPessoal();loadTasksFromDB().then(function(){renderMeetings();renderRoadmap();renderFoco();setTimeout(function(){var urgent=tasks.filter(function(t){return !t.done&&t.prio==='urgente';});if(urgent.length>0)showToast('⚠ '+urgent.length+' tarefa(s) urgente(s)',urgent.map(function(t){return t.name;}).join(', ')); checkAndShowMorningModal();},1000);});
 </script>
 </body>
 </html>
