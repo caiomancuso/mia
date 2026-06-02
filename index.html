@@ -2624,24 +2624,56 @@ function calcCiclo(){
     var days=getDays(item);
     var cls=colorClass(days,item.cor,item.notificacao_dias);
     var ct=countdownText(days);
-    var labelMap={dia_fixo:'Dia '+item.dia_fixo,primeira_segunda:'1ª segunda',toda_segunda:'Toda segunda',toda_terca:'Toda terça',toda_quarta:'Toda quarta',toda_quinta:'Toda quinta',toda_sexta:'Toda sexta'};
-    var label=item.tipo==='dia_fixo'?'Dia '+item.dia_fixo:(labelMap[item.recorrencia]||item.recorrencia||'—');
-    var row=document.createElement('div');row.className='ciclo-item';
+    var labelMap={dia_fixo:'Dia '+item.dia_fixo,primeira_segunda:'1ª segunda',toda_segunda:'Toda segunda',toda_terca:'Toda terça',toda_quarta:'Toda quarta',toda_quinta:'Toda quinta',toda_sexta:'Toda sexta',primeira_sexta:'1ª sexta',ultima_sexta:'Última sexta'};
+    var label=item.tipo==='dia_fixo'?'Dia '+String(item.dia_fixo).padStart(2,'0'):(labelMap[item.recorrencia]||item.recorrencia||'—');
+
+    // Verificar conclusão do mês atual
+    var concluido=item.id?isCicloConcluidoMes(item.id):false;
+
+    var row=document.createElement('div');
+    row.className='ciclo-item'+(concluido?' concluido-mes':'');
+
+    // Botão de check (marcar como realizado)
+    var checkBtn=document.createElement('button');
+    checkBtn.className='ciclo-check-btn'+(concluido?' done':'');
+    checkBtn.textContent=concluido?'✓':'';
+    checkBtn.title=concluido?'Reabrir':'Marcar como realizado';
+    checkBtn.onclick=(function(id,done){
+      return function(e){
+        e.stopPropagation();
+        if(done) reabrirCicloMes(id);
+        else concluirCicloMes(id);
+      };
+    })(item.id,concluido);
+
+    // Lado esquerdo — check + nome
+    var leftDiv=document.createElement('div');leftDiv.className='ciclo-item-left';
+    leftDiv.appendChild(checkBtn);
     var nameSpan=document.createElement('span');nameSpan.className='ciclo-name';nameSpan.textContent=item.nome;
+    leftDiv.appendChild(nameSpan);
+
+    // Lado direito — prazo + contagem
     var right=document.createElement('div');right.className='ciclo-right';
-    var dateSpan=document.createElement('span');dateSpan.className='ciclo-date '+cls;dateSpan.textContent=label;
-    var countSpan=document.createElement('span');countSpan.className='ciclo-countdown '+cls;countSpan.textContent=ct;
+    var dateSpan=document.createElement('span');
+    dateSpan.className='ciclo-date '+(concluido?'ok':cls);
+    dateSpan.textContent=concluido?'✓ feito':label;
+    var countSpan=document.createElement('span');
+    countSpan.className='ciclo-countdown '+(concluido?'ok':cls);
+    countSpan.textContent=concluido?getMonthLabel(new Date().getMonth()):ct;
     right.appendChild(dateSpan);right.appendChild(countSpan);
-    row.appendChild(nameSpan);row.appendChild(right);
+
+    row.appendChild(leftDiv);row.appendChild(right);
     list.appendChild(row);
 
     // Alerta de notificação
-    if(days>=0&&days<=item.notificacao_dias&&days>0){
-      var key='ciclo_notif_'+item.id+'_'+new Date().toDateString();
-      if(!sessionStorage.getItem(key)){
-        sessionStorage.setItem(key,'1');
-        if(Notification.permission==='granted') new Notification('⏰ Ciclo MIA',{body:item.nome+' vence em '+ct});
-      }
+    if(!concluido&&days>=0&&days<=item.notificacao_dias&&days>0){
+      var key='ciclo_notif_'+(item.id||item.nome)+'_'+new Date().toDateString();
+      try{
+        if(!sessionStorage.getItem(key)){
+          sessionStorage.setItem(key,'1');
+          if(Notification.permission==='granted') new Notification('⏰ Ciclo MIA',{body:item.nome+' vence em '+ct});
+        }
+      }catch(e){}
     }
   });
 }
