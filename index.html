@@ -511,6 +511,37 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 
 
+
+/* GRÁFICOS PESSOAL */
+.pessoal-chart-wrap{position:relative;width:100%;height:160px;margin:8px 0;}
+.pessoal-bar-chart{display:flex;align-items:flex-end;gap:6px;height:120px;padding:0 4px;}
+.pessoal-bar-col{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px;}
+.pessoal-bar{width:100%;border-radius:4px 4px 0 0;transition:height 0.5s ease;min-height:2px;cursor:pointer;position:relative;}
+.pessoal-bar:hover{opacity:0.85;}
+.pessoal-bar-label{font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.pessoal-bar-val{font-size:9px;font-family:'DM Mono',monospace;color:var(--text2);text-align:center;}
+.pessoal-donut-wrap{display:flex;align-items:center;gap:16px;padding:8px 0;}
+.pessoal-donut-legend{display:flex;flex-direction:column;gap:6px;flex:1;}
+.pessoal-legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);}
+.pessoal-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.pessoal-legend-val{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-left:auto;}
+.pessoal-progress-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.pessoal-progress-label{font-size:11px;color:var(--text2);width:90px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pessoal-progress-track{flex:1;height:8px;background:var(--surface3);border-radius:4px;overflow:hidden;}
+.pessoal-progress-fill{height:100%;border-radius:4px;transition:width 0.5s ease;}
+.pessoal-progress-pct{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);width:32px;text-align:right;flex-shrink:0;}
+/* SUGESTÃO MIA PESSOAL */
+.pessoal-mia-card{background:var(--surface);border:1px solid rgba(200,241,53,0.15);border-radius:var(--radius-lg);padding:16px;margin-bottom:14px;}
+.pessoal-mia-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.pessoal-mia-icon{font-size:18px;}
+.pessoal-mia-title{font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--text);}
+.pessoal-mia-item{background:var(--accent-dim);border:1px solid rgba(200,241,53,0.15);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;font-size:12px;color:var(--text);line-height:1.5;}
+.pessoal-mia-item:last-child{margin-bottom:0;}
+.pessoal-mia-item strong{color:var(--accent);}
+.pessoal-mia-item.alerta{background:var(--red-dim);border-color:rgba(255,77,109,0.2);color:var(--text);}
+.pessoal-mia-item.alerta strong{color:var(--red);}
+.pessoal-mia-item.ok{background:var(--teal-dim);border-color:rgba(45,212,191,0.2);}
+.pessoal-mia-item.ok strong{color:var(--teal);}
 /* ABA PESSOAL */
 .pessoal-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
 .pessoal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
@@ -2636,6 +2667,12 @@ function renderPessoal() {
   var now = new Date();
   var months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
+  // ── SUGESTÃO MIA ──
+  renderPessoalMiaCard(container);
+
+  // ── GRÁFICOS ──
+  renderPessoalGraficos(container);
+
   // ── RESUMO FINANCEIRO ──
   var totalContas = pessoalContas.reduce(function(s, c) { return s + (parseFloat(c.valor) || 0); }, 0);
   var pagas = pessoalContas.filter(function(c) { return isContaPaga(c.id); });
@@ -3028,6 +3065,310 @@ function getPessoalChipsForDate(dateStr) {
   });
 
   return chips;
+}
+
+
+// ── GRÁFICOS E SUGESTÃO — PESSOAL ────────────────────
+var CAT_CORES = {
+  moradia:'#5b9cf6', transporte:'#c8f135', alimentação:'#ff9f43',
+  saúde:'#ff4d6d', educação:'#a78bfa', lazer:'#2dd4bf',
+  serviços:'#ffb347', outros:'#9090a8'
+};
+
+function gerarSugestoesPessoal() {
+  var now = new Date();
+  var sugestoes = [];
+
+  // Contas vencendo em breve
+  var vencendoHoje = pessoalContas.filter(function(c) {
+    return !isContaPaga(c.id) && diasParaConta(c.dia_vencimento) <= 0;
+  });
+  var vencendoBreve = pessoalContas.filter(function(c) {
+    var d = diasParaConta(c.dia_vencimento);
+    return !isContaPaga(c.id) && d > 0 && d <= 3;
+  });
+  var totalPendente = pessoalContas
+    .filter(function(c) { return !isContaPaga(c.id); })
+    .reduce(function(s, c) { return s + (parseFloat(c.valor) || 0); }, 0);
+  var totalMes = pessoalContas.reduce(function(s, c) { return s + (parseFloat(c.valor) || 0); }, 0);
+  var pctPago = totalMes > 0 ? Math.round((1 - totalPendente / totalMes) * 100) : 0;
+
+  if (vencendoHoje.length > 0) {
+    sugestoes.push({
+      tipo: 'alerta',
+      texto: '<strong>⚠ ' + vencendoHoje.length + ' conta(s) com vencimento hoje:</strong> ' +
+             vencendoHoje.map(function(c) { return c.nome + ' (' + formatCurrency(c.valor) + ')'; }).join(', ') + '.'
+    });
+  }
+  if (vencendoBreve.length > 0) {
+    sugestoes.push({
+      tipo: 'normal',
+      texto: '<strong>📅 Vencimentos próximos:</strong> ' +
+             vencendoBreve.map(function(c) {
+               return c.nome + ' em ' + diasParaConta(c.dia_vencimento) + 'd';
+             }).join(', ') + '.'
+    });
+  }
+  if (pctPago >= 80) {
+    sugestoes.push({
+      tipo: 'ok',
+      texto: '<strong>✓ ' + pctPago + '% das contas pagas</strong> este mês. Bom controle financeiro!'
+    });
+  } else if (pctPago > 0) {
+    sugestoes.push({
+      tipo: 'normal',
+      texto: '<strong>' + pctPago + '% do mês pago.</strong> Ainda restam ' + formatCurrency(totalPendente) + ' a pagar.'
+    });
+  }
+
+  // Aniversários próximos
+  var anivProximos = pessoalEventos.filter(function(ev) {
+    return ev.tipo === 'aniversario' && diasParaEvento(ev.dia, ev.mes) <= 7;
+  }).sort(function(a, b) { return diasParaEvento(a.dia, a.mes) - diasParaEvento(b.dia, b.mes); });
+  if (anivProximos.length > 0) {
+    sugestoes.push({
+      tipo: 'normal',
+      texto: '<strong>🎂 Aniversário próximo:</strong> ' +
+             anivProximos.map(function(ev) {
+               var d = diasParaEvento(ev.dia, ev.mes);
+               return ev.nome + (d === 0 ? ' — <strong>hoje!</strong>' : ' em ' + d + 'd');
+             }).join(', ') + '.'
+    });
+  }
+
+  // Eventos importantes
+  var eventosProx = pessoalEventos.filter(function(ev) {
+    return ev.tipo !== 'aniversario' && diasParaEvento(ev.dia, ev.mes) <= (ev.notificacao_dias || 7);
+  });
+  if (eventosProx.length > 0) {
+    sugestoes.push({
+      tipo: 'normal',
+      texto: '<strong>📅 Evento se aproximando:</strong> ' +
+             eventosProx[0].nome + ' em ' + diasParaEvento(eventosProx[0].dia, eventosProx[0].mes) + ' dias.'
+    });
+  }
+
+  if (sugestoes.length === 0) {
+    sugestoes.push({
+      tipo: 'ok',
+      texto: '<strong>✓ Tudo em ordem</strong> — sem alertas financeiros ou eventos próximos.'
+    });
+  }
+
+  return sugestoes;
+}
+
+function renderPessoalMiaCard(container) {
+  var sugestoes = gerarSugestoesPessoal();
+  var card = document.createElement('div');
+  card.className = 'pessoal-mia-card';
+
+  var header = document.createElement('div');
+  header.className = 'pessoal-mia-header';
+  header.innerHTML = '<span class="pessoal-mia-icon">⚡</span><span class="pessoal-mia-title">Sugestão MIA — Pessoal</span>';
+  card.appendChild(header);
+
+  sugestoes.forEach(function(s) {
+    var item = document.createElement('div');
+    item.className = 'pessoal-mia-item ' + (s.tipo || 'normal');
+    item.innerHTML = s.texto;
+    card.appendChild(item);
+  });
+
+  container.appendChild(card);
+}
+
+function renderPessoalGraficos(container) {
+  var grid = document.createElement('div');
+  grid.className = 'pessoal-grid';
+
+  // ── GRÁFICO 1: Barras por categoria ──
+  var catCard = document.createElement('div');
+  catCard.className = 'pessoal-card';
+  catCard.innerHTML = '<div class="pessoal-card-header"><div class="pessoal-card-title">📊 Contas por categoria</div></div>';
+  var catBody = document.createElement('div');
+  catBody.className = 'pessoal-card-body';
+
+  // Agrupar por categoria
+  var catMap = {};
+  pessoalContas.forEach(function(c) {
+    var cat = c.categoria || 'outros';
+    catMap[cat] = (catMap[cat] || 0) + (parseFloat(c.valor) || 0);
+  });
+  var catEntries = Object.keys(catMap).map(function(k) { return { cat: k, val: catMap[k] }; });
+  catEntries.sort(function(a, b) { return b.val - a.val; });
+  var maxVal = catEntries.length > 0 ? catEntries[0].val : 1;
+
+  if (catEntries.length === 0) {
+    catBody.innerHTML = '<div class="pessoal-empty">Sem dados para exibir</div>';
+  } else {
+    var barChart = document.createElement('div');
+    barChart.className = 'pessoal-bar-chart';
+    catEntries.slice(0, 6).forEach(function(entry) {
+      var pct = maxVal > 0 ? Math.round((entry.val / maxVal) * 100) : 0;
+      var cor = CAT_CORES[entry.cat] || 'var(--blue)';
+      var col = document.createElement('div');
+      col.className = 'pessoal-bar-col';
+      var bar = document.createElement('div');
+      bar.className = 'pessoal-bar';
+      bar.style.cssText = 'height:' + Math.max(pct, 4) + '%;background:' + cor + ';';
+      bar.title = entry.cat + ': ' + formatCurrency(entry.val);
+      var valEl = document.createElement('div');
+      valEl.className = 'pessoal-bar-val';
+      valEl.textContent = 'R$' + Math.round(entry.val);
+      var lbl = document.createElement('div');
+      lbl.className = 'pessoal-bar-label';
+      lbl.textContent = entry.cat.charAt(0).toUpperCase() + entry.cat.slice(1, 5);
+      col.appendChild(bar);
+      col.appendChild(valEl);
+      col.appendChild(lbl);
+      barChart.appendChild(col);
+    });
+    catBody.appendChild(barChart);
+  }
+  catCard.appendChild(catBody);
+  grid.appendChild(catCard);
+
+  // ── GRÁFICO 2: Status de pagamento (donut via SVG) ──
+  var statusCard = document.createElement('div');
+  statusCard.className = 'pessoal-card';
+  statusCard.innerHTML = '<div class="pessoal-card-header"><div class="pessoal-card-title">💰 Status do mês</div></div>';
+  var statusBody = document.createElement('div');
+  statusBody.className = 'pessoal-card-body';
+
+  var totalMes = pessoalContas.reduce(function(s, c) { return s + (parseFloat(c.valor) || 0); }, 0);
+  var totalPago = pessoalContas
+    .filter(function(c) { return isContaPaga(c.id); })
+    .reduce(function(s, c) { return s + (parseFloat(c.valor) || 0); }, 0);
+  var totalPend = totalMes - totalPago;
+  var pctPago = totalMes > 0 ? totalPago / totalMes : 0;
+
+  // SVG donut
+  var r = 40, cx = 55, cy = 55, stroke = 16;
+  var circ = 2 * Math.PI * r;
+  var dashPago = circ * pctPago;
+  var dashPend = circ * (1 - pctPago);
+  var svgNS = 'http://www.w3.org/2000/svg';
+  var svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('width', '110'); svg.setAttribute('height', '110');
+  svg.setAttribute('viewBox', '0 0 110 110');
+
+  // Círculo base
+  var base = document.createElementNS(svgNS, 'circle');
+  base.setAttribute('cx', cx); base.setAttribute('cy', cy); base.setAttribute('r', r);
+  base.setAttribute('fill', 'none'); base.setAttribute('stroke', 'var(--surface3)');
+  base.setAttribute('stroke-width', stroke);
+  svg.appendChild(base);
+
+  if (totalMes > 0) {
+    // Arco pago
+    var arcPago = document.createElementNS(svgNS, 'circle');
+    arcPago.setAttribute('cx', cx); arcPago.setAttribute('cy', cy); arcPago.setAttribute('r', r);
+    arcPago.setAttribute('fill', 'none'); arcPago.setAttribute('stroke', '#2dd4bf');
+    arcPago.setAttribute('stroke-width', stroke);
+    arcPago.setAttribute('stroke-dasharray', dashPago + ' ' + (circ - dashPago));
+    arcPago.setAttribute('stroke-dashoffset', circ * 0.25);
+    arcPago.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(arcPago);
+
+    // Arco pendente
+    if (dashPend > 2) {
+      var arcPend = document.createElementNS(svgNS, 'circle');
+      arcPend.setAttribute('cx', cx); arcPend.setAttribute('cy', cy); arcPend.setAttribute('r', r);
+      arcPend.setAttribute('fill', 'none'); arcPend.setAttribute('stroke', '#ffb347');
+      arcPend.setAttribute('stroke-width', stroke);
+      arcPend.setAttribute('stroke-dasharray', dashPend + ' ' + (circ - dashPend));
+      arcPend.setAttribute('stroke-dashoffset', -(circ * 0.25) - dashPago + circ);
+      arcPend.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(arcPend);
+    }
+  }
+
+  // Texto central
+  var txtPct = document.createElementNS(svgNS, 'text');
+  txtPct.setAttribute('x', cx); txtPct.setAttribute('y', cy - 4);
+  txtPct.setAttribute('text-anchor', 'middle'); txtPct.setAttribute('font-size', '14');
+  txtPct.setAttribute('font-weight', '700'); txtPct.setAttribute('fill', '#e8e8f0');
+  txtPct.setAttribute('font-family', 'Syne, sans-serif');
+  txtPct.textContent = Math.round(pctPago * 100) + '%';
+  svg.appendChild(txtPct);
+
+  var txtLabel = document.createElementNS(svgNS, 'text');
+  txtLabel.setAttribute('x', cx); txtLabel.setAttribute('y', cy + 10);
+  txtLabel.setAttribute('text-anchor', 'middle'); txtLabel.setAttribute('font-size', '9');
+  txtLabel.setAttribute('fill', '#9090a8'); txtLabel.setAttribute('font-family', 'monospace');
+  txtLabel.textContent = 'pago';
+  svg.appendChild(txtLabel);
+
+  var donutWrap = document.createElement('div');
+  donutWrap.className = 'pessoal-donut-wrap';
+  donutWrap.appendChild(svg);
+
+  var legend = document.createElement('div');
+  legend.className = 'pessoal-donut-legend';
+  var items = [
+    { label: 'Pago', val: totalPago, cor: '#2dd4bf' },
+    { label: 'Pendente', val: totalPend, cor: '#ffb347' },
+    { label: 'Total', val: totalMes, cor: '#9090a8' },
+  ];
+  items.forEach(function(item) {
+    var li = document.createElement('div');
+    li.className = 'pessoal-legend-item';
+    var dot = document.createElement('div');
+    dot.className = 'pessoal-legend-dot';
+    dot.style.background = item.cor;
+    var lbl = document.createElement('span');
+    lbl.textContent = item.label;
+    var val = document.createElement('span');
+    val.className = 'pessoal-legend-val';
+    val.textContent = formatCurrency(item.val);
+    li.appendChild(dot); li.appendChild(lbl); li.appendChild(val);
+    legend.appendChild(li);
+  });
+  donutWrap.appendChild(legend);
+  statusBody.appendChild(donutWrap);
+  statusCard.appendChild(statusBody);
+  grid.appendChild(statusCard);
+
+  // ── GRÁFICO 3: Progresso por conta ──
+  var progCard = document.createElement('div');
+  progCard.className = 'pessoal-card full';
+  progCard.innerHTML = '<div class="pessoal-card-header"><div class="pessoal-card-title">📋 Progresso de pagamentos</div></div>';
+  var progBody = document.createElement('div');
+  progBody.className = 'pessoal-card-body';
+
+  if (pessoalContas.length === 0) {
+    progBody.innerHTML = '<div class="pessoal-empty">Sem contas cadastradas</div>';
+  } else {
+    pessoalContas.forEach(function(c) {
+      var pago = isContaPaga(c.id);
+      var cor = pago ? '#2dd4bf' : diasParaConta(c.dia_vencimento) <= 0 ? '#ff4d6d' :
+                diasParaConta(c.dia_vencimento) <= 3 ? '#ffb347' : '#5b9cf6';
+      var row = document.createElement('div');
+      row.className = 'pessoal-progress-row';
+      var lbl = document.createElement('div');
+      lbl.className = 'pessoal-progress-label';
+      lbl.title = c.nome;
+      lbl.textContent = c.nome;
+      var track = document.createElement('div');
+      track.className = 'pessoal-progress-track';
+      var fill = document.createElement('div');
+      fill.className = 'pessoal-progress-fill';
+      fill.style.cssText = 'width:' + (pago ? '100' : '0') + '%;background:' + cor + ';';
+      track.appendChild(fill);
+      var pct = document.createElement('div');
+      pct.className = 'pessoal-progress-pct';
+      pct.textContent = pago ? '✓' : formatCurrency(c.valor).replace('R$ ', 'R$');
+      pct.style.color = pago ? '#2dd4bf' : '#9090a8';
+      pct.style.fontSize = '10px';
+      row.appendChild(lbl); row.appendChild(track); row.appendChild(pct);
+      progBody.appendChild(row);
+    });
+  }
+  progCard.appendChild(progBody);
+  grid.appendChild(progCard);
+
+  container.appendChild(grid);
 }
 
 // ── EXPORTAÇÃO EXCEL ──────────────────────────────────
