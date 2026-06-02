@@ -613,7 +613,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .pessoal-form-save{flex:1;padding:8px;background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,0.3);border-radius:6px;font-size:12px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;}
 .pessoal-form-cancel{padding:8px 12px;background:transparent;color:var(--text3);border:1px solid var(--border2);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;}
 .pessoal-empty{text-align:center;padding:20px;color:var(--text3);font-size:11px;font-family:'DM Mono',monospace;}
-@media(max-width:700px){.pessoal-grid{grid-template-columns:1fr;}}
+
 /* CICLO CONCLUSÕES */
 .ciclo-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px;}
 .ciclo-item:last-child{border-bottom:none;}
@@ -780,7 +780,170 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .modal-btn-secondary:hover{border-color:var(--text2);color:var(--text);}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-@media(max-width:900px){.main-grid{grid-template-columns:1fr;}.stats-row{grid-template-columns:repeat(2,1fr);}.calendar-grid{grid-template-columns:repeat(3,1fr);}.dash-grid{grid-template-columns:1fr;}}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVIDADE MOBILE — MIA
+   Breakpoints: 900px (tablet), 600px (mobile large), 420px (mobile)
+═══════════════════════════════════════════════════ */
+
+/* ── TABLET (≤900px) ── */
+@media(max-width:900px){
+  .main-grid{grid-template-columns:1fr;}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .dash-grid{grid-template-columns:1fr;}
+  .pessoal-grid{grid-template-columns:1fr;}
+  .sidebar{flex-direction:row;flex-wrap:wrap;}
+  .sidebar > div{flex:1;min-width:260px;}
+  .timer-widget{min-width:260px;}
+  .foco-grid{grid-template-columns:1fr;}
+  .tmpl-grid{grid-template-columns:1fr 1fr;}
+  .calendar-grid{grid-template-columns:repeat(7,1fr);}
+}
+
+/* ── MOBILE LARGE (≤600px) ── */
+@media(max-width:600px){
+  .app{padding:12px 10px;}
+
+  /* Header */
+  .header{flex-wrap:wrap;gap:8px;margin-bottom:16px;padding-bottom:14px;}
+  .header-right{width:100%;justify-content:flex-end;}
+  .date-badge{font-size:10px;padding:4px 8px;}
+
+  /* Stats */
+  .stats-row{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
+  .stat-card{padding:10px 12px;}
+  .stat-val{font-size:22px;}
+
+  /* Abas */
+  .tabs{width:100%;overflow-x:auto;gap:2px;padding:3px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab-btn{padding:6px 10px;font-size:11px;white-space:nowrap;flex-shrink:0;}
+
+  /* Main grid */
+  .main-grid{gap:10px;}
+
+  /* Sidebar — empilha abaixo do conteúdo */
+  .sidebar{flex-direction:column;gap:10px;}
+  .sidebar > div{min-width:unset;width:100%;}
+
+  /* Timer widget */
+  .timer-display{font-size:36px;}
+  .timer-controls{gap:6px;}
+  .timer-control-btn{font-size:11px;padding:7px;}
+
+  /* Panel */
+  .panel-header{padding:12px 14px;}
+  .panel-title{font-size:13px;}
+
+  /* Date nav */
+  .date-nav-label{font-size:11px;}
+
+  /* Task cards */
+  .task-item{padding:11px 12px;}
+  .task-name{font-size:12px;}
+  .task-desc{font-size:11px;}
+  .task-actions{gap:4px;flex-wrap:wrap;}
+  .task-btn{font-size:10px;padding:3px 8px;}
+
+  /* Filter bar */
+  .filter-bar{gap:4px;padding:8px 10px 0;}
+  .filter-chip{font-size:10px;padding:3px 8px;}
+
+  /* Calendário mensal */
+  .calendar-month-header{padding:8px 6px 0;}
+  .cal-month-wday{font-size:8px;padding:2px 0;}
+  .calendar-grid{gap:2px;padding:4px 6px 8px;}
+  .cal-day{padding:4px;min-height:52px;border-radius:6px;}
+  .cal-day-num{font-size:11px;margin-bottom:2px;}
+  .cal-task-chip,.cal-ciclo-chip,.cal-pessoal-chip,.cal-meeting-chip{font-size:8px;padding:1px 4px;margin-bottom:1px;}
+
+  /* Dashboard */
+  .dash-card{padding:14px;}
+  .dash-big-num{font-size:32px;}
+
+  /* Foco */
+  .foco-grid{grid-template-columns:1fr;gap:10px;}
+  .foco-big{font-size:28px;}
+  .foco-item{padding:8px 0;}
+
+  /* Templates */
+  .tmpl-grid{grid-template-columns:1fr;}
+  .tmpl-card{padding:14px 16px;}
+  .tmpl-icon{font-size:22px;margin-bottom:8px;}
+
+  /* Road Map */
+  .roadmap-body{max-height:300px;}
+
+  /* Projetos */
+  .project-card{padding:12px;}
+  .project-edit-footer{flex-direction:column;}
+
+  /* Pessoal */
+  .pessoal-grid{grid-template-columns:1fr;gap:10px;}
+  .pessoal-summary{gap:8px;}
+  .pessoal-sum-item{padding:8px 10px;}
+  .pessoal-sum-val{font-size:15px;}
+  .pessoal-donut-wrap{flex-direction:column;align-items:center;}
+  .pessoal-bar-chart{height:100px;}
+
+  /* Modais */
+  .modal-box{padding:20px;margin:10px;}
+  .export-modal,.rel-modal{padding:20px;margin:10px;}
+  .ciclo-modal{width:96%;max-height:92vh;}
+  .ciclo-cal-modal{padding:18px;width:96%;}
+
+  /* Atraso banner */
+  .atraso-banner{flex-wrap:wrap;gap:6px;}
+  .atraso-task-chip{flex-wrap:wrap;gap:4px;}
+  .atraso-move-btn{width:100%;text-align:center;padding:5px;}
+
+  /* Ciclo mensal widget */
+  .ciclo-item{padding:7px 0;}
+  .ciclo-name{font-size:11px;}
+  .ciclo-date,.ciclo-countdown{font-size:10px;}
+}
+
+/* ── MOBILE PEQUENO (≤420px) ── */
+@media(max-width:420px){
+  .app{padding:8px;}
+  .header-title{font-size:15px;}
+  .stats-row{grid-template-columns:1fr 1fr;gap:6px;}
+  .stat-val{font-size:20px;}
+  .tab-btn{padding:5px 8px;font-size:10px;}
+  .timer-display{font-size:30px;}
+  .cal-day{min-height:44px;padding:3px;}
+  .cal-day-num{font-size:10px;}
+  .cal-task-chip,.cal-ciclo-chip,.cal-pessoal-chip{display:none;}
+  .cal-day.today::after{content:'•';display:block;text-align:center;color:var(--accent);font-size:8px;}
+  /* Em mobile muito pequeno, mostrar apenas ponto indicador no calendário */
+  .cal-day-has-tasks .cal-day-num{position:relative;}
+  .cal-day-has-tasks .cal-day-num::after{content:'•';position:absolute;bottom:-2px;right:0;font-size:8px;color:var(--blue);}
+  .panel-action{font-size:10px;padding:3px 8px;}
+  .task-actions{gap:3px;}
+  .task-btn{font-size:9px;padding:2px 6px;}
+  .pessoal-form-row{flex-direction:column;}
+  .pessoal-form-input,.pessoal-form-select{width:100%;min-width:unset;}
+}
+
+/* ── SCROLL HORIZONTAL CONTROLADO ── */
+@media(max-width:600px){
+  .tabs-container,.filter-bar{
+    -webkit-overflow-scrolling:touch;
+  }
+  /* Garantir que modais não ultrapassem a tela */
+  .modal-overlay,.export-modal-overlay,.rel-modal-overlay,.ciclo-modal-overlay,.ciclo-cal-modal-overlay{
+    padding:10px;
+    align-items:flex-end;
+  }
+  .modal-box,.export-modal,.rel-modal,.ciclo-modal,.ciclo-cal-modal{
+    max-height:90vh;
+    overflow-y:auto;
+    border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+    margin:0;
+    width:100%;
+    max-width:100%;
+  }
+}
 </style>
 </head>
 <body>
@@ -905,7 +1068,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 <div class="app">
   <div class="header">
     <div class="header-left">
-      <div class="logo">MIA</div>
+      <div class="logo" style="flex-shrink:0;">MIA</div>
       <div>
         <div class="header-title">Assistente Comercial</div>
         <div class="header-sub">Caio Mancuso · Yamá Cosméticos</div>
@@ -925,7 +1088,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="stat-card"><div class="stat-label">Taxa conclusão</div><div class="stat-val teal" id="stat-rate">0%</div><div class="stat-sub">geral</div></div>
   </div>
 
-  <div class="tabs">
+  <div class="tabs" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
     <button class="tab-btn" onclick="switchTab('foco',this)">⚡ Foco</button>
     <button class="tab-btn active" onclick="switchTab('tarefas',this)">Tarefas</button>
     <button class="tab-btn" onclick="switchTab('calendario',this)">Calendário</button>
