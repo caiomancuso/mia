@@ -3939,15 +3939,18 @@ function exportarExcel(){
 function abrirRelatorioModal(){
   var modal=document.getElementById('rel-modal');
   if(!modal)return;
-  var total=tasks.length;
-  var done=tasks.filter(function(t){return t.done;}).length;
-  var open=tasks.filter(function(t){return !t.done;}).length;
-  var bloqueadas=tasks.filter(function(t){return !t.done&&t.subtasks&&t.subtasks.some(function(s){return s.status==='aguardando'&&!s.done;});}).length;
-  var urgentes=tasks.filter(function(t){return !t.done&&t.prio==='urgente';}).length;
-  var reunioes=tasks.filter(function(t){return t.task_type==='reuniao'&&!t.done;}).length;
+  // Respeitar o período selecionado no modal de exportação
+  var filtered=getTasksByPeriod(exportPeriod||'tudo');
+  var total=filtered.length;
+  var done=filtered.filter(function(t){return t.done;}).length;
+  var open=filtered.filter(function(t){return !t.done;}).length;
+  var bloqueadas=filtered.filter(function(t){return !t.done&&t.subtasks&&t.subtasks.some(function(s){return s.status==='aguardando'&&!s.done;});}).length;
+  var urgentes=filtered.filter(function(t){return !t.done&&t.prio==='urgente';}).length;
+  var reunioes=filtered.filter(function(t){return t.task_type==='reuniao'&&!t.done;}).length;
   var preview=document.getElementById('rel-preview-content');
   if(preview){
     preview.innerHTML=
+      '<div class="rel-stat-row"><span class="rel-stat-label">Período</span><span class="rel-stat-val" style="font-size:10px;">'+getPeriodLabel(exportPeriod||'tudo')+'</span></div>'+
       '<div class="rel-stat-row"><span class="rel-stat-label">Total de tarefas</span><span class="rel-stat-val">'+total+'</span></div>'+
       '<div class="rel-stat-row"><span class="rel-stat-label">Em andamento</span><span class="rel-stat-val">'+open+'</span></div>'+
       '<div class="rel-stat-row"><span class="rel-stat-label">Concluídas</span><span class="rel-stat-val">'+done+'</span></div>'+
@@ -3973,6 +3976,12 @@ async function gerarRelatorioWord(){
   var now=new Date();
   var dateStr=now.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   var dateFile=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+
+  // Filtrar tarefas pelo período selecionado
+  var filteredTasks=getTasksByPeriod(exportPeriod||'tudo');
+  var periodLabel=getPeriodLabel(exportPeriod||'tudo');
+  var periodNames={dia:'Dia',semana:'Semana',mes:'Mes',tudo:'Historico'};
+  var filenameSuffix=periodNames[exportPeriod||'tudo']||'Historico';
 
   var D=docx;
   var prioLabels={urgente:'Urgente',alta:'Alta',normal:'Normal'};
@@ -4026,7 +4035,7 @@ async function gerarRelatorioWord(){
     ]
   });
 
-  var taskRows=tasks.map(function(t,i){
+  var taskRows=filteredTasks.map(function(t,i){
     var st=statusIcon(t);
     var desc=t.desc||'';
     if(t.note)desc+=(desc?' ':'')+t.note;
@@ -4054,8 +4063,8 @@ async function gerarRelatorioWord(){
   });
 
   // ── SEÇÃO 2: RISCOS ──
-  var bloqueadas=tasks.filter(function(t){return !t.done&&t.subtasks&&t.subtasks.some(function(s){return s.status==='aguardando'&&!s.done;});});
-  var urgentes=tasks.filter(function(t){return !t.done&&t.prio==='urgente';});
+  var bloqueadas=filteredTasks.filter(function(t){return !t.done&&t.subtasks&&t.subtasks.some(function(s){return s.status==='aguardando'&&!s.done;});});
+  var urgentes=filteredTasks.filter(function(t){return !t.done&&t.prio==='urgente';});
 
   var riscosParas=[];
   if(bloqueadas.length===0&&urgentes.length===0){
@@ -4083,7 +4092,7 @@ async function gerarRelatorioWord(){
   }
 
   // ── SEÇÃO 3: PRIORIDADES 48H ──
-  var abertas=tasks.filter(function(t){return !t.done;}).sort(function(a,b){
+  var abertas=filteredTasks.filter(function(t){return !t.done;}).sort(function(a,b){
     var o={urgente:0,alta:1,normal:2};
     return(o[a.prio]||2)-(o[b.prio]||2);
   }).slice(0,5);
@@ -4189,7 +4198,7 @@ async function gerarRelatorioWord(){
           spacing:{before:0,after:80}
         }),
         new D.Paragraph({
-          children:[makeText('Reunião de alinhamento  •  '+dateStr,{size:20,color:'666666'})],
+          children:[makeText('Período: '+periodLabel+'  •  '+dateStr,{size:20,color:'666666'})],
           spacing:{before:0,after:400},
           border:{bottom:{style:D.BorderStyle.SINGLE,size:6,color:COR_TITULO,space:1}}
         }),
@@ -4221,7 +4230,7 @@ async function gerarRelatorioWord(){
     var buffer=await D.Packer.toBlob(doc);
     var link=document.createElement('a');
     link.href=URL.createObjectURL(buffer);
-    link.download='MIA_Relatorio_Status_'+dateFile+'.docx';
+    link.download='MIA_Relatorio_'+filenameSuffix+'_'+dateFile+'.docx';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
