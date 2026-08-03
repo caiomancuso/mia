@@ -561,6 +561,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .pessoal-mia-item.alerta strong{color:var(--red);}
 .pessoal-mia-item.ok{background:var(--teal-dim);border-color:rgba(45,212,191,0.2);}
 .pessoal-mia-item.ok strong{color:var(--teal);}
+/* MODO PROFISSIONAL / PESSOAL */
+.mode-switcher{display:flex;gap:8px;margin-bottom:14px;}
+.mode-btn{flex:1;padding:12px 0;border-radius:var(--radius-lg);border:1px solid var(--border2);background:var(--surface);color:var(--text2);font-family:'Syne',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:all 0.2s;}
+.mode-btn:hover{border-color:var(--accent);color:var(--text);}
+.mode-btn.active{background:var(--accent);border-color:var(--accent);color:#0a0a0f;}
 /* ABA PESSOAL */
 .pessoal-subtabs{display:flex;gap:8px;margin-bottom:14px;}
 .pessoal-subtab-btn{padding:8px 16px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:all 0.2s;}
@@ -1168,6 +1173,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
   </div>
 
+  <div class="mode-switcher" id="mode-switcher">
+    <button class="mode-btn active" id="mode-profissional-btn" onclick="switchAppMode('profissional')">💼 Profissional</button>
+    <button class="mode-btn" id="mode-pessoal-btn" onclick="switchAppMode('pessoal')">🏠 Pessoal</button>
+  </div>
+
   <div class="stats-row">
     <div class="stat-card"><div class="stat-label">Total histórico</div><div class="stat-val" id="stat-total">0</div><div class="stat-sub">tarefas criadas</div></div>
     <div class="stat-card"><div class="stat-label">Concluídas</div><div class="stat-val accent" id="stat-done">0</div><div class="stat-sub">no histórico</div></div>
@@ -1177,12 +1187,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
   <div class="tabs" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
     <button class="tab-btn" onclick="switchTab('foco',this)">Foco</button>
-    <button class="tab-btn active" onclick="switchTab('tarefas',this)">Tarefas</button>
+    <button class="tab-btn active" id="tabbtn-tarefas" onclick="switchTab('tarefas',this)">Tarefas</button>
     <button class="tab-btn" onclick="switchTab('calendario',this)">Calendário</button>
     <button class="tab-btn" onclick="switchTab('projetos',this)">Projetos</button>
     <button class="tab-btn" onclick="switchTab('dashboard',this)">Dashboard</button>
     <button class="tab-btn" onclick="switchTab('templates',this)">Templates</button>
-    <button class="tab-btn" onclick="switchTab('pessoal',this)">Pessoal</button>
     <button class="tab-btn" style="margin-left:auto;color:var(--teal);border-color:rgba(45,212,191,0.2);background:var(--teal-dim);" onclick="abrirExportModal()">Exportar</button>
   </div>
 
@@ -1472,6 +1481,27 @@ function abrirFormNovoCiclo(){
 calcCiclo();
 
 // ── TABS ──────────────────────────────────────────────
+function switchAppMode(mode){
+  document.getElementById('mode-profissional-btn').classList.toggle('active', mode==='profissional');
+  document.getElementById('mode-pessoal-btn').classList.toggle('active', mode==='pessoal');
+  var statsRow = document.querySelector('.stats-row');
+  var tabsBar = document.querySelector('.tabs');
+  document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active');});
+  if(mode==='pessoal'){
+    if(statsRow) statsRow.style.display='none';
+    if(tabsBar) tabsBar.style.display='none';
+    document.getElementById('tab-pessoal').classList.add('active');
+    loadPessoal().then(function(){renderPessoal();});
+  } else {
+    if(statsRow) statsRow.style.display='';
+    if(tabsBar) tabsBar.style.display='';
+    document.getElementById('tab-tarefas').classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+    var tarefasBtn = document.getElementById('tabbtn-tarefas');
+    if(tarefasBtn) tarefasBtn.classList.add('active');
+  }
+}
+
 function switchTab(tabId,btn){
   document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active');});
   document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
