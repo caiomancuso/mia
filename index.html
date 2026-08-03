@@ -1262,9 +1262,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div class="pessoal-subtabs">
           <button class="pessoal-subtab-btn active" id="subtab-financeiro-btn" onclick="switchPessoalSubtab('financeiro')">💳 Financeiro</button>
           <button class="pessoal-subtab-btn" id="subtab-treino-btn" onclick="switchPessoalSubtab('treino')">🥋 Treino</button>
+          <button class="pessoal-subtab-btn" id="subtab-foco-btn" onclick="switchPessoalSubtab('foco')">🎯 Foco</button>
         </div>
         <div id="pessoal-container"></div>
         <div id="treino-container" style="display:none"></div>
+        <div id="foco-pessoal-container" style="display:none"></div>
       </div>
 
       <!-- FOCO DIÁRIO -->
@@ -3900,16 +3902,23 @@ var regNovo = { tipo:'jiujitsu' };
 function switchPessoalSubtab(name){
   var fin = document.getElementById('pessoal-container');
   var tre = document.getElementById('treino-container');
+  var foc = document.getElementById('foco-pessoal-container');
   var finBtn = document.getElementById('subtab-financeiro-btn');
   var treBtn = document.getElementById('subtab-treino-btn');
-  if(name==='financeiro'){
-    fin.style.display='block'; tre.style.display='none';
-    finBtn.classList.add('active'); treBtn.classList.remove('active');
-  } else {
-    fin.style.display='none'; tre.style.display='block';
-    finBtn.classList.remove('active'); treBtn.classList.add('active');
+  var focBtn = document.getElementById('subtab-foco-btn');
+  fin.style.display = name==='financeiro' ? 'block' : 'none';
+  tre.style.display = name==='treino' ? 'block' : 'none';
+  foc.style.display = name==='foco' ? 'block' : 'none';
+  finBtn.classList.toggle('active', name==='financeiro');
+  treBtn.classList.toggle('active', name==='treino');
+  focBtn.classList.toggle('active', name==='foco');
+  if(name==='treino'){
     if(!treinoLoaded){ loadTreinoFromDB().then(renderTreino); }
     else renderTreino();
+  }
+  if(name==='foco'){
+    if(!treinoLoaded){ loadTreinoFromDB().then(renderFocoPessoal); }
+    else renderFocoPessoal();
   }
 }
 
@@ -4253,6 +4262,134 @@ function renderTreinoPainelCard(){
       '<div style="font-size:11px;color:var(--text3);margin:10px 0 6px;font-family:\'DM Mono\',monospace;">CONSISTÊNCIA (6 SEMANAS)</div>' +
       '<div class="treino-faixa">'+faixaHTML+'</div>' +
     '</div>';
+}
+
+// ── FOCO PESSOAL ───────────────────────────────────────
+function gerarSugestaoPessoal(esporteHoje, checkinHoje, contasHoje, streak){
+  if(contasHoje.length>0){
+    return contasHoje.length+' conta(s) vencendo hoje. Vale resolver antes que empilhe com o resto da semana.';
+  }
+  if(esporteHoje && !checkinHoje){
+    return 'Hoje é dia de '+esporteHoje+'. Ainda não tem check-in registrado — leva menos de um minuto e ajuda a decidir a intensidade certa antes de ir treinar.';
+  }
+  if(esporteHoje && checkinHoje && checkinHoje.alerta){
+    return 'O check-in de hoje sinalizou dor articular alta. Isso continua valendo mesmo com a hora do treino chegando — considere avaliação profissional antes de qualquer decisão de intensidade.';
+  }
+  if(!esporteHoje){
+    return 'Hoje é dia de descanso na sua rotina. Recuperação também é treino — hidratação e sono contam pro joelho e pro braço tanto quanto o tatame.';
+  }
+  if(streak>=7){
+    return 'Streak de '+streak+' dias de consistência. O objetivo nunca foi performance — é continuar treinando aos 50, 60, 70. Esse ritmo sustenta isso.';
+  }
+  return 'Sem pendências críticas hoje. Bom momento pra registrar o peso ou revisar como está a recuperação geral.';
+}
+
+function gerarPerguntasPessoal(checkins){
+  var perguntas=[];
+  var recentes = checkins.slice(0,5);
+  var dorJoelhoRecente = recentes.filter(function(c){return c.dor_joelho>=4;}).length;
+  var dorBracoRecente = recentes.filter(function(c){return c.dor_braco>=4;}).length;
+  if(dorJoelhoRecente>=2) perguntas.push('A dor no joelho está aparecendo mais depois de algum esporte específico ou é constante?');
+  if(dorBracoRecente>=2) perguntas.push('O braço está incomodando mais em movimento de queda/base ou em finalização?');
+  perguntas.push('Meu condicionamento está evoluindo mês a mês ou estagnado?');
+  perguntas.push('Estou priorizando recuperação de verdade nos dias de descanso, ou só descansando por obrigação?');
+  perguntas.push('O ritmo de perda de peso está vindo com proteína suficiente pra não perder massa magra?');
+  perguntas.push('Estou treinando com medo residual da lesão, ou já confio de verdade no joelho?');
+  return perguntas.slice(0,4);
+}
+
+function renderFocoPessoal(){
+  var container = document.getElementById('foco-pessoal-container');
+  if(!container) return;
+
+  var now = new Date();
+  var todayISO = toDateStrTreino(now);
+  var diaSemana = now.getDay();
+  var agendaEsporte = {0:'Futebol (SERVA)',1:'Futsal',2:'Jiu-Jitsu',3:null,4:'Jiu-Jitsu',5:null,6:null};
+  var agendaHorario = {0:'10h30–13h00',1:'20h00–22h30',2:'21h00–22h00',4:'21h00–22h00'};
+  var esporteHoje = agendaEsporte[diaSemana];
+
+  var checkinHoje = treinoCheckins.find(function(c){return c.data===todayISO;});
+  var sessaoHoje = treinoSessoes.find(function(s){return s.data===todayISO;});
+
+  var seteDiasAtras = new Date(); seteDiasAtras.setDate(seteDiasAtras.getDate()-7);
+  var sessoesSemana = treinoSessoes.filter(function(s){return new Date(s.data)>=seteDiasAtras;});
+  var checkinsSemana = treinoCheckins.filter(function(c){return new Date(c.data)>=seteDiasAtras;});
+
+  var pendentes = pessoalContas.filter(function(c){return !isContaPaga(c.id);});
+  var pagas = pessoalContas.filter(function(c){return isContaPaga(c.id);});
+  var contasHoje = pendentes.filter(function(c){return diasParaConta(c.dia_vencimento)<=0;});
+
+  var streak = 0;
+  var datasComAtividade = {};
+  treinoSessoes.forEach(function(s){datasComAtividade[s.data]=true;});
+  treinoCheckins.forEach(function(c){datasComAtividade[c.data]=true;});
+  for(var i=0;i<365;i++){
+    var d=new Date(); d.setDate(d.getDate()-i);
+    var iso=toDateStrTreino(d);
+    if(datasComAtividade[iso]) streak++;
+    else if(i>0) break;
+  }
+
+  var sugestao = gerarSugestaoPessoal(esporteHoje, checkinHoje, contasHoje, streak);
+  var perguntas = gerarPerguntasPessoal(treinoCheckins);
+
+  var frag = document.createDocumentFragment();
+
+  var grid=document.createElement('div');grid.className='foco-grid';
+
+  var c1=document.createElement('div');c1.className='foco-card';
+  c1.innerHTML=
+    '<div class="foco-card-title">Status de hoje</div>'+
+    '<div class="foco-big '+(esporteHoje?'accent':'teal')+'">'+(esporteHoje||'Descanso')+'</div>'+
+    '<div class="foco-sub">'+(esporteHoje?(agendaHorario[diaSemana]||''):'Dia de recuperação')+'</div>'+
+    '<div style="margin-top:14px;display:flex;gap:12px;flex-wrap:wrap;">'+
+      '<div><div class="foco-big" style="font-size:22px;color:'+(checkinHoje?'var(--teal)':'var(--amber)')+';">'+(checkinHoje?'✓':'—')+'</div><div class="foco-sub">check-in hoje</div></div>'+
+      '<div><div class="foco-big" style="font-size:22px;color:'+(sessaoHoje?'var(--teal)':'var(--text3)')+';">'+(sessaoHoje?'✓':'—')+'</div><div class="foco-sub">sessão registrada</div></div>'+
+      '<div><div class="foco-big" style="font-size:22px;color:'+(contasHoje.length>0?'var(--red)':'var(--teal)')+';">'+contasHoje.length+'</div><div class="foco-sub">contas vencendo</div></div>'+
+      '<div><div class="foco-big" style="font-size:22px;color:var(--purple);">'+streak+'</div><div class="foco-sub">streak (dias)</div></div>'+
+    '</div>';
+  grid.appendChild(c1);
+
+  var c2=document.createElement('div');c2.className='foco-card';
+  c2.innerHTML=
+    '<div class="foco-card-title">Performance — semana</div>'+
+    '<div class="foco-performance">'+
+      '<div class="foco-perf-row"><span class="foco-perf-label">Sessões de treino</span><span class="foco-perf-val">'+sessoesSemana.length+'</span></div>'+
+      '<div class="foco-perf-row"><span class="foco-perf-label">Check-ins feitos</span><span class="foco-perf-val">'+checkinsSemana.length+'</span></div>'+
+      '<div class="foco-perf-row"><span class="foco-perf-label">Contas pagas no mês</span><span class="foco-perf-val">'+pagas.length+'/'+pessoalContas.length+'</span></div>'+
+      '<div class="foco-perf-row"><span class="foco-perf-label">Contas pendentes</span><span class="foco-perf-val '+(pendentes.length>3?'warn':'')+'">'+pendentes.length+'</span></div>'+
+    '</div>';
+  grid.appendChild(c2);
+  frag.appendChild(grid);
+
+  var sCard=document.createElement('div');sCard.className='foco-card';sCard.style.marginBottom='14px';
+  sCard.innerHTML='<div class="foco-card-title">Sugestão MIA</div>'+
+    '<div class="foco-sugestao"><div class="foco-sugestao-label">Dica de hoje</div>'+
+    '<div class="foco-sugestao-text">'+sugestao+'</div></div>';
+  frag.appendChild(sCard);
+
+  if(perguntas.length>0){
+    var aCard=document.createElement('div');aCard.className='foco-card';
+    aCard.innerHTML='<div class="foco-card-title">Modo Preparador</div>';
+    var aDesc=document.createElement('div');aDesc.style.cssText='font-size:11px;color:var(--text3);margin-bottom:12px;';
+    aDesc.textContent='Perguntas de reflexão sobre treino e recuperação. Clique para aprofundar com a MIA.';
+    aCard.appendChild(aDesc);
+    perguntas.forEach(function(q){
+      var item=document.createElement('div');item.className='foco-analista';
+      var text=document.createElement('div');text.className='foco-analista-q';text.textContent=q;
+      item.appendChild(text);
+      item.onclick=(function(pergunta){return function(){
+        var msg='[CONTEXTO] Caio, 40 anos, retomando jiu-jítsu e futsal após reconstrução de LCA e placas de titânio no braço. Objetivo: treinar sem se lesionar de novo e continuar praticando esporte aos 50, 60, 70 anos — não é sobre performance ou competição. [PERGUNTA] '+pergunta+'. Me ajude a pensar nisso com honestidade, priorizando longevidade.';
+        window.open('https://claude.ai/new?q='+encodeURIComponent(msg),'_blank');
+      };})(q);
+      aCard.appendChild(item);
+    });
+    frag.appendChild(aCard);
+  }
+
+  container.innerHTML='';
+  container.appendChild(frag);
 }
 
 
