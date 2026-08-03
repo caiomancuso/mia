@@ -1239,7 +1239,20 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <!-- PROJETOS -->
       <div class="tab-content" id="tab-projetos">
         <div class="panel">
-          <div class="panel-header"><div class="panel-title">Projetos em andamento</div></div>
+          <div class="panel-header"><div class="panel-title">Projetos em andamento</div><button class="panel-action" onclick="toggleAddProjectForm()">+ Novo projeto</button></div>
+          <div class="add-task-form" id="add-project-form">
+            <input type="text" id="new-project-name" placeholder="Nome do projeto" class="project-edit-input" style="margin-bottom:10px;">
+            <textarea id="new-project-desc" placeholder="Descrição" class="project-edit-textarea" style="margin-bottom:10px;"></textarea>
+            <select id="new-project-status" class="project-edit-select" style="margin-bottom:10px;">
+              <option value="ativo">Ativo</option>
+              <option value="atencao">Atenção</option>
+              <option value="semPrazo">Sem prazo</option>
+            </select>
+            <div class="project-edit-footer">
+              <button class="cancel-btn" onclick="toggleAddProjectForm()">Cancelar</button>
+              <button class="project-save-btn" onclick="addProject()">Criar projeto</button>
+            </div>
+          </div>
           <div class="task-list" id="project-list"></div>
         </div>
       </div>
@@ -1322,91 +1335,56 @@ var notifPermission=false,subtaskCounter=0,openNoteId=null,editingTaskId=null;
 var currentFilter='todas',viewDate=new Date(),editSubCounter=0;
 
 // PROJETOS — estado local (sem backend por enquanto)
-var PROJ_KEY='mia_projects_v1';
-var projects=[
-  {id:'p1',name:'BI Comercial',status:'atencao',desc:'Padronização e novo dashboard multi-empresa. Reunião amanhã 14h30 com Rogério e ADM de Vendas.',
-   actions:[
-    {id:'a1',text:'Reunião Rogério + ADM Vendas — alinhar pendências técnicas',deadline:'hoje',done:false},
-    {id:'a2',text:'Alinhar com diretor sobre meta por CNPJ vs por vendedor',deadline:'hoje',done:false},
-    {id:'a3',text:'Verificar com Wesley: trava CPF no B2B e campo Nome BI',deadline:'semana',done:false},
-    {id:'a4',text:'Mapear clientes com múltiplos vendedores — Nordeste/Sergipe',deadline:'semana',done:false},
-    {id:'a5',text:'Enviar planilha de inativos por regional ao Rogério',deadline:'semana',done:false},
-    {id:'a6',text:'Confirmar impacto de prazo da inclusão do ST com Rogério',deadline:'semana',done:false},
-    {id:'a7',text:'Alinhar regra de carteira ativa — proposta 180 dias Protheus',deadline:'semana',done:false},
-   ]},
-  {id:'p2',name:'Scrapper de Preços',status:'ativo',desc:'Robô de coleta automatizada de preços. Dois scrapers já construídos (Perfumaria em Casa + Mercado Livre). Informações necessárias recebidas ontem — retomar desenvolvimento.',
-   actions:[
-    {id:'b1',text:'Retomar desenvolvimento com novas informações recebidas',deadline:'hoje',done:false},
-    {id:'b2',text:'Finalizar scrapper Perfumaria em Casa — validar paginação JS',deadline:'semana',done:false},
-    {id:'b3',text:'Finalizar scrapper Mercado Livre — validar deduplicação',deadline:'semana',done:false},
-    {id:'b4',text:'Testar coleta completa e validar output Excel',deadline:'semana',done:false},
-    {id:'b5',text:'Definir frequência de execução na rotina semanal',deadline:'ciclo',done:false},
-    {id:'b6',text:'Integrar dados de preço no fechamento mensal',deadline:'ciclo',done:false},
-   ]},
-  {id:'p3',name:'Sell Out Scanntech nos Fechamentos',status:'ativo',desc:'Inclusão de visões de sell out nos fechamentos dos gerentes regionais. Não entra no ciclo de junho — estruturar processo antes de implementar.',
-   actions:[
-    {id:'c1',text:'Solicitar base histórica de sell out à Scanntech',deadline:'semana',done:false},
-    {id:'c2',text:'Definir quais visões de sell out fazem sentido por regional',deadline:'semana',done:false},
-    {id:'c3',text:'Mapear como sell out se relaciona com faturamento por canal',deadline:'semana',done:false},
-    {id:'c4',text:'Estruturar template das visões antes de incluir no PPT',deadline:'ciclo',done:false},
-    {id:'c5',text:'Incluir sell out no fechamento de julho (próximo ciclo)',deadline:'ciclo',done:false},
-   ]},
-  {id:'p4',name:'Dashboards Trade e Mkt',status:'semPrazo',desc:'Estruturação de novos dashboards para Trade e Marketing. Sem prazo definido — avançar em paralelo quando houver janela.',
-   actions:[
-    {id:'d1',text:'Alinhar com área de Trade quais visões são prioritárias',deadline:'ciclo',done:false},
-    {id:'d2',text:'Alinhar com área de Mkt quais métricas precisam de visibilidade',deadline:'ciclo',done:false},
-    {id:'d3',text:'Definir fontes de dados disponíveis para cada dashboard',deadline:'ciclo',done:false},
-    {id:'d4',text:'Propor estrutura e aprovar com diretor antes de construir',deadline:'ciclo',done:false},
-   ]},
-  {id:'p5',name:'Higienização de Cadastro de Clientes',status:'ativo',desc:'Orçamento aprovado para contratação de empresa especializada. Base tem duplicatas, clientes sem CNPJ e inconsistências de migração Aghineri → Yamá → Qumory.',
-   actions:[
-    {id:'e1',text:'Acompanhar processo de contratação da empresa de sanitização',deadline:'semana',done:false},
-    {id:'e2',text:'Mapear clientes duplicados por migração entre CNPJs',deadline:'semana',done:false},
-    {id:'e3',text:'Validar classificação B2B/B2C/Trade no cadastro',deadline:'ciclo',done:false},
-    {id:'e4',text:'Garantir que empresa contratada siga regras definidas no BI',deadline:'ciclo',done:false},
-   ]},
-  {id:'p6',name:'Padronização dos BIs Existentes',status:'ativo',desc:'Melhoria e padronização dos dashboards já em uso. Trabalho conjunto com Rogério e time de TI.',
-   actions:[
-    {id:'f1',text:'Listar visões com inconsistências identificadas',deadline:'semana',done:false},
-    {id:'f2',text:'Priorizar correções com maior impacto para o time comercial',deadline:'semana',done:false},
-    {id:'f3',text:'Alinhar cronograma de correções com Rogério',deadline:'ciclo',done:false},
-    {id:'f4',text:'Documentar regras de negócio validadas para cada visão',deadline:'ciclo',done:false},
-   ]},
-  {id:'p7',name:'Alinhamento Semanal Scanntech',status:'ativo',desc:'Reunião toda sexta-feira para alinhamento de informações, esclarecimento de dúvidas e levantamento de necessidades da plataforma. Pauta registrada em arquivo Word. Levantamento via Scannview em andamento para colorações e pós descolorantes — cobertura estadual e volume por PDV ainda baixos. Tema a ser pautado com consultoria e integrado às frentes de Trade e Comercial.',
-   actions:[
-    {id:'g1',text:'Preparar pauta da próxima reunião de sexta com Scanntech',deadline:'hoje',done:false},
-    {id:'g2',text:'Pautar com consultoria: baixa expressividade de volume por PDV e cobertura estadual',deadline:'hoje',done:false},
-    {id:'g3',text:'Extrair dash Scannview — colorações e pós descolorantes (Yamá Expert e concorrentes)',deadline:'semana',done:false},
-    {id:'g4',text:'Mapear desempenho regional por versão de produto no Scannview',deadline:'semana',done:false},
-    {id:'g5',text:'Integrar achados do Scannview ao alinhamento com Trade e Comercial',deadline:'ciclo',done:false},
-    {id:'g6',text:'Manter pauta Word atualizada após cada reunião semanal',deadline:'ciclo',done:false},
-   ]},
-  {id:'p8',name:'Apresentação Mensal Scanntech',status:'ativo',desc:'Apresentação na segunda sexta-feira de cada mês. Cobre Panorama Executivo (10 min), ScannShare — share e posicionamento competitivo por categoria (20 min), ScannView — desempenho e execução por canal/região/SKU (20 min) e Discussões/plano de ação (10 min). Envolve Comercial, Trade e Marketing.',
-   actions:[
-    {id:'h1',text:'Extrair dados de resultado consolidado Yamá (valor e unidades) para o mês fechado',deadline:'semana',done:false},
-    {id:'h2',text:'Montar panorama de share por categoria — evolução M/M, YoY e YTD',deadline:'semana',done:false},
-    {id:'h3',text:'Levantar ranking competitivo e variação de share por canal e região',deadline:'semana',done:false},
-    {id:'h4',text:'Analisar top SKUs crescimento e queda + SKUs de baixo desempenho',deadline:'semana',done:false},
-    {id:'h5',text:'Identificar oportunidades de sortimento, preço ou execução via ScannView',deadline:'semana',done:false},
-    {id:'h6',text:'Preparar plano de ação com responsáveis (Comercial / Trade / Mkt Produto)',deadline:'ciclo',done:false},
-    {id:'h7',text:'Confirmar data da próxima apresentação (2ª sexta do mês)',deadline:'ciclo',done:false},
-   ]},
-  {id:'p9',name:'Atualização Mensal Cadastro Scanntech',status:'ativo',desc:'Extração mensal do relatório geral da plataforma para categorizar novos SKUs. Colunas padronizadas: Prod Clasif A (Categoria Yamá), B (Subcategoria), C (Versão + Canal — massivo ou profissional), D (Consumo), E (Divisão de mercado: Entrada, Semi-Prestígio, Premium). Coluna exclusiva de Versão de Pó descontinuada. Base atualizada com novo padrão.',
-   actions:[
-    {id:'i1',text:'Extrair relatório geral da plataforma Scanntech para o mês corrente',deadline:'semana',done:false},
-    {id:'i2',text:'Identificar novos SKUs que subiram no período',deadline:'semana',done:false},
-    {id:'i3',text:'Classificar Prod Clasif C: canal (Massivo/Profissional) + versão do pó descolorante',deadline:'semana',done:false},
-    {id:'i4',text:'Classificar Prod Clasif E: posicionamento (Entrada / Semi-Prestígio / Premium)',deadline:'semana',done:false},
-    {id:'i5',text:'Validar campos fechados A, B, D conforme padrão Yamá',deadline:'semana',done:false},
-    {id:'i6',text:'Atualizar base com novos SKUs categorizados e compartilhar com Scanntech',deadline:'ciclo',done:false},
-   ]},
-];
+var PROJECTS_API=SUPABASE_URL+'/rest/v1/projects';
+var PROJECT_ACTIONS_API=SUPABASE_URL+'/rest/v1/project_actions';
+var projects=[];
 
-function loadProjects(){
-  try{var r=localStorage.getItem(PROJ_KEY);if(r){var saved=JSON.parse(r);saved.forEach(function(sp){var p=projects.find(function(x){return x.id===sp.id;});if(p){p.actions.forEach(function(a){var sa=sp.actions&&sp.actions.find(function(x){return x.id===a.id;});if(sa)a.done=sa.done;})}});}}catch(e){}
+async function loadProjectsFromDB(){
+  try{
+    var projData=await dbFetch(PROJECTS_API+'?order=ordem.asc');
+    var actionData=await dbFetch(PROJECT_ACTIONS_API+'?order=ordem.asc');
+    projects=(projData||[]).map(function(p){
+      var acts=(actionData||[]).filter(function(a){return a.project_id===p.id;}).map(function(a){
+        return{id:a.id,text:a.text,deadline:a.deadline||'semana',done:a.done||false};
+      });
+      return{id:p.id,name:p.name,desc:p.descricao||'',status:p.status||'ativo',actions:acts};
+    });
+    renderProjects();
+  }catch(e){showToast('Erro ao carregar projetos','urgente');}
 }
-function saveProjects(){
-  try{var minimal=projects.map(function(p){return{id:p.id,actions:p.actions.map(function(a){return{id:a.id,done:a.done};})};});localStorage.setItem(PROJ_KEY,JSON.stringify(minimal));}catch(e){}
+async function dbInsertProject(p){
+  try{
+    var body={name:p.name,descricao:p.desc||'',status:p.status||'ativo',ordem:p.ordem||0};
+    var data=await dbFetch(PROJECTS_API,{method:'POST',body:JSON.stringify(body)});
+    return data&&data[0]?data[0].id:null;
+  }catch(e){return null;}
+}
+async function dbUpdateProject(id,fields){
+  try{
+    var body={};
+    if(fields.name!==undefined)body.name=fields.name;
+    if(fields.desc!==undefined)body.descricao=fields.desc;
+    if(fields.status!==undefined)body.status=fields.status;
+    body.updated_at=new Date().toISOString();
+    await dbFetch(PROJECTS_API+'?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body)});
+  }catch(e){}
+}
+async function dbInsertAction(projId,a){
+  try{
+    var body={project_id:projId,text:a.text,deadline:a.deadline||'semana',done:false,ordem:a.ordem||0};
+    var data=await dbFetch(PROJECT_ACTIONS_API,{method:'POST',body:JSON.stringify(body)});
+    return data&&data[0]?data[0].id:null;
+  }catch(e){return null;}
+}
+async function dbUpdateAction(id,fields){
+  try{
+    var body=Object.assign({},fields);
+    body.updated_at=new Date().toISOString();
+    await dbFetch(PROJECT_ACTIONS_API+'?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body)});
+  }catch(e){}
+}
+async function dbDeleteAction(id){
+  try{await dbFetch(PROJECT_ACTIONS_API+'?id=eq.'+id,{method:'DELETE'});}catch(e){}
 }
 
 // ── SUPABASE ──────────────────────────────────────────
@@ -1812,6 +1790,33 @@ function renderProjects(){
   });
 }
 
+function toggleAddProjectForm(){
+  var form=document.getElementById('add-project-form');
+  form.classList.toggle('open');
+  if(form.classList.contains('open')){
+    document.getElementById('new-project-name').focus();
+  }else{
+    document.getElementById('new-project-name').value='';
+    document.getElementById('new-project-desc').value='';
+    document.getElementById('new-project-status').value='ativo';
+  }
+}
+
+async function addProject(){
+  var name=document.getElementById('new-project-name').value.trim();
+  if(!name){showToast('Digite o nome do projeto','urgente');return;}
+  var desc=document.getElementById('new-project-desc').value.trim();
+  var status=document.getElementById('new-project-status').value;
+  var tempId='temp-'+Date.now();
+  var tempProj={id:tempId,name:name,desc:desc,status:status,actions:[]};
+  projects.unshift(tempProj);
+  renderProjects();
+  toggleAddProjectForm();
+  showToast('Projeto criado',name);
+  var realId=await dbInsertProject({name:name,desc:desc,status:status,ordem:0});
+  if(realId){var p=projects.find(function(x){return x.id===tempId;});if(p){p.id=realId;renderProjects();}}
+}
+
 function toggleProjectEdit(projId){
   editingProjectId=(editingProjectId===projId?null:projId);
   projActionCounter=0;
@@ -1849,9 +1854,10 @@ function removeProjectActionRow(projId,actionId){
   if(row)row.remove();
   var proj=projects.find(function(p){return p.id===projId;});
   if(proj)proj.actions=proj.actions.filter(function(a){return a.id!==actionId;});
+  dbDeleteAction(actionId);
 }
 
-function saveProjectEdit(projId){
+async function saveProjectEdit(projId){
   var proj=projects.find(function(p){return p.id===projId;});
   if(!proj)return;
   var nameEl=document.getElementById('proj-edit-name-'+projId);
@@ -1865,6 +1871,7 @@ function saveProjectEdit(projId){
     var dlEl=document.getElementById('proj-action-dl-'+action.id);
     if(textEl&&textEl.value.trim())action.text=textEl.value.trim();
     if(dlEl)action.deadline=dlEl.value;
+    dbUpdateAction(action.id,{text:action.text,deadline:action.deadline});
   });
   var container=document.getElementById('proj-actions-edit-'+projId);
   if(container){
@@ -1874,15 +1881,16 @@ function saveProjectEdit(projId){
       var sel=row.querySelector('.project-action-edit-select');
       var text=inp?inp.value.trim():'';
       if(text){
-        proj.actions.push({
-          id:'pa-'+Date.now()+'-'+Math.random().toString(36).substr(2,5),
-          text:text,deadline:sel?sel.value:'semana',done:false
+        var tempAction={id:'temp-'+Date.now()+'-'+Math.random().toString(36).substr(2,5),text:text,deadline:sel?sel.value:'semana',done:false};
+        proj.actions.push(tempAction);
+        dbInsertAction(projId,tempAction).then(function(realId){
+          if(realId){var a=proj.actions.find(function(x){return x.id===tempAction.id;});if(a)a.id=realId;}
         });
       }
     });
   }
+  await dbUpdateProject(projId,{name:proj.name,desc:proj.desc,status:proj.status});
   editingProjectId=null;
-  saveProjects();
   renderProjects();
   showToast('Projeto atualizado',proj.name);
 }
@@ -1890,7 +1898,8 @@ function saveProjectEdit(projId){
 function toggleProjectAction(projId,actionId){
   var proj=projects.find(function(p){return p.id===projId;});if(!proj)return;
   var action=proj.actions.find(function(a){return a.id===actionId;});if(!action)return;
-  action.done=!action.done;saveProjects();renderProjects();
+  action.done=!action.done;renderProjects();
+  dbUpdateAction(actionId,{done:action.done});
 }
 
 // ── DASHBOARD ─────────────────────────────────────────
@@ -2229,7 +2238,7 @@ document.addEventListener('keydown',function(e){
 })();
 
 document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.getElementById('add-form').classList.contains('open'))addTask();});
-loadProjects();
+loadProjectsFromDB();
 
 
 
@@ -2274,7 +2283,7 @@ async function deleteSubtask(taskId,subId){
   showToast('Subtarefa removida','');
 }
 
-// Versão para projetos (localStorage)
+// Versão para projetos (Supabase)
 function startEditProjectSub(projId,subId){
   editingSubtaskId='proj::'+projId+'::'+subId;
   renderProjects();
@@ -2295,7 +2304,7 @@ function saveEditProjectSub(projId,subId){
   if(inp&&inp.value.trim())action.text=inp.value.trim();
   if(sel)action.deadline=sel.value;
   editingSubtaskId=null;
-  saveProjects();
+  dbUpdateAction(subId,{text:action.text,deadline:action.deadline});
   renderProjects();
   showToast('Ação atualizada','');
 }
@@ -2305,7 +2314,7 @@ function deleteProjectSub(projId,subId){
   if(!proj)return;
   proj.actions=proj.actions.filter(function(a){return a.id!==subId;});
   editingSubtaskId=null;
-  saveProjects();
+  dbDeleteAction(subId);
   renderProjects();
   showToast('Ação removida','');
 }
