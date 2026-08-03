@@ -1305,7 +1305,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
 
     <!-- SIDEBAR -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar-profissional">
       <div class="timer-widget">
         <div class="timer-label">Timer ativo</div>
         <div class="timer-task-name" id="timer-task-name">Nenhuma tarefa selecionada</div>
@@ -1357,6 +1357,22 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div style="margin-top:8px;" id="meetings-list">
           <div class="meeting-empty">Nenhuma reunião</div>
         </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR PESSOAL -->
+    <div class="sidebar" id="sidebar-pessoal" style="display:none;">
+      <div class="ciclo-widget">
+        <div class="panel-header" style="padding:0 0 12px;border-bottom:1px solid var(--border);"><div class="panel-title">💳 Próximas contas</div></div>
+        <div style="margin-top:8px;" id="sidebar-pessoal-contas"></div>
+      </div>
+      <div class="ciclo-widget">
+        <div class="panel-header" style="padding:0 0 12px;border-bottom:1px solid var(--border);"><div class="panel-title">🎉 Próximos eventos</div></div>
+        <div style="margin-top:8px;" id="sidebar-pessoal-eventos"></div>
+      </div>
+      <div class="ciclo-widget">
+        <div class="panel-header" style="padding:0 0 12px;border-bottom:1px solid var(--border);"><div class="panel-title">🥋 Treino</div></div>
+        <div style="margin-top:8px;" id="sidebar-pessoal-treino"></div>
       </div>
     </div>
   </div>
@@ -1486,20 +1502,77 @@ function switchAppMode(mode){
   document.getElementById('mode-pessoal-btn').classList.toggle('active', mode==='pessoal');
   var statsRow = document.querySelector('.stats-row');
   var tabsBar = document.querySelector('.tabs');
+  var sidebarProf = document.getElementById('sidebar-profissional');
+  var sidebarPes = document.getElementById('sidebar-pessoal');
   document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active');});
   if(mode==='pessoal'){
     if(statsRow) statsRow.style.display='none';
     if(tabsBar) tabsBar.style.display='none';
+    if(sidebarProf) sidebarProf.style.display='none';
+    if(sidebarPes) sidebarPes.style.display='';
     document.getElementById('tab-pessoal').classList.add('active');
-    loadPessoal().then(function(){renderPessoal();});
+    loadPessoal().then(function(){
+      renderPessoal();
+      renderSidebarPessoal();
+    });
+    if(!treinoLoaded){
+      loadTreinoFromDB().then(renderSidebarPessoal);
+    } else {
+      renderSidebarPessoal();
+    }
   } else {
     if(statsRow) statsRow.style.display='';
     if(tabsBar) tabsBar.style.display='';
+    if(sidebarProf) sidebarProf.style.display='';
+    if(sidebarPes) sidebarPes.style.display='none';
     document.getElementById('tab-tarefas').classList.add('active');
     document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
     var tarefasBtn = document.getElementById('tabbtn-tarefas');
     if(tarefasBtn) tarefasBtn.classList.add('active');
   }
+}
+
+function renderSidebarPessoal(){
+  var contasBox = document.getElementById('sidebar-pessoal-contas');
+  var eventosBox = document.getElementById('sidebar-pessoal-eventos');
+  var treinoBox = document.getElementById('sidebar-pessoal-treino');
+  if(!contasBox || !eventosBox || !treinoBox) return;
+
+  var pendentes = pessoalContas.filter(function(c){return !isContaPaga(c.id);})
+    .sort(function(a,b){return diasParaConta(a.dia_vencimento)-diasParaConta(b.dia_vencimento);})
+    .slice(0,4);
+  contasBox.innerHTML = pendentes.length===0 ? '<div class="treino-empty">Nenhuma conta pendente.</div>' :
+    pendentes.map(function(c){
+      var d = diasParaConta(c.dia_vencimento);
+      var cls = d<=0?'hoje':d<=3?'breve':'normal';
+      return '<div class="ciclo-item"><span class="ciclo-name">'+c.nome+'</span><span class="conta-venc-badge '+cls+'">'+formatCurrency(c.valor)+'</span></div>';
+    }).join('');
+
+  var eventosProx = (pessoalEventos||[]).slice()
+    .sort(function(a,b){return diasParaEvento(a.dia,a.mes)-diasParaEvento(b.dia,b.mes);})
+    .slice(0,3);
+  eventosBox.innerHTML = eventosProx.length===0 ? '<div class="treino-empty">Nenhum evento cadastrado.</div>' :
+    eventosProx.map(function(ev){
+      return '<div class="ciclo-item"><span class="ciclo-name">'+eventoIcon(ev.tipo)+' '+ev.nome+'</span><span class="badge normal">'+diasParaEvento(ev.dia,ev.mes)+'d</span></div>';
+    }).join('');
+
+  var datasComAtividade = {};
+  treinoSessoes.forEach(function(s){datasComAtividade[s.data]=true;});
+  treinoCheckins.forEach(function(c){datasComAtividade[c.data]=true;});
+  var streak=0;
+  for(var i=0;i<365;i++){
+    var d=new Date(); d.setDate(d.getDate()-i);
+    var iso=toDateStrTreino(d);
+    if(datasComAtividade[iso]) streak++;
+    else if(i>0) break;
+  }
+  var seteDiasAtras=new Date(); seteDiasAtras.setDate(seteDiasAtras.getDate()-7);
+  var sessoesSemana = treinoSessoes.filter(function(s){return new Date(s.data)>=seteDiasAtras;}).length;
+  treinoBox.innerHTML =
+    '<div class="treino-stat-grid" style="grid-template-columns:1fr 1fr;">' +
+      '<div class="treino-stat"><div class="num">'+streak+'</div><div class="lbl">Streak</div></div>' +
+      '<div class="treino-stat"><div class="num">'+sessoesSemana+'</div><div class="lbl">Sessões/7d</div></div>' +
+    '</div>';
 }
 
 function switchTab(tabId,btn){
