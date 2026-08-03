@@ -223,6 +223,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .project-status-badge.ativo{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(91,156,246,0.2);}
 .project-status-badge.atencao{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,179,71,0.2);}
 .project-status-badge.semPrazo{background:var(--surface3);color:var(--text3);border:1px solid var(--border);}
+.project-status-badge.risco{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,109,0.2);}
+.project-status-badge.resolvido{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(45,212,191,0.2);}
 .project-desc{font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:10px;}
 .project-actions-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
 .project-action-item{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);}
@@ -1186,8 +1188,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   </div>
 
   <div class="tabs" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-    <button class="tab-btn" onclick="switchTab('foco',this)">Foco</button>
-    <button class="tab-btn active" id="tabbtn-tarefas" onclick="switchTab('tarefas',this)">Tarefas</button>
+    <button class="tab-btn active" id="tabbtn-foco" onclick="switchTab('foco',this)">Foco</button>
+    <button class="tab-btn" id="tabbtn-tarefas" onclick="switchTab('tarefas',this)">Tarefas</button>
     <button class="tab-btn" onclick="switchTab('calendario',this)">Calendário</button>
     <button class="tab-btn" onclick="switchTab('projetos',this)">Projetos</button>
     <button class="tab-btn" onclick="switchTab('dashboard',this)">Dashboard</button>
@@ -1198,7 +1200,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <div class="main-grid">
     <div>
       <!-- TAREFAS -->
-      <div class="tab-content active" id="tab-tarefas">
+      <div class="tab-content" id="tab-tarefas">
         <div class="panel">
           <div class="panel-header">
             <div class="panel-title">Fila do dia</div>
@@ -1260,17 +1262,19 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <!-- PESSOAL -->
       <div class="tab-content" id="tab-pessoal">
         <div class="pessoal-subtabs">
-          <button class="pessoal-subtab-btn active" id="subtab-financeiro-btn" onclick="switchPessoalSubtab('financeiro')">💳 Financeiro</button>
+          <button class="pessoal-subtab-btn active" id="subtab-foco-btn" onclick="switchPessoalSubtab('foco')">🎯 Foco</button>
+          <button class="pessoal-subtab-btn" id="subtab-financeiro-btn" onclick="switchPessoalSubtab('financeiro')">💳 Financeiro</button>
           <button class="pessoal-subtab-btn" id="subtab-treino-btn" onclick="switchPessoalSubtab('treino')">🥋 Treino</button>
-          <button class="pessoal-subtab-btn" id="subtab-foco-btn" onclick="switchPessoalSubtab('foco')">🎯 Foco</button>
+          <button class="pessoal-subtab-btn" id="subtab-carreira-btn" onclick="switchPessoalSubtab('carreira')">🧭 Carreira</button>
         </div>
-        <div id="pessoal-container"></div>
+        <div id="foco-pessoal-container"></div>
+        <div id="pessoal-container" style="display:none"></div>
         <div id="treino-container" style="display:none"></div>
-        <div id="foco-pessoal-container" style="display:none"></div>
+        <div id="carreira-container" style="display:none"></div>
       </div>
 
       <!-- FOCO DIÁRIO -->
-      <div class="tab-content" id="tab-foco">
+      <div class="tab-content active" id="tab-foco">
         <div id="foco-container"></div>
       </div>
 
@@ -1513,24 +1517,22 @@ function switchAppMode(mode){
     if(sidebarProf) sidebarProf.style.display='none';
     if(sidebarPes) sidebarPes.style.display='';
     document.getElementById('tab-pessoal').classList.add('active');
-    loadPessoal().then(function(){
-      renderPessoal();
+    var pFin = loadPessoal();
+    var pTre = treinoLoaded ? Promise.resolve() : loadTreinoFromDB();
+    Promise.all([pFin, pTre]).then(function(){
       renderSidebarPessoal();
+      switchPessoalSubtab('foco');
     });
-    if(!treinoLoaded){
-      loadTreinoFromDB().then(renderSidebarPessoal);
-    } else {
-      renderSidebarPessoal();
-    }
   } else {
     if(statsRow) statsRow.style.display='';
     if(tabsBar) tabsBar.style.display='';
     if(sidebarProf) sidebarProf.style.display='';
     if(sidebarPes) sidebarPes.style.display='none';
-    document.getElementById('tab-tarefas').classList.add('active');
+    document.getElementById('tab-foco').classList.add('active');
     document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
-    var tarefasBtn = document.getElementById('tabbtn-tarefas');
-    if(tarefasBtn) tarefasBtn.classList.add('active');
+    var focoBtn = document.getElementById('tabbtn-foco');
+    if(focoBtn) focoBtn.classList.add('active');
+    renderFoco();
   }
 }
 
@@ -3903,15 +3905,19 @@ function switchPessoalSubtab(name){
   var fin = document.getElementById('pessoal-container');
   var tre = document.getElementById('treino-container');
   var foc = document.getElementById('foco-pessoal-container');
+  var car = document.getElementById('carreira-container');
   var finBtn = document.getElementById('subtab-financeiro-btn');
   var treBtn = document.getElementById('subtab-treino-btn');
   var focBtn = document.getElementById('subtab-foco-btn');
+  var carBtn = document.getElementById('subtab-carreira-btn');
   fin.style.display = name==='financeiro' ? 'block' : 'none';
   tre.style.display = name==='treino' ? 'block' : 'none';
   foc.style.display = name==='foco' ? 'block' : 'none';
+  car.style.display = name==='carreira' ? 'block' : 'none';
   finBtn.classList.toggle('active', name==='financeiro');
   treBtn.classList.toggle('active', name==='treino');
   focBtn.classList.toggle('active', name==='foco');
+  carBtn.classList.toggle('active', name==='carreira');
   if(name==='treino'){
     if(!treinoLoaded){ loadTreinoFromDB().then(renderTreino); }
     else renderTreino();
@@ -3919,6 +3925,10 @@ function switchPessoalSubtab(name){
   if(name==='foco'){
     if(!treinoLoaded){ loadTreinoFromDB().then(renderFocoPessoal); }
     else renderFocoPessoal();
+  }
+  if(name==='carreira'){
+    if(!carreiraLoaded){ loadCarreiraFromDB(); }
+    else renderCarreira();
   }
 }
 
@@ -4392,8 +4402,340 @@ function renderFocoPessoal(){
   container.appendChild(frag);
 }
 
+// ── CARREIRA (PESSOAL) ────────────────────────────────
+var CAREER_API = SUPABASE_URL + '/rest/v1/career_items';
+var CAREER_ACTIONS_API = SUPABASE_URL + '/rest/v1/career_actions';
+var carreiraItems = [];
+var carreiraLoaded = false;
+var editingCarreiraId = null;
+var carreiraActionCounter = 0;
 
-var exportPeriod='dia';
+async function loadCarreiraFromDB(){
+  try{
+    var itemData = await dbFetch(CAREER_API+'?order=ordem.asc');
+    var actionData = await dbFetch(CAREER_ACTIONS_API+'?order=ordem.asc');
+    carreiraItems = (itemData||[]).map(function(it){
+      var acts = (actionData||[]).filter(function(a){return a.career_item_id===it.id;}).map(function(a){
+        return{id:a.id,text:a.text,done:a.done||false};
+      });
+      return{id:it.id,name:it.name,desc:it.descricao||'',status:it.status||'ativo',actions:acts};
+    });
+    carreiraLoaded = true;
+    renderCarreira();
+  }catch(e){ showToast('Erro ao carregar Carreira','urgente'); }
+}
+async function dbInsertCarreiraItem(it){
+  try{
+    var body={name:it.name,descricao:it.desc||'',status:it.status||'ativo',ordem:it.ordem||0};
+    var data=await dbFetch(CAREER_API,{method:'POST',body:JSON.stringify(body)});
+    return data&&data[0]?data[0].id:null;
+  }catch(e){return null;}
+}
+async function dbUpdateCarreiraItem(id,fields){
+  try{
+    var body={};
+    if(fields.name!==undefined)body.name=fields.name;
+    if(fields.desc!==undefined)body.descricao=fields.desc;
+    if(fields.status!==undefined)body.status=fields.status;
+    body.updated_at=new Date().toISOString();
+    await dbFetch(CAREER_API+'?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body)});
+  }catch(e){}
+}
+async function dbInsertCarreiraAction(itemId,a){
+  try{
+    var body={career_item_id:itemId,text:a.text,done:false,ordem:a.ordem||0};
+    var data=await dbFetch(CAREER_ACTIONS_API,{method:'POST',body:JSON.stringify(body)});
+    return data&&data[0]?data[0].id:null;
+  }catch(e){return null;}
+}
+async function dbUpdateCarreiraAction(id,fields){
+  try{
+    var body=Object.assign({},fields);
+    body.updated_at=new Date().toISOString();
+    await dbFetch(CAREER_ACTIONS_API+'?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body)});
+  }catch(e){}
+}
+async function dbDeleteCarreiraAction(id){
+  try{await dbFetch(CAREER_ACTIONS_API+'?id=eq.'+id,{method:'DELETE'});}catch(e){}
+}
+
+function toggleCarreiraAction(itemId,actionId){
+  var item=carreiraItems.find(function(p){return p.id===itemId;});if(!item)return;
+  var action=item.actions.find(function(a){return a.id===actionId;});if(!action)return;
+  action.done=!action.done;renderCarreira();
+  dbUpdateCarreiraAction(actionId,{done:action.done});
+}
+
+function toggleCarreiraEdit(itemId){
+  editingCarreiraId=(editingCarreiraId===itemId?null:itemId);
+  carreiraActionCounter=0;
+  renderCarreira();
+}
+
+function addCarreiraActionRow(itemId){
+  var container=document.getElementById('carreira-actions-edit-'+itemId);
+  if(!container)return;
+  var rowId='new-carreira-action-'+(++carreiraActionCounter);
+  var row=document.createElement('div');
+  row.className='project-action-edit-row';
+  row.id=rowId;
+  var inp=document.createElement('input');
+  inp.className='project-action-edit-input';
+  inp.placeholder='Nova ação...';
+  var remBtn=document.createElement('button');
+  remBtn.className='project-action-remove-btn';
+  remBtn.textContent='×';
+  remBtn.onclick=function(){row.remove();};
+  row.appendChild(inp);row.appendChild(remBtn);
+  container.appendChild(row);
+}
+
+function removeCarreiraActionRow(itemId,actionId){
+  if(!confirm('Excluir esta ação?'))return;
+  var row=document.getElementById('carreira-action-row-'+actionId);
+  if(row)row.remove();
+  var item=carreiraItems.find(function(p){return p.id===itemId;});
+  if(item)item.actions=item.actions.filter(function(a){return a.id!==actionId;});
+  dbDeleteCarreiraAction(actionId);
+}
+
+async function saveCarreiraEdit(itemId){
+  var item=carreiraItems.find(function(p){return p.id===itemId;});
+  if(!item)return;
+  var nameEl=document.getElementById('carreira-edit-name-'+itemId);
+  var descEl=document.getElementById('carreira-edit-desc-'+itemId);
+  var statusEl=document.getElementById('carreira-edit-status-'+itemId);
+  if(nameEl&&nameEl.value.trim())item.name=nameEl.value.trim();
+  if(descEl)item.desc=descEl.value.trim();
+  if(statusEl)item.status=statusEl.value;
+  item.actions.forEach(function(action){
+    var textEl=document.getElementById('carreira-action-text-'+action.id);
+    if(textEl&&textEl.value.trim())action.text=textEl.value.trim();
+    dbUpdateCarreiraAction(action.id,{text:action.text});
+  });
+  var container=document.getElementById('carreira-actions-edit-'+itemId);
+  if(container){
+    var newRows=container.querySelectorAll('[id^="new-carreira-action-"]');
+    newRows.forEach(function(row){
+      var inp=row.querySelector('.project-action-edit-input');
+      var text=inp?inp.value.trim():'';
+      if(text){
+        var tempAction={id:'temp-'+Date.now()+'-'+Math.random().toString(36).substr(2,5),text:text,done:false};
+        item.actions.push(tempAction);
+        dbInsertCarreiraAction(itemId,tempAction).then(function(realId){
+          if(realId){var a=item.actions.find(function(x){return x.id===tempAction.id;});if(a)a.id=realId;}
+        });
+      }
+    });
+  }
+  await dbUpdateCarreiraItem(itemId,{name:item.name,desc:item.desc,status:item.status});
+  editingCarreiraId=null;
+  renderCarreira();
+  showToast('Item de carreira atualizado',item.name);
+}
+
+function toggleAddCarreiraForm(){
+  var form=document.getElementById('add-carreira-form');
+  form.classList.toggle('open');
+  if(form.classList.contains('open')){
+    document.getElementById('new-carreira-name').focus();
+  }else{
+    document.getElementById('new-carreira-name').value='';
+    document.getElementById('new-carreira-desc').value='';
+    document.getElementById('new-carreira-status').value='ativo';
+  }
+}
+
+async function addCarreiraItem(){
+  var name=document.getElementById('new-carreira-name').value.trim();
+  if(!name){showToast('Digite o nome do item','urgente');return;}
+  var desc=document.getElementById('new-carreira-desc').value.trim();
+  var status=document.getElementById('new-carreira-status').value;
+  var tempId='temp-'+Date.now();
+  var tempItem={id:tempId,name:name,desc:desc,status:status,actions:[]};
+  carreiraItems.unshift(tempItem);
+  renderCarreira();
+  toggleAddCarreiraForm();
+  showToast('Item de carreira criado',name);
+  var realId=await dbInsertCarreiraItem({name:name,desc:desc,status:status,ordem:0});
+  if(realId){var it=carreiraItems.find(function(x){return x.id===tempId;});if(it){it.id=realId;renderCarreira();}}
+}
+
+function renderCarreira(){
+  var container=document.getElementById('carreira-container');
+  if(!container)return;
+
+  var statusColors={risco:'var(--red)',atencao:'var(--amber)',resolvido:'var(--teal)'};
+  var statusLabels={risco:'Risco ativo',atencao:'Atenção',resolvido:'Resolvido'};
+
+  var html =
+    '<div class="panel">' +
+      '<div class="panel-header"><div class="panel-title">🧭 Carreira — riscos e ações</div>' +
+      '<button class="panel-action" onclick="toggleAddCarreiraForm()">+ Novo item</button></div>' +
+      '<div class="add-task-form" id="add-carreira-form">' +
+        '<input type="text" id="new-carreira-name" placeholder="Nome do item" class="project-edit-input" style="margin-bottom:10px;">' +
+        '<textarea id="new-carreira-desc" placeholder="Descrição" class="project-edit-textarea" style="margin-bottom:10px;"></textarea>' +
+        '<select id="new-carreira-status" class="project-edit-select" style="margin-bottom:10px;">' +
+          '<option value="risco">Risco ativo</option>' +
+          '<option value="atencao">Atenção</option>' +
+          '<option value="resolvido">Resolvido</option>' +
+        '</select>' +
+        '<div class="project-edit-footer">' +
+          '<button class="cancel-btn" onclick="toggleAddCarreiraForm()">Cancelar</button>' +
+          '<button class="project-save-btn" onclick="addCarreiraItem()">Criar item</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="task-list" id="carreira-list"></div>' +
+    '</div>';
+  container.innerHTML = html;
+
+  var list = document.getElementById('carreira-list');
+  if(carreiraItems.length===0){
+    list.innerHTML = '<div class="treino-empty">Nenhum item cadastrado ainda.</div>';
+    return;
+  }
+
+  carreiraItems.forEach(function(item){
+    var total=item.actions.length;
+    var done=item.actions.filter(function(a){return a.done;}).length;
+    var pct=total>0?Math.round((done/total)*100):0;
+    var isEditing=editingCarreiraId===item.id;
+
+    var card=document.createElement('div');
+    card.className='project-card'+(isEditing?' editing':'');
+    card.style.position='relative';
+    card.style.borderLeft='3px solid '+(statusColors[item.status]||'var(--text3)');
+    card.style.borderRadius='var(--radius-lg)';
+
+    var headerDiv=document.createElement('div');
+    headerDiv.className='project-header';
+    var nameDiv=document.createElement('div');
+    nameDiv.className='project-name';
+    nameDiv.textContent=item.name;
+    var rightDiv=document.createElement('div');
+    rightDiv.style.cssText='display:flex;align-items:center;gap:6px;';
+    var statusBadge=document.createElement('span');
+    statusBadge.className='project-status-badge '+item.status;
+    statusBadge.textContent=statusLabels[item.status]||item.status;
+    var editBtn=document.createElement('button');
+    editBtn.className='project-edit-btn';
+    editBtn.textContent=isEditing?'✕ Fechar':'✏ Editar';
+    editBtn.onclick=(function(id){return function(e){e.stopPropagation();toggleCarreiraEdit(id);};})(item.id);
+    rightDiv.appendChild(statusBadge);
+    rightDiv.appendChild(editBtn);
+    headerDiv.appendChild(nameDiv);
+    headerDiv.appendChild(rightDiv);
+    card.appendChild(headerDiv);
+
+    if(!isEditing){
+      var descDiv=document.createElement('div');
+      descDiv.className='project-desc';
+      descDiv.textContent=item.desc;
+      card.appendChild(descDiv);
+      var lbl=document.createElement('div');
+      lbl.className='project-actions-label';
+      lbl.textContent='Ações ('+done+'/'+total+')';
+      card.appendChild(lbl);
+    }
+
+    item.actions.forEach(function(action){
+      var row=document.createElement('div');
+      row.className='project-action-item';
+      var chk=document.createElement('div');
+      chk.className='project-action-check'+(action.done?' checked':'');
+      chk.textContent=action.done?'✓':'';
+      chk.onclick=(function(id,aid){return function(){toggleCarreiraAction(id,aid);};})(item.id,action.id);
+      var txt=document.createElement('span');
+      txt.className='project-action-text'+(action.done?' done':'');
+      txt.textContent=action.text;
+      row.appendChild(chk);
+      row.appendChild(txt);
+      card.appendChild(row);
+    });
+
+    if(isEditing){
+      var editPanel=document.createElement('div');
+      editPanel.className='project-edit-panel';
+      editPanel.onclick=function(e){e.stopPropagation();};
+
+      function makeLabel(txt){var l=document.createElement('div');l.className='project-edit-label';l.textContent=txt;return l;}
+
+      editPanel.appendChild(makeLabel('Nome do item'));
+      var nameInp=document.createElement('input');
+      nameInp.className='project-edit-input';
+      nameInp.id='carreira-edit-name-'+item.id;
+      nameInp.value=item.name;
+      editPanel.appendChild(nameInp);
+
+      editPanel.appendChild(makeLabel('Descrição'));
+      var descTa=document.createElement('textarea');
+      descTa.className='project-edit-textarea';
+      descTa.id='carreira-edit-desc-'+item.id;
+      descTa.value=item.desc;
+      editPanel.appendChild(descTa);
+
+      editPanel.appendChild(makeLabel('Status'));
+      var statusSel=document.createElement('select');
+      statusSel.className='project-edit-select';
+      statusSel.id='carreira-edit-status-'+item.id;
+      [{v:'risco',l:'Risco ativo'},{v:'atencao',l:'Atenção'},{v:'resolvido',l:'Resolvido'}].forEach(function(opt){
+        var o=document.createElement('option');
+        o.value=opt.v;o.textContent=opt.l;
+        if(item.status===opt.v)o.selected=true;
+        statusSel.appendChild(o);
+      });
+      editPanel.appendChild(statusSel);
+
+      editPanel.appendChild(makeLabel('Ações existentes'));
+      var actContainer=document.createElement('div');
+      actContainer.id='carreira-actions-edit-'+item.id;
+      item.actions.forEach(function(action){
+        var arow=document.createElement('div');
+        arow.className='project-action-edit-row';
+        arow.id='carreira-action-row-'+action.id;
+        var aInp=document.createElement('input');
+        aInp.className='project-action-edit-input';
+        aInp.id='carreira-action-text-'+action.id;
+        aInp.value=action.text;
+        var aRemBtn=document.createElement('button');
+        aRemBtn.className='project-action-remove-btn';
+        aRemBtn.textContent='×';
+        aRemBtn.onclick=(function(id,aid){return function(){removeCarreiraActionRow(id,aid);};})(item.id,action.id);
+        arow.appendChild(aInp);arow.appendChild(aRemBtn);
+        actContainer.appendChild(arow);
+      });
+      editPanel.appendChild(actContainer);
+
+      var addActBtn=document.createElement('button');
+      addActBtn.className='project-add-action-btn';
+      addActBtn.textContent='+ Nova ação';
+      addActBtn.onclick=(function(id){return function(){addCarreiraActionRow(id);};})(item.id);
+      editPanel.appendChild(addActBtn);
+
+      var footer=document.createElement('div');
+      footer.className='project-edit-footer';
+      var cancelBtn=document.createElement('button');
+      cancelBtn.className='project-cancel-btn';
+      cancelBtn.textContent='Cancelar';
+      cancelBtn.onclick=function(){editingCarreiraId=null;renderCarreira();};
+      var saveBtn=document.createElement('button');
+      saveBtn.className='project-save-btn';
+      saveBtn.textContent='Salvar alterações';
+      saveBtn.onclick=(function(id){return function(){saveCarreiraEdit(id);};})(item.id);
+      footer.appendChild(cancelBtn);footer.appendChild(saveBtn);
+      editPanel.appendChild(footer);
+      card.appendChild(editPanel);
+    }
+
+    var progDiv=document.createElement('div');
+    progDiv.className='project-progress';
+    progDiv.innerHTML='<div class="project-progress-label"><span>Progresso</span><span>'+pct+'%</span></div><div class="project-progress-bar"><div class="project-progress-fill" style="width:'+pct+'%"></div></div>';
+    card.appendChild(progDiv);
+    list.appendChild(card);
+  });
+}
+
+
 
 function setExportPeriod(period,btn){
   exportPeriod=period;
