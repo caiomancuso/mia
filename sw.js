@@ -4,8 +4,6 @@ self.addEventListener('push', function(event) {
   var title = data.title || 'MIA';
   var options = {
     body: data.body || '',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
     tag: data.tag || 'mia-lembrete'
   };
   event.waitUntil(self.registration.showNotification(title, options));
@@ -19,7 +17,7 @@ self.addEventListener('notificationclick', function(event) {
         var client = clientList[i];
         if ('focus' in client) return client.focus();
       }
-      if (clients.openWindow) return clients.openWindow('/');
+      if (clients.openWindow) return clients.openWindow('https://caiomancuso.github.io/mia/');
     })
   );
 });
