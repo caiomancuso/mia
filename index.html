@@ -1529,6 +1529,7 @@ function switchAppMode(mode){
     var pFin = loadPessoal();
     var pTre = treinoLoaded ? Promise.resolve() : loadTreinoFromDB();
     Promise.all([pFin, pTre]).then(function(){
+      renderPessoal();
       renderSidebarPessoal();
       switchPessoalSubtab('foco');
     });
@@ -3927,6 +3928,9 @@ function switchPessoalSubtab(name){
   treBtn.classList.toggle('active', name==='treino');
   focBtn.classList.toggle('active', name==='foco');
   carBtn.classList.toggle('active', name==='carreira');
+  if(name==='financeiro'){
+    renderPessoal();
+  }
   if(name==='treino'){
     if(!treinoLoaded){ loadTreinoFromDB().then(renderTreino); }
     else renderTreino();
