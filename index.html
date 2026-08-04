@@ -2077,7 +2077,46 @@ function renderDashboard(){
 }
 
 // ── NOTIFICATIONS ─────────────────────────────────────
-function requestNotifPermission(){if(!('Notification' in window)){showToast('Notificações não suportadas','info');return;}Notification.requestPermission().then(function(p){if(p==='granted'){notifPermission=true;document.getElementById('notif-dot').style.display='none';showToast('Notificações ativadas!','sucesso');}else showToast('Permissão negada','urgente');});}
+var PUSH_PUBLIC_VAPID_KEY = 'BFnmSPbr7kf_JTnCnpwcHEO6IeV-Z-FUdVUWynnq8H6HHKGxlZvgyGuDUBnFxsen2mERew3QtsDoWhN-vAEvmaM';
+function urlBase64ToUint8Array(base64String){
+  var padding='='.repeat((4-base64String.length%4)%4);
+  var base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  var rawData=window.atob(base64);
+  var outputArray=new Uint8Array(rawData.length);
+  for(var i=0;i<rawData.length;++i){outputArray[i]=rawData.charCodeAt(i);}
+  return outputArray;
+}
+async function requestNotifPermission(){
+  if(!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)){
+    showToast('Notificações push não suportadas neste navegador','info');
+    return;
+  }
+  try{
+    var permission = await Notification.requestPermission();
+    if(permission!=='granted'){ showToast('Permissão negada','urgente'); return; }
+    var reg = await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.getSubscription();
+    if(!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(PUSH_PUBLIC_VAPID_KEY)
+      });
+    }
+    var json = sub.toJSON();
+    await dbFetch(SUPABASE_URL+'/rest/v1/push_subscriptions?on_conflict=endpoint', {
+      method:'POST',
+      headers: Object.assign({}, HEADERS, {'Prefer':'resolution=merge-duplicates,return=minimal'}),
+      body: JSON.stringify({ endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth })
+    });
+    notifPermission = true;
+    document.getElementById('notif-dot').style.display='none';
+    showToast('Notificações push ativadas!','sucesso');
+  }catch(e){
+    console.error(e);
+    showToast('Erro ao ativar notificações','urgente');
+  }
+}
 function sendNotif(title,body){if(notifPermission&&Notification.permission==='granted')new Notification(title,{body:body});showToast(title+': '+body,'info');}
 function showToast(msg,type){type=type||'info';var c=document.getElementById('toasts'),t=document.createElement('div');t.className='toast '+type;var parts=msg.split(': ');var title=parts.length>1?parts[0]:'MIA';var body=parts.length>1?parts.slice(1).join(': '):msg;t.innerHTML='<div class="toast-title">'+title+'</div><div class="toast-msg">'+body+'</div>';c.appendChild(t);setTimeout(function(){t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(function(){if(c.contains(t))c.removeChild(t);},300);},4000);}
 
