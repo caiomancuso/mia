@@ -664,6 +664,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .cal-pessoal-chip.evento{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(91,156,246,0.2);}
 .cal-pessoal-chip.conta{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,179,71,0.2);}
 .cal-pessoal-chip.pago{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(45,212,191,0.2);text-decoration:line-through;opacity:0.7;}
+.cal-pessoal-chip.treino{background:var(--accent-dim,rgba(91,156,246,0.15));color:var(--accent);border:1px solid rgba(91,156,246,0.2);}
+.cal-pessoal-chip.treino.feito{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(45,212,191,0.2);}
 /* Formulário pessoal */
 .pessoal-form{background:var(--surface3);border:1px solid rgba(167,139,250,0.2);border-radius:var(--radius);padding:14px;margin-top:10px;}
 .pessoal-form-row{display:flex;gap:8px;flex-wrap:wrap;}
@@ -1275,11 +1277,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <button class="pessoal-subtab-btn" id="subtab-financeiro-btn" onclick="switchPessoalSubtab('financeiro')">💳 Financeiro</button>
           <button class="pessoal-subtab-btn" id="subtab-treino-btn" onclick="switchPessoalSubtab('treino')">🥋 Treino</button>
           <button class="pessoal-subtab-btn" id="subtab-carreira-btn" onclick="switchPessoalSubtab('carreira')">🧭 Carreira</button>
+          <button class="pessoal-subtab-btn" id="subtab-calendario-pessoal-btn" onclick="switchPessoalSubtab('calendario')">📆 Calendário</button>
         </div>
         <div id="foco-pessoal-container"></div>
         <div id="pessoal-container" style="display:none"></div>
         <div id="treino-container" style="display:none"></div>
         <div id="carreira-container" style="display:none"></div>
+        <div id="calendario-pessoal-container" style="display:none"></div>
       </div>
 
       <!-- FOCO DIÁRIO -->
@@ -3955,18 +3959,22 @@ function switchPessoalSubtab(name){
   var tre = document.getElementById('treino-container');
   var foc = document.getElementById('foco-pessoal-container');
   var car = document.getElementById('carreira-container');
+  var cal = document.getElementById('calendario-pessoal-container');
   var finBtn = document.getElementById('subtab-financeiro-btn');
   var treBtn = document.getElementById('subtab-treino-btn');
   var focBtn = document.getElementById('subtab-foco-btn');
   var carBtn = document.getElementById('subtab-carreira-btn');
+  var calBtn = document.getElementById('subtab-calendario-pessoal-btn');
   fin.style.display = name==='financeiro' ? 'block' : 'none';
   tre.style.display = name==='treino' ? 'block' : 'none';
   foc.style.display = name==='foco' ? 'block' : 'none';
   car.style.display = name==='carreira' ? 'block' : 'none';
+  cal.style.display = name==='calendario' ? 'block' : 'none';
   finBtn.classList.toggle('active', name==='financeiro');
   treBtn.classList.toggle('active', name==='treino');
   focBtn.classList.toggle('active', name==='foco');
   carBtn.classList.toggle('active', name==='carreira');
+  calBtn.classList.toggle('active', name==='calendario');
   if(name==='financeiro'){
     renderPessoal();
   }
@@ -3981,6 +3989,10 @@ function switchPessoalSubtab(name){
   if(name==='carreira'){
     if(!carreiraLoaded){ loadCarreiraFromDB(); }
     else renderCarreira();
+  }
+  if(name==='calendario'){
+    var precisaTreino = !treinoLoaded ? loadTreinoFromDB() : Promise.resolve();
+    precisaTreino.then(renderCalendarioPessoal);
   }
 }
 
@@ -4895,6 +4907,110 @@ function renderCarreira(){
 }
 
 
+
+// ── CALENDÁRIO PESSOAL ────────────────────────────────
+var calPessoalMonthOffset = 0;
+function navCalPessoalMonth(dir){ calPessoalMonthOffset+=dir; renderCalendarioPessoal(); }
+function goCalPessoalToday(){ calPessoalMonthOffset=0; renderCalendarioPessoal(); }
+
+function getTreinoChipsForDate(dateStr){
+  var chips=[];
+  var d=new Date(dateStr+'T12:00:00');
+  var weekday=d.getDay();
+  var agenda={0:'Futebol',1:'Futsal',2:'Jiu-Jitsu',4:'Jiu-Jitsu'};
+  var esporte=agenda[weekday];
+  if(!esporte) return chips;
+  var feito = treinoSessoes.some(function(s){return s.data===dateStr;});
+  chips.push({tipo:'treino', nome:esporte, feito:feito});
+  return chips;
+}
+
+function renderCalendarioPessoal(){
+  var container=document.getElementById('calendario-pessoal-container');
+  if(!container) return;
+
+  container.innerHTML =
+    '<div class="panel">' +
+      '<div class="panel-header">' +
+        '<button class="date-nav-btn" onclick="navCalPessoalMonth(-1)" style="margin-right:4px;">‹</button>' +
+        '<div class="panel-title" id="cal-pessoal-label" style="flex:1;text-align:center;">Mês atual</div>' +
+        '<button class="today-btn" onclick="goCalPessoalToday()" style="margin-right:4px;">Hoje</button>' +
+        '<button class="date-nav-btn" onclick="navCalPessoalMonth(1)">›</button>' +
+      '</div>' +
+      '<div class="calendar-month-header" id="cal-pessoal-week-headers"></div>' +
+      '<div class="calendar-grid" id="cal-pessoal-grid"></div>' +
+      '<div style="display:flex;gap:14px;flex-wrap:wrap;padding:10px 12px 4px;font-size:11px;color:var(--text3);">' +
+        '<span>🥋 Treino</span><span>💳 Conta</span><span>🎂 Aniversário</span><span>📅 Evento</span>' +
+      '</div>' +
+    '</div>';
+
+  var now=new Date();
+  var months=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var dayNames=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  var refDate=new Date(now.getFullYear(),now.getMonth()+calPessoalMonthOffset,1);
+  var year=refDate.getFullYear(), month=refDate.getMonth();
+
+  document.getElementById('cal-pessoal-label').textContent=months[month]+' '+year;
+
+  var headersEl=document.getElementById('cal-pessoal-week-headers');
+  headersEl.innerHTML='';
+  dayNames.forEach(function(d){
+    var el=document.createElement('div');el.className='cal-month-wday';el.textContent=d;headersEl.appendChild(el);
+  });
+
+  var grid=document.getElementById('cal-pessoal-grid');grid.innerHTML='';
+
+  var firstDay=new Date(year,month,1).getDay();
+  var daysInMonth=new Date(year,month+1,0).getDate();
+  var daysInPrev=new Date(year,month,0).getDate();
+
+  for(var i=firstDay-1;i>=0;i--){
+    var dPrev=daysInPrev-i;
+    var divPrev=document.createElement('div');divPrev.className='cal-day other-month';
+    divPrev.innerHTML='<div class="cal-day-num" style="color:var(--text3);">'+dPrev+'</div>';
+    grid.appendChild(divPrev);
+  }
+
+  for(var day=1;day<=daysInMonth;day++){
+    var dateObj=new Date(year,month,day);
+    var dateStr=toDateStr(dateObj);
+    var isToday=dateStr===toDateStr(now);
+    var isPast=dateObj<now && !isToday;
+
+    var div=document.createElement('div');
+    div.className='cal-day'+(isToday?' today':'')+(isPast&&!isToday?' past':'');
+
+    var numEl=document.createElement('div');numEl.className='cal-day-num';numEl.textContent=day;
+    div.appendChild(numEl);
+
+    getTreinoChipsForDate(dateStr).forEach(function(chip){
+      var el=document.createElement('div');
+      el.className='cal-pessoal-chip treino'+(chip.feito?' feito':'');
+      el.textContent='🥋 '+chip.nome+(chip.feito?' ✓':'');
+      div.appendChild(el);
+    });
+
+    getPessoalChipsForDate(dateStr).forEach(function(chip){
+      var el=document.createElement('div');
+      el.className='cal-pessoal-chip '+chip.tipo+(chip.pago?' pago':'');
+      var icon = chip.tipo==='aniversario' ? '🎂 ' : chip.tipo==='conta' ? '💳 ' : '📅 ';
+      el.textContent=icon+chip.nome;
+      el.title=chip.nome;
+      div.appendChild(el);
+    });
+
+    grid.appendChild(div);
+  }
+
+  var totalCells=firstDay+daysInMonth;
+  var remaining=(7-(totalCells%7))%7;
+  for(var n=1;n<=remaining;n++){
+    var divNext=document.createElement('div');divNext.className='cal-day other-month';
+    divNext.innerHTML='<div class="cal-day-num" style="color:var(--text3);">'+n+'</div>';
+    grid.appendChild(divNext);
+  }
+}
 
 function setExportPeriod(period,btn){
   exportPeriod=period;
