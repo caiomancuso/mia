@@ -4420,6 +4420,7 @@ function gerarPerguntasPessoal(checkins){
   var dorBracoRecente = recentes.filter(function(c){return c.dor_braco>=4;}).length;
   if(dorJoelhoRecente>=2) perguntas.push('A dor no joelho está aparecendo mais depois de algum esporte específico ou é constante?');
   if(dorBracoRecente>=2) perguntas.push('O braço está incomodando mais em movimento de queda/base ou em finalização?');
+  perguntas.push('Nos últimos treinos, eu fiquei dentro do que o check-in sugeriu, ou empurrei além porque não aceitei ceder numa disputa?');
   perguntas.push('Meu condicionamento está evoluindo mês a mês ou estagnado?');
   perguntas.push('Estou priorizando recuperação de verdade nos dias de descanso, ou só descansando por obrigação?');
   perguntas.push('O ritmo de perda de peso está vindo com proteína suficiente pra não perder massa magra?');
@@ -4509,7 +4510,7 @@ function renderFocoPessoal(){
       var text=document.createElement('div');text.className='foco-analista-q';text.textContent=q;
       item.appendChild(text);
       item.onclick=(function(pergunta){return function(){
-        var msg='[CONTEXTO] Caio, 40 anos, retomando jiu-jítsu e futsal após reconstrução de LCA e placas de titânio no braço. Objetivo: treinar sem se lesionar de novo e continuar praticando esporte aos 50, 60, 70 anos — não é sobre performance ou competição. [PERGUNTA] '+pergunta+'. Me ajude a pensar nisso com honestidade, priorizando longevidade.';
+        var msg='[CONTEXTO] Caio, 40 anos, retomando jiu-jítsu e futsal após reconstrução de LCA e placas de titânio no braço. Objetivo hoje: treinar sem se lesionar de novo e continuar praticando esporte aos 50, 60, 70 anos — não é sobre performance ou competição oficial. Porém é extremamente competitivo por natureza, não aceita perder (principalmente pra si mesmo), e isso pode aparecer como empurrar intensidade além do combinado numa disputa, mesmo sem intenção declarada de competir. [PERGUNTA] '+pergunta+'. Me ajude a pensar nisso com honestidade, priorizando longevidade e sem validar automaticamente esse impulso competitivo.';
         window.open('https://claude.ai/new?q='+encodeURIComponent(msg),'_blank');
       };})(q);
       aCard.appendChild(item);
