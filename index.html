@@ -596,6 +596,15 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .treino-faixa .semana{flex:1;height:18px;border-radius:3px;background:var(--surface3);}
 .treino-faixa .semana.ok{background:var(--amber);}
 .treino-empty{color:var(--text3);font-size:12px;text-align:center;padding:16px 0;}
+.cronograma-view{font-size:13px;line-height:1.6;color:var(--text2);max-height:520px;overflow-y:auto;}
+.cronograma-h1{font-family:'Syne',sans-serif;font-size:16px;color:var(--text);margin:0 0 10px;}
+.cronograma-h2{font-family:'Syne',sans-serif;font-size:14px;color:var(--accent);margin:16px 0 8px;}
+.cronograma-p{margin:6px 0;}
+.cronograma-li{margin:4px 0 4px 4px;}
+.cronograma-hr{border:none;border-top:1px solid var(--border);margin:14px 0;}
+.cronograma-table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:12px;}
+.cronograma-table td{border:1px solid var(--border);padding:6px 8px;vertical-align:top;}
+.cronograma-table tr:first-child td{background:var(--surface2);font-weight:600;color:var(--text);}
 .pessoal-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
 .pessoal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
 .pessoal-card.full{grid-column:1/-1;}
@@ -3937,9 +3946,11 @@ async function loadTreinoFromDB(){
     var ci = await dbFetch(TREINO_CHECKIN_API+'?order=created_at.desc&limit=60');
     var sess = await dbFetch(TREINO_SESSAO_API+'?order=created_at.desc&limit=60');
     var pesos = await dbFetch(TREINO_PESO_API+'?order=created_at.desc&limit=60');
+    var cron = await dbFetch(TREINO_CRONOGRAMA_API+'?order=id.desc&limit=1');
     treinoCheckins = ci||[];
     treinoSessoes = sess||[];
     treinoPesos = pesos||[];
+    cronogramaTreino = (cron && cron[0]) ? cron[0] : null;
     treinoLoaded = true;
   }catch(e){ showToast('Erro ao carregar dados de treino','urgente'); }
 }
@@ -3966,15 +3977,119 @@ function renderTreino(){
   if(!container) return;
   container.innerHTML =
     '<div class="pessoal-grid">' +
+      '<div class="pessoal-card full" id="treino-cronograma-card"></div>' +
       '<div class="pessoal-card full" id="treino-checkin-card"></div>' +
       '<div class="pessoal-card full" id="treino-registro-card"></div>' +
       '<div class="pessoal-card" id="treino-peso-card"></div>' +
       '<div class="pessoal-card" id="treino-painel-card"></div>' +
     '</div>';
+  renderTreinoCronogramaCard();
   renderTreinoCheckinCard();
   renderTreinoRegistroCard();
   renderTreinoPesoCard();
   renderTreinoPainelCard();
+}
+
+// ── CRONOGRAMA SEMANAL ──
+var TREINO_CRONOGRAMA_API = SUPABASE_URL + '/rest/v1/treino_cronograma';
+var cronogramaTreino = null;
+var cronogramaEditando = false;
+
+async function loadCronogramaTreino(){
+  try{
+    var data = await dbFetch(TREINO_CRONOGRAMA_API+'?order=id.desc&limit=1');
+    cronogramaTreino = (data && data[0]) ? data[0] : null;
+  }catch(e){ cronogramaTreino = null; }
+  renderTreinoCronogramaCard();
+}
+
+function toggleCronogramaEdit(){
+  cronogramaEditando = !cronogramaEditando;
+  renderTreinoCronogramaCard();
+}
+
+async function salvarCronogramaTreino(){
+  var ta = document.getElementById('cronograma-textarea');
+  if(!ta) return;
+  var novoConteudo = ta.value;
+  try{
+    if(cronogramaTreino){
+      await dbFetch(TREINO_CRONOGRAMA_API+'?id=eq.'+cronogramaTreino.id, {method:'PATCH', body:JSON.stringify({conteudo:novoConteudo, updated_at:new Date().toISOString()})});
+      cronogramaTreino.conteudo = novoConteudo;
+    } else {
+      var data = await dbFetch(TREINO_CRONOGRAMA_API, {method:'POST', body:JSON.stringify({conteudo:novoConteudo})});
+      if(data && data[0]) cronogramaTreino = data[0];
+    }
+    cronogramaEditando = false;
+    renderTreinoCronogramaCard();
+    showToast('Cronograma atualizado','');
+  }catch(e){ showToast('Erro ao salvar cronograma','urgente'); }
+}
+
+function mdSimplesParaHtml(md){
+  // Renderização leve: headers, negrito, listas e tabelas markdown — sem lib externa.
+  var linhas = md.split('\n');
+  var html = '';
+  var emTabela = false;
+  linhas.forEach(function(linha){
+    var l = linha;
+    if(/^\|.*\|$/.test(l.trim())){
+      if(/^\|[\s\-\|]+\|$/.test(l.trim())){ return; } // linha separadora da tabela
+      var cols = l.trim().slice(1,-1).split('|').map(function(c){return c.trim();});
+      if(!emTabela){ html+='<table class="cronograma-table">'; emTabela=true; }
+      html += '<tr>'+cols.map(function(c){return '<td>'+aplicarNegrito(c)+'</td>';}).join('')+'</tr>';
+      return;
+    } else if(emTabela){ html+='</table>'; emTabela=false; }
+
+    if(/^# /.test(l)){ html+='<h2 class="cronograma-h1">'+aplicarNegrito(l.replace(/^# /,''))+'</h2>'; }
+    else if(/^## /.test(l)){ html+='<h3 class="cronograma-h2">'+aplicarNegrito(l.replace(/^## /,''))+'</h3>'; }
+    else if(/^- /.test(l)){ html+='<div class="cronograma-li">• '+aplicarNegrito(l.replace(/^- /,''))+'</div>'; }
+    else if(/^---$/.test(l.trim())){ html+='<hr class="cronograma-hr">'; }
+    else if(l.trim()===''){ html+=''; }
+    else { html+='<p class="cronograma-p">'+aplicarNegrito(l)+'</p>'; }
+  });
+  if(emTabela) html+='</table>';
+  return html;
+}
+function aplicarNegrito(txt){
+  return txt.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+}
+
+function renderTreinoCronogramaCard(){
+  var card = document.getElementById('treino-cronograma-card');
+  if(!card) return;
+
+  if(cronogramaEditando){
+    card.innerHTML =
+      '<div class="pessoal-card-header"><div class="pessoal-card-title">📅 Cronograma semanal</div></div>' +
+      '<div class="pessoal-card-body">' +
+        '<textarea id="cronograma-textarea" style="width:100%;min-height:320px;background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:10px;border-radius:8px;font-family:\'DM Mono\',monospace;font-size:12px;line-height:1.5;">'+(cronogramaTreino?escapeHtml(cronogramaTreino.conteudo):'')+'</textarea>' +
+        '<div style="display:flex;gap:8px;margin-top:10px;">' +
+          '<button class="cancel-btn" onclick="toggleCronogramaEdit()">Cancelar</button>' +
+          '<button class="pessoal-add-btn" style="flex:1;" onclick="salvarCronogramaTreino()">Salvar cronograma</button>' +
+        '</div>' +
+      '</div>';
+    return;
+  }
+
+  if(!cronogramaTreino){
+    card.innerHTML =
+      '<div class="pessoal-card-header"><div class="pessoal-card-title">📅 Cronograma semanal</div></div>' +
+      '<div class="pessoal-card-body"><div class="treino-empty">Nenhum cronograma cadastrado ainda.</div>' +
+      '<button class="pessoal-add-btn" style="width:100%;margin-top:10px;" onclick="toggleCronogramaEdit()">+ Criar cronograma</button></div>';
+    return;
+  }
+
+  card.innerHTML =
+    '<div class="pessoal-card-header"><div class="pessoal-card-title">📅 Cronograma semanal</div>' +
+    '<button class="project-edit-btn" onclick="toggleCronogramaEdit()">✏ Editar</button></div>' +
+    '<div class="pessoal-card-body"><div class="cronograma-view">'+mdSimplesParaHtml(cronogramaTreino.conteudo)+'</div></div>';
+}
+
+function escapeHtml(str){
+  var d=document.createElement('div');
+  d.textContent=str;
+  return d.innerHTML;
 }
 
 // ── CHECK-IN ──
