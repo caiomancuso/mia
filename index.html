@@ -596,6 +596,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .treino-faixa .semana{flex:1;height:18px;border-radius:3px;background:var(--surface3);}
 .treino-faixa .semana.ok{background:var(--amber);}
 .treino-empty{color:var(--text3);font-size:12px;text-align:center;padding:16px 0;}
+.treino-delete-btn{background:transparent;border:1px solid var(--border);color:var(--text3);width:22px;height:22px;border-radius:5px;cursor:pointer;font-size:12px;flex-shrink:0;line-height:1;}
+.treino-delete-btn:hover{background:var(--red-dim);color:var(--red);border-color:rgba(255,77,109,0.3);}
 .cronograma-view{font-size:13px;line-height:1.6;color:var(--text2);max-height:520px;overflow-y:auto;}
 .cronograma-h1{font-family:'Syne',sans-serif;font-size:16px;color:var(--text);margin:0 0 10px;}
 .cronograma-h2{font-family:'Syne',sans-serif;font-size:14px;color:var(--accent);margin:16px 0 8px;}
@@ -4182,6 +4184,7 @@ function renderTreinoCheckinCard(){
       '</details>' +
       '<button class="pessoal-add-btn" style="width:100%;padding:9px 0;margin-top:4px;" id="ci-salvar-btn">Avaliar e salvar check-in</button>' +
       '<div id="ci-resultado"></div>' +
+      '<div id="ci-historico" style="margin-top:14px;"></div>' +
     '</div>';
 
   card.querySelectorAll('.treino-scale-btn').forEach(function(b){
@@ -4197,6 +4200,34 @@ function renderTreinoCheckinCard(){
   var agua=card.querySelector('#ci-agua'); if(agua) agua.addEventListener('input', function(e){ciNovo.agua=e.target.value;});
   var alim=card.querySelector('#ci-alimentacao'); if(alim) alim.addEventListener('change', function(e){ciNovo.alimentacao=e.target.value;});
   var btn=card.querySelector('#ci-salvar-btn'); if(btn) btn.addEventListener('click', salvarTreinoCheckin);
+  renderTreinoCheckinHistorico();
+}
+
+function renderTreinoCheckinHistorico(){
+  var box = document.getElementById('ci-historico');
+  if(!box) return;
+  var items = treinoCheckins.slice(0,6);
+  if(items.length===0){ box.innerHTML=''; return; }
+  box.innerHTML = '<div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-family:\'DM Mono\',monospace;">ÚLTIMOS CHECK-INS</div>' +
+    items.map(function(it){
+      return '<div class="treino-list-item" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
+        '<div><span class="treino-tag">'+it.esporte+'</span> '+fmtDateTreino(it.data)+
+        ' — energia '+(it.energia||'—')+', sono '+(it.sono||'—')+', dor J'+(it.dor_joelho||0)+'/B'+(it.dor_braco||0)+
+        '</div>' +
+        '<button class="treino-delete-btn" onclick="excluirTreinoCheckin('+it.id+')" title="Excluir registro">✕</button>' +
+        '</div>';
+    }).join('');
+}
+
+async function excluirTreinoCheckin(id){
+  if(!confirm('Excluir este check-in?')) return;
+  try{
+    await dbFetch(TREINO_CHECKIN_API+'?id=eq.'+id, {method:'DELETE'});
+    treinoCheckins = treinoCheckins.filter(function(c){return c.id!==id;});
+    renderTreinoCheckinHistorico();
+    renderTreinoPainelCard();
+    showToast('Check-in excluído','');
+  }catch(e){ showToast('Erro ao excluir','urgente'); }
 }
 
 function avaliarTreinoCheckin(){
@@ -4216,10 +4247,12 @@ function avaliarTreinoCheckin(){
 }
 
 async function salvarTreinoCheckin(){
+  var btn = document.getElementById('ci-salvar-btn');
+  if(btn){ if(btn.disabled) return; btn.disabled=true; }
   var resultado = avaliarTreinoCheckin();
   var box = document.getElementById('ci-resultado');
   box.innerHTML = '<div class="'+(resultado.tipo==='alerta'?'treino-alerta':'treino-sugestao')+'">'+resultado.texto+'</div>';
-  if(resultado.tipo==='neutro') return;
+  if(resultado.tipo==='neutro'){ if(btn) btn.disabled=false; return; }
   try{
     var body = {
       data: toDateStrTreino(new Date()), esporte: ciNovo.esporte,
@@ -4231,8 +4264,10 @@ async function salvarTreinoCheckin(){
     };
     var data = await dbFetch(TREINO_CHECKIN_API, {method:'POST', body:JSON.stringify(body)});
     if(data && data[0]) treinoCheckins.unshift(data[0]);
+    renderTreinoCheckinHistorico();
     showToast('Check-in salvo','');
   }catch(e){ showToast('Erro ao salvar check-in','urgente'); }
+  finally{ if(btn) btn.disabled=false; }
 }
 
 // ── REGISTRO PÓS-TREINO ──
@@ -4310,6 +4345,8 @@ function renderTreinoRegistroCard(){
 function treinoVal(id){ var e=document.getElementById(id); return e ? e.value : ''; }
 
 async function salvarTreinoRegistro(){
+  var btn = document.getElementById('r-salvar-btn');
+  if(btn){ if(btn.disabled) return; btn.disabled=true; }
   var tipo = regNovo.tipo;
   var body = {
     tipo: tipo, data: toDateStrTreino(new Date()),
@@ -4336,6 +4373,7 @@ async function salvarTreinoRegistro(){
   }catch(e){
     document.getElementById('r-resultado').innerHTML = '<div class="treino-alerta">Não foi possível salvar. Tente novamente.</div>';
   }
+  finally{ if(btn) btn.disabled=false; }
 }
 
 function renderTreinoHistorico(){
@@ -4345,10 +4383,24 @@ function renderTreinoHistorico(){
   if(items.length===0){ box.innerHTML = '<div class="treino-empty">Nenhum registro ainda.</div>'; return; }
   box.innerHTML = '<div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-family:\'DM Mono\',monospace;">ÚLTIMAS SESSÕES</div>' +
     items.map(function(it){
-      return '<div class="treino-list-item"><span class="treino-tag">'+it.tipo+'</span> '+fmtDateTreino(it.data)+
+      return '<div class="treino-list-item" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
+        '<div><span class="treino-tag">'+it.tipo+'</span> '+fmtDateTreino(it.data)+
         ' — cansaço '+(it.cansaco||'—')+', dor '+(it.dor||0)+(it.dor_local?' ('+it.dor_local+')':'') +
-        '<div class="meta">'+(it.obs||'')+'</div></div>';
+        '<div class="meta">'+(it.obs||'')+'</div></div>' +
+        '<button class="treino-delete-btn" onclick="excluirTreinoSessao('+it.id+')" title="Excluir registro">✕</button>' +
+        '</div>';
     }).join('');
+}
+
+async function excluirTreinoSessao(id){
+  if(!confirm('Excluir este registro de sessão?')) return;
+  try{
+    await dbFetch(TREINO_SESSAO_API+'?id=eq.'+id, {method:'DELETE'});
+    treinoSessoes = treinoSessoes.filter(function(s){return s.id!==id;});
+    renderTreinoHistorico();
+    renderTreinoPainelCard();
+    showToast('Registro excluído','');
+  }catch(e){ showToast('Erro ao excluir','urgente'); }
 }
 
 // ── PESO ──
@@ -4387,7 +4439,22 @@ function renderTreinoPesoHistorico(){
   if(!box) return;
   var items = treinoPesos.slice(0,6);
   box.innerHTML = items.length===0 ? '<div class="treino-empty">Nenhum registro ainda.</div>' :
-    items.map(function(it){ return '<div class="treino-list-item">'+fmtDateTreino(it.data)+' — <strong>'+it.valor+' kg</strong> <span class="meta">('+it.momento+')</span></div>'; }).join('');
+    items.map(function(it){
+      return '<div class="treino-list-item" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">' +
+        '<span>'+fmtDateTreino(it.data)+' — <strong>'+it.valor+' kg</strong> <span class="meta">('+it.momento+')</span></span>' +
+        '<button class="treino-delete-btn" onclick="excluirTreinoPeso('+it.id+')" title="Excluir registro">✕</button>' +
+        '</div>';
+    }).join('');
+}
+
+async function excluirTreinoPeso(id){
+  if(!confirm('Excluir este registro de peso?')) return;
+  try{
+    await dbFetch(TREINO_PESO_API+'?id=eq.'+id, {method:'DELETE'});
+    treinoPesos = treinoPesos.filter(function(p){return p.id!==id;});
+    renderTreinoPesoHistorico();
+    showToast('Registro excluído','');
+  }catch(e){ showToast('Erro ao excluir','urgente'); }
 }
 
 // ── PAINEL ──
