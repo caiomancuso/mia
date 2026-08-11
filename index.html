@@ -1049,6 +1049,53 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     max-width:100%;
   }
 }
+
+/* ── MOBILE — COMPONENTES DO AMBIENTE PESSOAL ── */
+@media(max-width:600px){
+  /* Mode switcher */
+  .mode-switcher{gap:6px;}
+  .mode-btn{padding:10px 0;font-size:12px;}
+
+  /* Sub-abas de Pessoal — vira scroll horizontal, igual .tabs */
+  .pessoal-subtabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap;padding-bottom:2px;}
+  .pessoal-subtabs::-webkit-scrollbar{display:none;}
+  .pessoal-subtab-btn{white-space:nowrap;flex-shrink:0;padding:8px 12px;font-size:11px;}
+
+  /* Formulários de treino — empilha campos lado a lado */
+  .treino-row{flex-direction:column;gap:0;}
+  .treino-row>.treino-field{width:100%;}
+
+  /* Régua de dor 0-10 — quebra em duas linhas em vez de espremer 11 botões */
+  .treino-scale{flex-wrap:wrap;gap:4px;}
+  .treino-scale-btn{flex:1 1 15%;min-width:28px;padding:7px 0;font-size:11px;}
+
+  /* Stat tiles do fechamento semanal */
+  .foco-week-stats{grid-template-columns:repeat(2,1fr);}
+
+  /* Gráfico de barras da semana — reduz gap e fonte, mantém 7 colunas mas mais compacto */
+  .foco-week-bars{gap:3px;}
+  .foco-week-bar-track{height:50px;}
+  .foco-week-bar-label{font-size:8px;}
+  .foco-week-bar-value{font-size:8px;height:10px;}
+
+  /* Tabelas do cronograma — scroll horizontal em vez de estourar a tela */
+  .cronograma-view{overflow-x:auto;}
+  .cronograma-table{font-size:11px;min-width:480px;}
+
+  /* Sidebar pessoal — mesmos ajustes da sidebar profissional */
+  #sidebar-pessoal{flex-direction:column;gap:10px;}
+  #sidebar-pessoal > div{min-width:unset;width:100%;}
+
+  /* Calendário pessoal — mesma legenda do rodapé não deve quebrar feio */
+  #calendario-pessoal-container .panel-header > div[style*="flex-wrap"]{font-size:10px;gap:8px;}
+}
+
+@media(max-width:420px){
+  .foco-week-stats{grid-template-columns:repeat(2,1fr);gap:6px;}
+  .foco-week-tile-num{font-size:18px;}
+  .treino-scale-btn{flex:1 1 20%;font-size:10px;padding:6px 0;}
+  .pessoal-subtab-btn{padding:7px 10px;font-size:10px;}
+}
 </style>
 </head>
 <body>
