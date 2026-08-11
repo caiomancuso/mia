@@ -4618,25 +4618,51 @@ function renderFocoPessoal(){
   var domingo = new Date(segunda); domingo.setDate(segunda.getDate()+6);
   var segundaISO = toDateStrTreino(segunda), domingoISO = toDateStrTreino(domingo);
 
+  var segundaAnt = new Date(segunda); segundaAnt.setDate(segunda.getDate()-7);
+  var domingoAnt = new Date(segundaAnt); domingoAnt.setDate(segundaAnt.getDate()+6);
+  var segundaAntISO = toDateStrTreino(segundaAnt), domingoAntISO = toDateStrTreino(domingoAnt);
+
   var sessoesCal = treinoSessoes.filter(function(s){ return s.data>=segundaISO && s.data<=domingoISO; });
   var checkinsCal = treinoCheckins.filter(function(c){ return c.data>=segundaISO && c.data<=domingoISO; });
+  var sessoesAnt = treinoSessoes.filter(function(s){ return s.data>=segundaAntISO && s.data<=domingoAntISO; });
+  var checkinsAnt = treinoCheckins.filter(function(c){ return c.data>=segundaAntISO && c.data<=domingoAntISO; });
+
   var cansacos = sessoesCal.map(function(s){return parseFloat(s.cansaco);}).filter(function(n){return !isNaN(n);});
-  var cansacoMedio = cansacos.length ? (cansacos.reduce(function(a,b){return a+b;},0)/cansacos.length).toFixed(1) : '—';
+  var cansacoMedio = cansacos.length ? (cansacos.reduce(function(a,b){return a+b;},0)/cansacos.length) : null;
+  var cansacosAnt = sessoesAnt.map(function(s){return parseFloat(s.cansaco);}).filter(function(n){return !isNaN(n);});
+  var cansacoMedioAnt = cansacosAnt.length ? (cansacosAnt.reduce(function(a,b){return a+b;},0)/cansacosAnt.length) : null;
+
   var diasComDor = checkinsCal.filter(function(c){ return (c.dor_joelho>=4) || (c.dor_braco>=4); }).length;
+  var diasComDorAnt = checkinsAnt.filter(function(c){ return (c.dor_joelho>=4) || (c.dor_braco>=4); }).length;
   var alertasSemana = checkinsCal.filter(function(c){ return c.alerta; }).length;
   var porTipo = {};
   sessoesCal.forEach(function(s){ porTipo[s.tipo]=(porTipo[s.tipo]||0)+1; });
   var porTipoTxt = Object.keys(porTipo).length ? Object.keys(porTipo).map(function(t){return porTipo[t]+'x '+t;}).join(', ') : 'nenhuma sessão ainda';
 
+  var sessoesExcesso = sessoesCal.filter(function(s){ return parseFloat(s.cansaco)>=9; }).length;
+
+  function setaComparativa(atual, anterior, maiorEhPior){
+    if(atual===null || anterior===null || sessoesAnt.length===0) return '<span style="color:var(--text3);"> (sem semana anterior pra comparar)</span>';
+    var diff = atual-anterior;
+    if(Math.abs(diff)<0.3) return '<span style="color:var(--text3);"> (estável vs semana passada)</span>';
+    var subiu = diff>0;
+    var corBoa = maiorEhPior ? !subiu : subiu;
+    var seta = subiu ? '↑' : '↓';
+    var cor = corBoa ? 'var(--teal)' : 'var(--amber)';
+    return '<span style="color:'+cor+';"> '+seta+' vs '+anterior.toFixed(1)+' na semana passada</span>';
+  }
+
   var wCard=document.createElement('div');wCard.className='foco-card';wCard.style.marginBottom='14px';
   wCard.innerHTML =
     '<div class="foco-card-title">📊 Fechamento da semana ('+fmtDateTreino(segundaISO)+' – '+fmtDateTreino(domingoISO)+')</div>' +
     '<div class="foco-performance">' +
-      '<div class="foco-perf-row"><span class="foco-perf-label">Sessões</span><span class="foco-perf-val">'+sessoesCal.length+' ('+porTipoTxt+')</span></div>' +
-      '<div class="foco-perf-row"><span class="foco-perf-label">Cansaço médio</span><span class="foco-perf-val">'+cansacoMedio+'</span></div>' +
-      '<div class="foco-perf-row"><span class="foco-perf-label">Check-ins com dor ≥4</span><span class="foco-perf-val '+(diasComDor>0?'warn':'')+'">'+diasComDor+'</span></div>' +
+      '<div class="foco-perf-row"><span class="foco-perf-label">Sessões</span><span class="foco-perf-val">'+sessoesCal.length+' ('+porTipoTxt+')'+setaComparativa(sessoesCal.length, sessoesAnt.length, false)+'</span></div>' +
+      '<div class="foco-perf-row"><span class="foco-perf-label">Cansaço médio</span><span class="foco-perf-val">'+(cansacoMedio!==null?cansacoMedio.toFixed(1):'—')+setaComparativa(cansacoMedio, cansacoMedioAnt, true)+'</span></div>' +
+      '<div class="foco-perf-row"><span class="foco-perf-label">Check-ins com dor ≥4</span><span class="foco-perf-val '+(diasComDor>0?'warn':'')+'">'+diasComDor+setaComparativa(diasComDor, diasComDorAnt, true)+'</span></div>' +
       '<div class="foco-perf-row"><span class="foco-perf-label">Alertas de dor alta</span><span class="foco-perf-val '+(alertasSemana>0?'warn':'')+'">'+alertasSemana+'</span></div>' +
-    '</div>';
+      '<div class="foco-perf-row"><span class="foco-perf-label">Cansaço ≥9 (possível excesso)</span><span class="foco-perf-val '+(sessoesExcesso>0?'warn':'')+'">'+sessoesExcesso+' de '+sessoesCal.length+' sessão(ões)</span></div>' +
+    '</div>' +
+    (sessoesExcesso>0 ? '<div class="treino-alerta" style="margin-top:8px;">Isso é um proxy simples, não detecção exata — cansaço ≥9 nem sempre significa que você passou do combinado, pode ser um treino puxado de verdade. Mas vale olhar se tem padrão se repetindo.</div>' : '');
   frag.appendChild(wCard);
 
   var sCard=document.createElement('div');sCard.className='foco-card';sCard.style.marginBottom='14px';
