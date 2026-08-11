@@ -4611,6 +4611,34 @@ function renderFocoPessoal(){
   grid.appendChild(c2);
   frag.appendChild(grid);
 
+  // ── Fechamento semanal (semana calendário seg-dom) ──
+  var diaSemanaHoje = now.getDay();
+  var diffSeg = diaSemanaHoje===0 ? -6 : 1-diaSemanaHoje;
+  var segunda = new Date(now); segunda.setDate(now.getDate()+diffSeg); segunda.setHours(0,0,0,0);
+  var domingo = new Date(segunda); domingo.setDate(segunda.getDate()+6);
+  var segundaISO = toDateStrTreino(segunda), domingoISO = toDateStrTreino(domingo);
+
+  var sessoesCal = treinoSessoes.filter(function(s){ return s.data>=segundaISO && s.data<=domingoISO; });
+  var checkinsCal = treinoCheckins.filter(function(c){ return c.data>=segundaISO && c.data<=domingoISO; });
+  var cansacos = sessoesCal.map(function(s){return parseFloat(s.cansaco);}).filter(function(n){return !isNaN(n);});
+  var cansacoMedio = cansacos.length ? (cansacos.reduce(function(a,b){return a+b;},0)/cansacos.length).toFixed(1) : '—';
+  var diasComDor = checkinsCal.filter(function(c){ return (c.dor_joelho>=4) || (c.dor_braco>=4); }).length;
+  var alertasSemana = checkinsCal.filter(function(c){ return c.alerta; }).length;
+  var porTipo = {};
+  sessoesCal.forEach(function(s){ porTipo[s.tipo]=(porTipo[s.tipo]||0)+1; });
+  var porTipoTxt = Object.keys(porTipo).length ? Object.keys(porTipo).map(function(t){return porTipo[t]+'x '+t;}).join(', ') : 'nenhuma sessão ainda';
+
+  var wCard=document.createElement('div');wCard.className='foco-card';wCard.style.marginBottom='14px';
+  wCard.innerHTML =
+    '<div class="foco-card-title">📊 Fechamento da semana ('+fmtDateTreino(segundaISO)+' – '+fmtDateTreino(domingoISO)+')</div>' +
+    '<div class="foco-performance">' +
+      '<div class="foco-perf-row"><span class="foco-perf-label">Sessões</span><span class="foco-perf-val">'+sessoesCal.length+' ('+porTipoTxt+')</span></div>' +
+      '<div class="foco-perf-row"><span class="foco-perf-label">Cansaço médio</span><span class="foco-perf-val">'+cansacoMedio+'</span></div>' +
+      '<div class="foco-perf-row"><span class="foco-perf-label">Check-ins com dor ≥4</span><span class="foco-perf-val '+(diasComDor>0?'warn':'')+'">'+diasComDor+'</span></div>' +
+      '<div class="foco-perf-row"><span class="foco-perf-label">Alertas de dor alta</span><span class="foco-perf-val '+(alertasSemana>0?'warn':'')+'">'+alertasSemana+'</span></div>' +
+    '</div>';
+  frag.appendChild(wCard);
+
   var sCard=document.createElement('div');sCard.className='foco-card';sCard.style.marginBottom='14px';
   sCard.innerHTML='<div class="foco-card-title">Sugestão MIA</div>'+
     '<div class="foco-sugestao"><div class="foco-sugestao-label">Dica de hoje</div>'+
