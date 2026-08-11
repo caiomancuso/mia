@@ -6,36 +6,56 @@
 <title>MIA — Assistente Comercial</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Fundo — ligeiramente mais escuro e limpo */
-  --bg:#08080b;--surface:#111118;--surface2:#16161e;--surface3:#1c1c26;
-  /* Bordas — mais sutis */
-  --border:rgba(255,255,255,0.05);--border2:rgba(255,255,255,0.09);
-  /* Accent — verde como ação, não decoração */
-  --accent:#c8f135;--accent2:#aed420;
-  --accent-dim:rgba(200,241,53,0.09);--accent-glow:rgba(200,241,53,0.18);
+  /* Fundo — tons de azul profundo, estilo HUD */
+  --bg:#050a10;--surface:#081420;--surface2:#0c1c2c;--surface3:#0f2436;
+  /* Bordas — ciano sutil */
+  --border:rgba(62,203,240,0.12);--border2:rgba(62,203,240,0.22);
+  /* Accent — ciano como ação, não decoração */
+  --accent:#3ecbf0;--accent2:#2ab3d9;
+  --accent-dim:rgba(62,203,240,0.10);--accent-glow:rgba(62,203,240,0.22);
   /* Cores semânticas */
-  --red:#ff4d6d;--red-dim:rgba(255,77,109,0.1);
+  --red:#ff5d6c;--red-dim:rgba(255,93,108,0.1);
   --amber:#ffb347;--amber-dim:rgba(255,179,71,0.1);
-  --blue:#5b9cf6;--blue-dim:rgba(91,156,246,0.1);
-  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.1);
-  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.1);
-  --green:#4ade80;--green-dim:rgba(74,222,128,0.1);
+  --blue:#3ecbf0;--blue-dim:rgba(62,203,240,0.1);
+  --teal:#38e0c8;--teal-dim:rgba(56,224,200,0.1);
+  --purple:#8fa9ff;--purple-dim:rgba(143,169,255,0.1);
+  --green:#38e0c8;--green-dim:rgba(56,224,200,0.1);
   /* Texto — hierarquia de 3 níveis */
-  --text:#e2e2ea;--text2:#8a8a9e;--text3:#52526a;
+  --text:#dff4ff;--text2:#7fb8d4;--text3:#3d6a82;
   /* Raios */
   --radius:10px;--radius-lg:16px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(200,241,53,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(200,241,53,0.02) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(62,203,240,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(62,203,240,0.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+
+/* ── TEMA HUD — cantos em L e brilho sutil em todos os cards/painéis ── */
+.ciclo-item-card,.ciclo-widget,.dash-card,.foco-card,.meeting-card,.meeting-widget,
+.panel,.pessoal-card,.pessoal-mia-card,.project-card,.roadmap-widget,.stat-card,
+.timer-widget,.tmpl-card{
+  position:relative;
+  box-shadow:0 0 0 1px rgba(62,203,240,0.04),0 0 20px rgba(62,203,240,0.035) inset;
+}
+.ciclo-item-card::before,.ciclo-widget::before,.dash-card::before,.foco-card::before,.meeting-card::before,.meeting-widget::before,
+.panel::before,.pessoal-card::before,.pessoal-mia-card::before,.project-card::before,.roadmap-widget::before,.stat-card::before,
+.timer-widget::before,.tmpl-card::before{
+  content:'';position:absolute;top:-1px;left:-1px;width:9px;height:9px;
+  border-top:1px solid var(--accent);border-left:1px solid var(--accent);opacity:0.55;pointer-events:none;
+}
+.ciclo-item-card::after,.ciclo-widget::after,.dash-card::after,.foco-card::after,.meeting-card::after,.meeting-widget::after,
+.panel::after,.pessoal-card::after,.pessoal-mia-card::after,.project-card::after,.roadmap-widget::after,.stat-card::after,
+.timer-widget::after,.tmpl-card::after{
+  content:'';position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;
+  border-bottom:1px solid var(--accent);border-right:1px solid var(--accent);opacity:0.55;pointer-events:none;
+}
 .app{position:relative;z-index:1;max-width:1300px;margin:0 auto;padding:24px;}
 .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border);}
 .header-left{display:flex;align-items:center;gap:14px;}
 .logo{width:38px;height:38px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#0a0a0f;}
-.header-title{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--text);}
+.header-title{font-family:'Orbitron',sans-serif;font-weight:700;font-size:18px;letter-spacing:0.5px;color:var(--text);text-shadow:0 0 12px var(--accent-glow);}
 .header-sub{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px;}
 .header-right{display:flex;align-items:center;gap:10px;}
 .date-badge{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);padding:5px 12px;border-radius:6px;}
@@ -781,7 +801,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .rel-estrutura-item::before{content:'✓';color:var(--teal);font-weight:700;flex-shrink:0;}
 .rel-footer{display:flex;gap:10px;}
 .rel-btn{flex:1;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;}
-.rel-btn:hover{background:#4a8ae8;}
+.rel-btn:hover{background:#2ab3d9;}
 .rel-btn-cancel{padding:10px 16px;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;}
 /* EXPORTAÇÃO */
 .export-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn 0.3s ease;}
@@ -3897,7 +3917,7 @@ function renderPessoalGraficos(container) {
     // Arco pago
     var arcPago = document.createElementNS(svgNS, 'circle');
     arcPago.setAttribute('cx', cx); arcPago.setAttribute('cy', cy); arcPago.setAttribute('r', r);
-    arcPago.setAttribute('fill', 'none'); arcPago.setAttribute('stroke', '#2dd4bf');
+    arcPago.setAttribute('fill', 'none'); arcPago.setAttribute('stroke', '#38e0c8');
     arcPago.setAttribute('stroke-width', stroke);
     arcPago.setAttribute('stroke-dasharray', dashPago + ' ' + (circ - dashPago));
     arcPago.setAttribute('stroke-dashoffset', circ * 0.25);
@@ -3921,7 +3941,7 @@ function renderPessoalGraficos(container) {
   var txtPct = document.createElementNS(svgNS, 'text');
   txtPct.setAttribute('x', cx); txtPct.setAttribute('y', cy - 4);
   txtPct.setAttribute('text-anchor', 'middle'); txtPct.setAttribute('font-size', '14');
-  txtPct.setAttribute('font-weight', '700'); txtPct.setAttribute('fill', '#e8e8f0');
+  txtPct.setAttribute('font-weight', '700'); txtPct.setAttribute('fill', '#dff4ff');
   txtPct.setAttribute('font-family', 'Syne, sans-serif');
   txtPct.textContent = Math.round(pctPago * 100) + '%';
   svg.appendChild(txtPct);
@@ -3929,7 +3949,7 @@ function renderPessoalGraficos(container) {
   var txtLabel = document.createElementNS(svgNS, 'text');
   txtLabel.setAttribute('x', cx); txtLabel.setAttribute('y', cy + 10);
   txtLabel.setAttribute('text-anchor', 'middle'); txtLabel.setAttribute('font-size', '9');
-  txtLabel.setAttribute('fill', '#9090a8'); txtLabel.setAttribute('font-family', 'monospace');
+  txtLabel.setAttribute('fill', '#7fb8d4'); txtLabel.setAttribute('font-family', 'monospace');
   txtLabel.textContent = 'pago';
   svg.appendChild(txtLabel);
 
@@ -3940,9 +3960,9 @@ function renderPessoalGraficos(container) {
   var legend = document.createElement('div');
   legend.className = 'pessoal-donut-legend';
   var items = [
-    { label: 'Pago', val: totalPago, cor: '#2dd4bf' },
+    { label: 'Pago', val: totalPago, cor: '#38e0c8' },
     { label: 'Pendente', val: totalPend, cor: '#ffb347' },
-    { label: 'Total', val: totalMes, cor: '#9090a8' },
+    { label: 'Total', val: totalMes, cor: '#7fb8d4' },
   ];
   items.forEach(function(item) {
     var li = document.createElement('div');
@@ -3975,8 +3995,8 @@ function renderPessoalGraficos(container) {
   } else {
     pessoalContas.forEach(function(c) {
       var pago = isContaPaga(c.id);
-      var cor = pago ? '#2dd4bf' : diasParaConta(c.dia_vencimento) <= 0 ? '#ff4d6d' :
-                diasParaConta(c.dia_vencimento) <= 3 ? '#ffb347' : '#5b9cf6';
+      var cor = pago ? '#38e0c8' : diasParaConta(c.dia_vencimento) <= 0 ? '#ff5d6c' :
+                diasParaConta(c.dia_vencimento) <= 3 ? '#ffb347' : '#3ecbf0';
       var row = document.createElement('div');
       row.className = 'pessoal-progress-row';
       var lbl = document.createElement('div');
@@ -3992,7 +4012,7 @@ function renderPessoalGraficos(container) {
       var pct = document.createElement('div');
       pct.className = 'pessoal-progress-pct';
       pct.textContent = pago ? '✓' : formatCurrency(c.valor).replace('R$ ', 'R$');
-      pct.style.color = pago ? '#2dd4bf' : '#9090a8';
+      pct.style.color = pago ? '#38e0c8' : '#7fb8d4';
       pct.style.fontSize = '10px';
       row.appendChild(lbl); row.appendChild(track); row.appendChild(pct);
       progBody.appendChild(row);
