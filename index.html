@@ -4128,7 +4128,7 @@ async function loadTreinoFromDB(){
   try{
     var ci = await dbFetch(TREINO_CHECKIN_API+'?order=created_at.desc&limit=60');
     var sess = await dbFetch(TREINO_SESSAO_API+'?order=created_at.desc&limit=60');
-    var pesos = await dbFetch(TREINO_PESO_API+'?order=created_at.desc&limit=60');
+    var pesos = await dbFetch(TREINO_PESO_API+'?order=data.desc,created_at.desc&limit=60');
     var cron = await dbFetch(TREINO_CRONOGRAMA_API+'?order=id.desc&limit=1');
     var nutri = await dbFetch(TREINO_NUTRICAO_API+'?order=created_at.desc&limit=60');
     treinoCheckins = ci||[];
