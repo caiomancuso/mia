@@ -432,6 +432,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .home-news-title{font-size:13px;color:var(--text);line-height:1.4;}
 .home-news-item:hover .home-news-title{color:var(--accent);}
 .home-news-source{font-size:10px;color:var(--text3);margin-top:4px;}
+.home-news-tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+.home-news-tabs::-webkit-scrollbar{display:none;}
+.home-news-tab{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;color:var(--text2);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:.15s;}
+.home-news-tab:hover{border-color:var(--accent);}
+.home-news-tab.active{background:var(--accent);border-color:var(--accent);color:#04121a;font-weight:700;}
+.home-news-list{max-height:340px;overflow-y:auto;}
 .home-jump-row{display:flex;gap:10px;}
 @media(max-width:600px){
   .home-grid{grid-template-columns:1fr;}
@@ -1785,7 +1791,7 @@ async function renderHome(){
     '<div class="home-grid">'+
       '<div class="home-widget" id="home-weather"><div class="home-widget-title">🌤 Clima — São Paulo</div><div class="home-widget-body">Carregando...</div></div>'+
       '<div class="home-widget" id="home-insights"><div class="home-widget-title">📌 Insights</div><div class="home-widget-body">Carregando...</div></div>'+
-      '<div class="home-widget full" id="home-news"><div class="home-widget-title">🥋 Jiu-Jitsu &amp; Esportes</div><div class="home-widget-body">Carregando...</div></div>'+
+      '<div class="home-widget full" id="home-news"><div class="home-widget-title">🥋 Notícias</div><div class="home-widget-body">Carregando...</div></div>'+
     '</div>'+
     '<div class="home-jump-row">'+
       '<button class="dash-action-btn" onclick="switchAppMode(\'profissional\')">💼 Ir para Profissional</button>'+
@@ -1825,26 +1831,48 @@ async function carregarClimaHome(){
   }
 }
 
+var noticiasCache = null;
+var CATEGORIAS_NOTICIAS = [
+  {chave:'palmeiras', label:'Palmeiras'},
+  {chave:'esportes', label:'Esportes'},
+  {chave:'jiujitsu', label:'Jiu-Jitsu'},
+  {chave:'atualidades', label:'Atualidades'}
+];
+
 async function carregarNoticiasHome(){
   var el = document.getElementById('home-news');
   if(!el) return;
   try{
     var res = await fetch('https://rmuvwntvubiojiqjdyye.supabase.co/functions/v1/fetch-news');
     var data = await res.json();
-    var items = (data.items||[]).slice(0,5);
-    if(items.length===0){
-      el.querySelector('.home-widget-body').innerHTML = '<div class="treino-empty">Sem notícias no momento.</div>';
-      return;
-    }
-    el.querySelector('.home-widget-body').innerHTML = items.map(function(it){
-      return '<a href="'+it.link+'" target="_blank" rel="noopener" class="home-news-item">'+
-        '<div class="home-news-title">'+it.title+'</div>'+
-        '<div class="home-news-source">'+(it.source||'')+'</div>'+
-      '</a>';
-    }).join('');
+    noticiasCache = data.categorias || {};
+    renderNoticiasTabs('palmeiras');
   }catch(e){
     el.querySelector('.home-widget-body').innerHTML = '<div class="treino-empty">Não foi possível carregar notícias agora.</div>';
   }
+}
+
+function renderNoticiasTabs(ativa){
+  var el = document.getElementById('home-news');
+  if(!el || !noticiasCache) return;
+
+  var tabsHTML = CATEGORIAS_NOTICIAS.map(function(c){
+    return '<button class="home-news-tab'+(c.chave===ativa?' active':'')+'" onclick="renderNoticiasTabs(\''+c.chave+'\')">'+c.label+'</button>';
+  }).join('');
+
+  var items = (noticiasCache[ativa]||[]).slice(0,5);
+  var listaHTML = items.length===0
+    ? '<div class="treino-empty">Sem notícias nessa categoria agora.</div>'
+    : items.map(function(it){
+        return '<a href="'+it.link+'" target="_blank" rel="noopener" class="home-news-item">'+
+          '<div class="home-news-title">'+it.title+'</div>'+
+          '<div class="home-news-source">'+(it.source||'')+'</div>'+
+        '</a>';
+      }).join('');
+
+  el.querySelector('.home-widget-title').innerHTML = '🥋 Notícias';
+  var body = el.querySelector('.home-widget-body');
+  body.innerHTML = '<div class="home-news-tabs">'+tabsHTML+'</div><div class="home-news-list">'+listaHTML+'</div>';
 }
 
 async function carregarInsightsHome(){
