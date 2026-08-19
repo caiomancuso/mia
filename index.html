@@ -438,7 +438,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .home-news-tab:hover{border-color:var(--accent);}
 .home-news-tab.active{background:var(--accent);border-color:var(--accent);color:#04121a;font-weight:700;}
 .home-news-list{max-height:340px;overflow-y:auto;}
-.home-jump-row{display:flex;gap:10px;}
+.home-clickable{cursor:pointer;transition:.15s;}
+.home-clickable:hover{border-color:var(--accent);background:var(--accent-dim);}
 @media(max-width:600px){
   .home-grid{grid-template-columns:1fr;}
 }
@@ -1786,21 +1787,18 @@ async function renderHome(){
   container.innerHTML =
     '<div class="dash-header">'+
       '<div class="dash-greeting">'+saudacao+', Caio.</div>'+
-      '<div class="dash-subline">Sua central de acompanhamento — clima, notícias e insights reais dos seus pilares.</div>'+
+      '<div class="dash-subline">Sua central de acompanhamento — clima, notícias e resumo real dos dois ambientes.</div>'+
     '</div>'+
     '<div class="home-grid">'+
-      '<div class="home-widget" id="home-weather"><div class="home-widget-title">🌤 Clima — São Paulo</div><div class="home-widget-body">Carregando...</div></div>'+
-      '<div class="home-widget" id="home-insights"><div class="home-widget-title">📌 Insights</div><div class="home-widget-body">Carregando...</div></div>'+
+      '<div class="home-widget full" id="home-weather"><div class="home-widget-title">🌤 Clima — São Paulo</div><div class="home-widget-body">Carregando...</div></div>'+
+      '<div class="home-widget home-clickable" id="home-summary-prof" onclick="switchAppMode(\'profissional\')"><div class="home-widget-title">💼 Profissional</div><div class="home-widget-body">Carregando...</div></div>'+
+      '<div class="home-widget home-clickable" id="home-summary-pes" onclick="switchAppMode(\'pessoal\')"><div class="home-widget-title">🏠 Pessoal</div><div class="home-widget-body">Carregando...</div></div>'+
       '<div class="home-widget full" id="home-news"><div class="home-widget-title">🥋 Notícias</div><div class="home-widget-body">Carregando...</div></div>'+
-    '</div>'+
-    '<div class="home-jump-row">'+
-      '<button class="dash-action-btn" onclick="switchAppMode(\'profissional\')">💼 Ir para Profissional</button>'+
-      '<button class="dash-action-btn" onclick="switchAppMode(\'pessoal\')">🏠 Ir para Pessoal</button>'+
     '</div>';
 
   carregarClimaHome();
   carregarNoticiasHome();
-  carregarInsightsHome();
+  carregarResumoSetores();
 }
 
 function weatherCodeDesc(code){
@@ -1843,7 +1841,10 @@ async function carregarNoticiasHome(){
   var el = document.getElementById('home-news');
   if(!el) return;
   try{
-    var res = await fetch('https://rmuvwntvubiojiqjdyye.supabase.co/functions/v1/fetch-news');
+    var res = await fetch('https://rmuvwntvubiojiqjdyye.supabase.co/functions/v1/fetch-news', {
+      headers: {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+SUPABASE_KEY}
+    });
+    if(!res.ok) throw new Error('status '+res.status);
     var data = await res.json();
     noticiasCache = data.categorias || {};
     renderNoticiasTabs('palmeiras');
@@ -1875,39 +1876,46 @@ function renderNoticiasTabs(ativa){
   body.innerHTML = '<div class="home-news-tabs">'+tabsHTML+'</div><div class="home-news-list">'+listaHTML+'</div>';
 }
 
-async function carregarInsightsHome(){
-  var el = document.getElementById('home-insights');
-  if(!el) return;
+async function carregarResumoSetores(){
+  var elProf = document.getElementById('home-summary-prof');
+  var elPes = document.getElementById('home-summary-pes');
+  if(!elProf || !elPes) return;
 
   var pTre = treinoLoaded ? Promise.resolve() : loadTreinoFromDB();
   var pCar = (typeof carreiraLoaded!=='undefined' && carreiraLoaded) ? Promise.resolve() : loadCarreiraFromDB();
   await Promise.all([pTre, pCar]);
 
-  var insights = [];
   var hojeISO = toDateStr(new Date());
 
-  var criticasHoje = (typeof tasks!=='undefined'?tasks:[]).filter(function(t){return !t.done && t.task_date===hojeISO && t.prio==='urgente';});
-  if(criticasHoje.length>0) insights.push('⚠ '+criticasHoje.length+' tarefa(s) crítica(s) pendente(s) hoje.');
+  // ── Profissional ──
+  var pontosProf = [];
+  var allOpenH = (typeof tasks!=='undefined'?tasks:[]).filter(function(t){return !t.done;});
+  var criticasHoje = allOpenH.filter(function(t){return t.task_date===hojeISO && t.prio==='urgente';});
+  pontosProf.push((criticasHoje.length>0?'⚠ ':'✓ ')+criticasHoje.length+' tarefa(s) crítica(s) hoje.');
+  pontosProf.push('📋 '+allOpenH.length+' tarefa(s) em aberto no total.');
+  var projAtivosH = (typeof projects!=='undefined'?projects:[]).filter(function(p){return p.status==='ativo'||p.status==='atencao';});
+  pontosProf.push('📁 '+projAtivosH.length+' projeto(s) ativo(s).');
+  elProf.querySelector('.home-widget-body').innerHTML = pontosProf.map(function(i){return '<div class="home-insight-item">'+i+'</div>';}).join('');
 
+  // ── Pessoal ──
+  var pontosPes = [];
   var seteDiasAtras = new Date(); seteDiasAtras.setDate(seteDiasAtras.getDate()-7);
   var sessoesSemana = treinoSessoes.filter(function(s){return new Date(s.data)>=seteDiasAtras;});
-  if(sessoesSemana.length===0) insights.push('🥋 Nenhuma sessão de treino registrada nos últimos 7 dias.');
+  pontosPes.push(sessoesSemana.length===0 ? '🥋 Nenhuma sessão nos últimos 7 dias.' : '🥋 '+sessoesSemana.length+' sessão(ões) de treino essa semana.');
 
   var checkinsRecentes = treinoCheckins.slice(0,5);
   var dorAlta = checkinsRecentes.filter(function(c){return c.dor_joelho>=4 || c.dor_braco>=4;});
-  if(dorAlta.length>=2) insights.push('🩹 Padrão de dor articular nos últimos check-ins — vale atenção.');
+  if(dorAlta.length>=2) pontosPes.push('🩹 Padrão de dor articular recente — vale atenção.');
 
   var pendentesContas = (typeof pessoalContas!=='undefined'?pessoalContas:[]).filter(function(c){return !isContaPaga(c.id);});
-  if(pendentesContas.length>0) insights.push('💳 '+pendentesContas.length+' conta(s) pendente(s).');
+  pontosPes.push('💳 '+pendentesContas.length+' conta(s) pendente(s).');
 
   var riscos = (typeof carreiraItems!=='undefined'?carreiraItems:[]).filter(function(c){return c.status==='risco';});
-  if(riscos.length>0) insights.push('🧭 '+riscos.length+' risco(s) de carreira ainda ativo(s).');
+  if(riscos.length>0) pontosPes.push('🧭 '+riscos.length+' risco(s) de carreira ativo(s).');
 
-  if(treinoNutricao.length===0) insights.push('🍽 Nenhum registro de nutrição ainda — pilar sem dado no Modo Técnico.');
+  if(treinoNutricao.length===0) pontosPes.push('🍽 Nutrição sem registro ainda.');
 
-  if(insights.length===0) insights.push('✓ Sem pendências críticas nos pilares monitorados agora.');
-
-  el.querySelector('.home-widget-body').innerHTML = insights.map(function(i){return '<div class="home-insight-item">'+i+'</div>';}).join('');
+  elPes.querySelector('.home-widget-body').innerHTML = pontosPes.map(function(i){return '<div class="home-insight-item">'+i+'</div>';}).join('');
 }
 
 function switchTab(tabId,btn){
