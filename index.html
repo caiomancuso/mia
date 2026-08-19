@@ -378,6 +378,52 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 /* FOCO DIÁRIO */
 .foco-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+
+/* ── DASHBOARD (painel-resumo) ── */
+.dash-header{padding:2px 0 16px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.dash-greeting{font-family:'Orbitron',sans-serif;font-size:19px;font-weight:700;color:var(--text);}
+.dash-subline{font-size:12px;color:var(--text2);margin-top:7px;line-height:1.6;max-width:640px;}
+.dash-subline b{color:var(--accent);font-weight:600;}
+.dash-stat-strip{display:flex;gap:8px;overflow-x:auto;padding:14px 0 4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.dash-stat-strip::-webkit-scrollbar{display:none;}
+.dash-stat-pill{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:7px;white-space:nowrap;flex-shrink:0;}
+.dash-stat-pill .ic{font-size:13px;}
+.dash-stat-pill .val{font-weight:700;font-size:12px;color:var(--text);}
+.dash-stat-pill .lbl{font-size:9px;color:var(--text3);}
+.dash-areas{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-bottom:16px;}
+.dash-card-big{
+  background:linear-gradient(155deg,var(--surface2),var(--surface));border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:18px;display:flex;flex-direction:column;justify-content:space-between;min-height:150px;position:relative;overflow:hidden;
+}
+.dash-card-big::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 90% 10%, var(--accent-dim), transparent 60%);pointer-events:none;}
+.dash-card-big .top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;}
+.dash-card-big .name{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;}
+.dash-card-big .bignum{font-family:'Orbitron',sans-serif;font-size:30px;font-weight:700;color:var(--accent);position:relative;}
+.dash-card-big .bignum sup{font-size:11px;color:var(--text2);font-weight:500;}
+.dash-card-big .foot{font-size:10px;color:var(--text2);position:relative;line-height:1.5;}
+.dash-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.dash-card-mini{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;justify-content:space-between;cursor:pointer;transition:.15s;}
+.dash-card-mini:hover{border-color:var(--accent);}
+.dash-card-mini .top{display:flex;justify-content:space-between;align-items:center;}
+.dash-card-mini .name{font-size:11px;color:var(--text2);}
+.dash-card-mini .val{font-family:'Orbitron',sans-serif;font-size:17px;font-weight:700;}
+.dash-card-mini .val small{font-size:9px;color:var(--text3);font-weight:400;}
+.dash-card-mini.warn .val{color:var(--amber);}
+.dash-card-mini.ok .val{color:var(--teal);}
+.dash-quick-row{display:flex;gap:8px;margin-bottom:20px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+.dash-quick-row::-webkit-scrollbar{display:none;}
+.dash-quick-btn{
+  background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;
+  display:flex;flex-direction:column;align-items:center;gap:5px;min-width:72px;flex-shrink:0;cursor:pointer;transition:.15s;
+}
+.dash-quick-btn:hover{border-color:var(--accent);}
+.dash-quick-btn .ic{width:26px;height:26px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:13px;}
+.dash-quick-btn .lbl{font-size:9px;color:var(--text2);text-align:center;}
+@media(max-width:640px){
+  .dash-areas{grid-template-columns:1fr;}
+  .dash-greeting{font-size:16px;}
+  .dash-card-big .bignum{font-size:24px;}
+}
 .foco-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;}
 .foco-card.full{grid-column:1/-1;}
 .foco-card-title{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
@@ -1678,7 +1724,7 @@ function renderSidebarPessoal(){
 function switchTab(tabId,btn){
   document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active');});
   document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
-  document.getElementById('tab-'+tabId).classList.add('active');btn.classList.add('active');
+  document.getElementById('tab-'+tabId).classList.add('active');if(btn)btn.classList.add('active');
   if(tabId==='calendario')renderCalendar();
   if(tabId==='dashboard')renderDashboard();
   if(tabId==='projetos')renderProjects();
@@ -4831,6 +4877,76 @@ function renderFocoPessoal(){
 
   var frag = document.createDocumentFragment();
 
+  // PAINEL-RESUMO
+  var horaAtualP = now.getHours();
+  var saudacaoP = horaAtualP<12?'Bom dia':horaAtualP<18?'Boa tarde':'Boa noite';
+  var riscosAtivos = (typeof carreiraItems!=='undefined'?carreiraItems:[]).filter(function(c){return c.status==='risco';});
+  var pesoAtual = treinoPesos.length>0 ? treinoPesos[0].valor : null;
+  var cansacosSemana = sessoesSemana.map(function(s){return parseFloat(s.cansaco);}).filter(function(n){return !isNaN(n);});
+  var cansacoMedioP = cansacosSemana.length ? (cansacosSemana.reduce(function(a,b){return a+b;},0)/cansacosSemana.length).toFixed(1) : null;
+
+  var dashHeaderP = document.createElement('div'); dashHeaderP.className='dash-header';
+  dashHeaderP.innerHTML =
+    '<div class="dash-greeting">'+saudacaoP+', Caio.</div>'+
+    '<div class="dash-subline">'+
+      (esporteHoje
+        ? 'Hoje é dia de <b>'+esporteHoje+'</b> ('+(agendaHorario[diaSemana]||'')+')'+(checkinHoje?', check-in já feito':', check-in ainda pendente')+'.'
+        : 'Hoje é dia de <b>descanso</b> na sua rotina.'
+      )+
+      (contasHoje.length>0?' <b>'+contasHoje.length+' conta(s)</b> vencendo hoje.':'')+
+    '</div>';
+  frag.appendChild(dashHeaderP);
+
+  var dashStripP = document.createElement('div'); dashStripP.className='dash-stat-strip';
+  dashStripP.innerHTML =
+    '<div class="dash-stat-pill"><span class="ic">🔥</span><div><div class="val">'+streak+'</div><div class="lbl">Streak (dias)</div></div></div>'+
+    '<div class="dash-stat-pill"><span class="ic">⚖️</span><div><div class="val">'+(pesoAtual?pesoAtual+' kg':'—')+'</div><div class="lbl">Peso atual</div></div></div>'+
+    '<div class="dash-stat-pill"><span class="ic">🥋</span><div><div class="val">'+(cansacoMedioP||'—')+'</div><div class="lbl">Cansaço médio/sem.</div></div></div>'+
+    '<div class="dash-stat-pill"><span class="ic">💳</span><div><div class="val">'+pendentes.length+'</div><div class="lbl">Contas pendentes</div></div></div>'+
+    '<div class="dash-stat-pill"><span class="ic">🧭</span><div><div class="val">'+riscosAtivos.length+'</div><div class="lbl">Riscos carreira</div></div></div>';
+  frag.appendChild(dashStripP);
+
+  var dashAreasP = document.createElement('div'); dashAreasP.className='dash-areas';
+  var dashBigP = document.createElement('div'); dashBigP.className='dash-card-big';
+  dashBigP.onclick=function(){switchPessoalSubtab('treino');};
+  dashBigP.innerHTML =
+    '<div class="top"><div class="name">🥋 Treino</div></div>'+
+    '<div class="bignum">'+(cansacoMedioP||'—')+'<sup>/10 cansaço médio</sup></div>'+
+    '<div class="foot">'+sessoesSemana.length+' sessões essa semana · streak de '+streak+' dia(s)</div>';
+  dashAreasP.appendChild(dashBigP);
+
+  var dashMiniP = document.createElement('div'); dashMiniP.className='dash-mini-grid';
+  var miniDefsP = [
+    {nome:'Financeiro', val:pendentes.length, sufixo:' pendente(s)', warn:pendentes.length>3, tab:'financeiro'},
+    {nome:'Carreira', val:riscosAtivos.length, sufixo:' risco(s)', warn:riscosAtivos.length>0, tab:'carreira'},
+    {nome:'Calendário', val:sessoesSemana.length, sufixo:' esta sem.', warn:false, tab:'calendario'},
+    {nome:'Nutrição', val:treinoNutricao.length, sufixo:' registro(s)', warn:treinoNutricao.length===0, tab:'treino'}
+  ];
+  miniDefsP.forEach(function(m){
+    var mc = document.createElement('div'); mc.className='dash-card-mini'+(m.warn?' warn':'');
+    mc.onclick=(function(tab){return function(){switchPessoalSubtab(tab);};})(m.tab);
+    mc.innerHTML = '<div class="top"><span class="name">'+m.nome+'</span></div><div class="val">'+m.val+'<small>'+m.sufixo+'</small></div>';
+    dashMiniP.appendChild(mc);
+  });
+  dashAreasP.appendChild(dashMiniP);
+  frag.appendChild(dashAreasP);
+
+  var dashQuickP = document.createElement('div'); dashQuickP.className='dash-quick-row';
+  var quickDefsP = [
+    {ic:'✅', lbl:'Treino', tab:'treino'},
+    {ic:'💳', lbl:'Financeiro', tab:'financeiro'},
+    {ic:'🧭', lbl:'Carreira', tab:'carreira'},
+    {ic:'📆', lbl:'Calendário', tab:'calendario'},
+    {ic:'📊', lbl:'Relatório', tab:null}
+  ];
+  quickDefsP.forEach(function(q){
+    var qb = document.createElement('div'); qb.className='dash-quick-btn';
+    qb.onclick = q.tab ? (function(tab){return function(){switchPessoalSubtab(tab);};})(q.tab) : function(){abrirRelatorioPerformance();};
+    qb.innerHTML = '<div class="ic">'+q.ic+'</div><div class="lbl">'+q.lbl+'</div>';
+    dashQuickP.appendChild(qb);
+  });
+  frag.appendChild(dashQuickP);
+
   var grid=document.createElement('div');grid.className='foco-grid';
 
   var c1=document.createElement('div');c1.className='foco-card';
@@ -6202,6 +6318,86 @@ function renderFoco(){
 
   // ── RENDER ──
   var frag=document.createDocumentFragment();
+
+  // PAINEL-RESUMO
+  var horaAtual = now.getHours();
+  var saudacao = horaAtual<12?'Bom dia':horaAtual<18?'Boa tarde':'Boa noite';
+  var projAtivos = projects.filter(function(p){return p.status==='ativo'||p.status==='atencao';});
+  var proximaReuniao = reunioes[0];
+
+  var dashHeader = document.createElement('div'); dashHeader.className='dash-header';
+  dashHeader.innerHTML =
+    '<div class="dash-greeting">'+saudacao+', Caio.</div>'+
+    '<div class="dash-subline">'+
+      (todayTasks.length===0
+        ? 'Nenhuma tarefa pendente pra hoje.'
+        : todayTasks.length+' tarefa'+(todayTasks.length>1?'s':'')+' aberta'+(todayTasks.length>1?'s':'')+' hoje'+
+          (criticas.length>0?', <b>'+criticas.length+' crítica'+(criticas.length>1?'s':'')+'</b>':'')+
+          (reunioes.length>0?', '+reunioes.length+' reunião'+(reunioes.length>1?'ões':'')+'':'')+'.'
+      )+
+      ' <b>'+allOpen.length+'</b> tarefas em aberto no total.'+
+    '</div>';
+  frag.appendChild(dashHeader);
+
+  var dashStrip = document.createElement('div'); dashStrip.className='dash-stat-strip';
+  dashStrip.innerHTML =
+    '<div class="dash-stat-pill"><span class="ic">✅</span><div><div class="val">'+doneSemana.length+'</div><div class="lbl">Concluídas/sem.</div></div></div>'+
+    '<div class="dash-stat-pill"><span class="ic">🎯</span><div><div class="val">'+taxaSLA+'%</div><div class="lbl">Taxa SLA</div></div></div>'+
+    '<div class="dash-stat-pill"><span class="ic">📁</span><div><div class="val">'+projAtivos.length+'</div><div class="lbl">Projetos ativos</div></div></div>'+
+    '<div class="dash-stat-pill"><span class="ic">🚧</span><div><div class="val">'+bloqueios.length+'</div><div class="lbl">Bloqueios</div></div></div>'+
+    '<div class="dash-stat-pill"><span class="ic">📅</span><div><div class="val">'+(proximaReuniao?proximaReuniao.name:'—')+'</div><div class="lbl">Próxima reunião</div></div></div>';
+  frag.appendChild(dashStrip);
+
+  var dashAreas = document.createElement('div'); dashAreas.className='dash-areas';
+  var dashBig = document.createElement('div'); dashBig.className='dash-card-big';
+  dashBig.onclick=function(){switchTab('tarefas',document.getElementById('tabbtn-tarefas'));};
+  dashBig.innerHTML =
+    '<div class="top"><div class="name">📋 Tarefas</div></div>'+
+    '<div class="bignum">'+allOpen.length+'<sup> em aberto</sup></div>'+
+    '<div class="foot">'+doneSemana.length+' concluídas essa semana · '+criticas.length+' crítica(s) hoje</div>';
+  dashAreas.appendChild(dashBig);
+
+  var dashMini = document.createElement('div'); dashMini.className='dash-mini-grid';
+  var miniDefs = [
+    {nome:'Projetos', val:projAtivos.length, sufixo:' ativos', warn:false, tab:'projetos'},
+    {nome:'Dashboard', val:taxaSLA+'%', sufixo:' SLA', warn:taxaSLA<50, tab:'dashboard'},
+    {nome:'Reuniões', val:reunioes.length, sufixo:' hoje', warn:false, tab:'foco'},
+    {nome:'Calendário', val:reunioes.length, sufixo:' hoje', warn:false, tab:'calendario'}
+  ];
+  miniDefs.forEach(function(m){
+    var mc = document.createElement('div'); mc.className='dash-card-mini'+(m.warn?' warn':'');
+    mc.onclick=(function(tab){return function(){
+      var btn = document.querySelector('.tab-btn[onclick*="\''+tab+'\'"]');
+      switchTab(tab, btn);
+    };})(m.tab);
+    mc.innerHTML = '<div class="top"><span class="name">'+m.nome+'</span></div><div class="val">'+m.val+'<small>'+m.sufixo+'</small></div>';
+    dashMini.appendChild(mc);
+  });
+  dashAreas.appendChild(dashMini);
+  frag.appendChild(dashAreas);
+
+  var dashQuick = document.createElement('div'); dashQuick.className='dash-quick-row';
+  var quickDefs = [
+    {ic:'✅', lbl:'Tarefas', tab:'tarefas'},
+    {ic:'📁', lbl:'Projetos', tab:'projetos'},
+    {ic:'📊', lbl:'Dashboard', tab:'dashboard'},
+    {ic:'📆', lbl:'Calendário', tab:'calendario'},
+    {ic:'⬇', lbl:'Exportar', tab:null}
+  ];
+  quickDefs.forEach(function(q){
+    var qb = document.createElement('div'); qb.className='dash-quick-btn';
+    if(q.tab){
+      qb.onclick=(function(tab){return function(){
+        var btn = document.querySelector('.tab-btn[onclick*="\''+tab+'\'"]');
+        switchTab(tab, btn);
+      };})(q.tab);
+    } else {
+      qb.onclick=function(){abrirExportModal();};
+    }
+    qb.innerHTML = '<div class="ic">'+q.ic+'</div><div class="lbl">'+q.lbl+'</div>';
+    dashQuick.appendChild(qb);
+  });
+  frag.appendChild(dashQuick);
 
   // GRID PRINCIPAL
   var grid=document.createElement('div');grid.className='foco-grid';
