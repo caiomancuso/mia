@@ -4119,12 +4119,14 @@ function renderTreino(){
       '<div class="pessoal-card full" id="treino-registro-card"></div>' +
       '<div class="pessoal-card" id="treino-peso-card"></div>' +
       '<div class="pessoal-card" id="treino-painel-card"></div>' +
+      '<div class="pessoal-card full" id="treino-tecnico-card"></div>' +
     '</div>';
   renderTreinoCronogramaCard();
   renderTreinoCheckinCard();
   renderTreinoRegistroCard();
   renderTreinoPesoCard();
   renderTreinoPainelCard();
+  renderModoTecnicoCard();
 }
 
 // ── CRONOGRAMA SEMANAL ──
@@ -4592,6 +4594,80 @@ function renderTreinoPainelCard(){
       '<div style="font-size:11px;color:var(--text3);margin:10px 0 6px;font-family:\'DM Mono\',monospace;">CONSISTÊNCIA (6 SEMANAS)</div>' +
       '<div class="treino-faixa">'+faixaHTML+'</div>' +
     '</div>';
+}
+
+// ── MODO TÉCNICO ───────────────────────────────────────
+function contarFrases(campo){
+  var contagem = {};
+  treinoSessoes.forEach(function(s){
+    var valor = s[campo];
+    if(!valor) return;
+    valor.split(/[,;]/).forEach(function(parte){
+      var t = parte.trim().toLowerCase();
+      if(t.length<3) return;
+      contagem[t] = (contagem[t]||0)+1;
+    });
+  });
+  return Object.keys(contagem)
+    .map(function(k){return {frase:k, vezes:contagem[k]};})
+    .sort(function(a,b){return b.vezes-a.vezes;})
+    .slice(0,6);
+}
+
+function renderModoTecnicoCard(){
+  var card = document.getElementById('treino-tecnico-card');
+  if(!card) return;
+
+  var acertos = contarFrases('tecnicas_certo');
+  var erros = contarFrases('tecnicas_errado');
+  var totalComTecnica = treinoSessoes.filter(function(s){return s.tecnicas_certo || s.tecnicas_errado;}).length;
+
+  function listaHTML(itens, corVar){
+    if(itens.length===0) return '<div class="treino-empty">Sem registro suficiente ainda.</div>';
+    return itens.map(function(it){
+      return '<div class="ciclo-item"><span class="ciclo-name" style="text-transform:capitalize;">'+it.frase+'</span><span class="badge normal" style="color:'+corVar+';">'+it.vezes+'x</span></div>';
+    }).join('');
+  }
+
+  card.innerHTML =
+    '<div class="pessoal-card-header"><div class="pessoal-card-title">🥋 Modo Técnico</div></div>' +
+    '<div class="pessoal-card-body">' +
+      '<div style="font-size:11px;color:var(--text3);margin-bottom:10px;">6 pilares: físico, técnico, tático, mental, nutricional, recuperação — jiu-jítsu e futsal. Baseado em '+totalComTecnica+' sessão(ões) com técnica/tática registrada.</div>' +
+      '<div style="font-size:10px;color:var(--text3);margin-bottom:6px;font-family:\'DM Mono\',monospace;">MAIS CITADAS — O QUE FUNCIONOU</div>' +
+      listaHTML(acertos,'var(--teal)') +
+      '<div style="font-size:10px;color:var(--text3);margin:14px 0 6px;font-family:\'DM Mono\',monospace;">MAIS CITADAS — ERROS</div>' +
+      listaHTML(erros,'var(--amber)') +
+      '<button class="pessoal-add-btn" style="width:100%;margin-top:14px;" id="gerar-relatorio-btn">Gerar relatório de performance</button>' +
+      '<div style="font-size:10px;color:var(--text3);margin-top:8px;line-height:1.5;">Abre uma conversa nova comigo com todo o dado real disponível. Onde não houver dado suficiente (ex: mental, que hoje só existe em conversa, não em registro), o relatório vai dizer isso em vez de inventar.</div>' +
+    '</div>';
+
+  var btn = document.getElementById('gerar-relatorio-btn');
+  if(btn) btn.onclick = abrirRelatorioPerformance;
+}
+
+function abrirRelatorioPerformance(){
+  var recentes = treinoSessoes.slice(0,10);
+  var checkinsRecentes = treinoCheckins.slice(0,10);
+
+  var resumoSessoes = recentes.map(function(s){
+    return s.data+' ['+s.tipo+'] cansaço:'+(s.cansaco||'—')+' dor:'+(s.dor||0)+
+      (s.tecnicas_certo?' | funcionou: '+s.tecnicas_certo:'')+
+      (s.tecnicas_errado?' | errou: '+s.tecnicas_errado:'')+
+      (s.foi_finalizado==='sim'?' | foi finalizado':'')+
+      (s.gols?' | gols:'+s.gols:'')+(s.assist?' assist:'+s.assist:'');
+  }).join('\n');
+
+  var resumoCheckins = checkinsRecentes.map(function(c){
+    return c.data+' ['+c.esporte+'] energia:'+(c.energia||'—')+' sono:'+(c.sono||'—')+
+      ' dorJoelho:'+(c.dor_joelho||0)+' dorBraço:'+(c.dor_braco||0)+(c.alerta?' [ALERTA]':'');
+  }).join('\n');
+
+  var msg = '[CONTEXTO] Caio, 40 anos, jiu-jítsu e futsal, reconstrução de LCA + placas no antebraço esquerdo. Extremamente competitivo, não aceita perder. Quer um relatório de performance real cobrindo 6 pilares: físico, técnico, tático, mental, nutricional, recuperação.\n\n'+
+    '[DADO REAL — sessões recentes]\n'+resumoSessoes+'\n\n'+
+    '[DADO REAL — check-ins recentes]\n'+resumoCheckins+'\n\n'+
+    '[PEDIDO] Me dê uma avaliação sincera cobrindo os 6 pilares com o dado acima. Onde não houver dado real suficiente para um pilar (ex: mental e nutricional podem estar incompletos), diga isso claramente em vez de inventar uma avaliação. Não valide automaticamente meu impulso competitivo — aponte se os dados mostram isso acontecendo.';
+
+  window.open('https://claude.ai/new?q='+encodeURIComponent(msg),'_blank');
 }
 
 // ── FOCO PESSOAL ───────────────────────────────────────
