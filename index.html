@@ -4084,10 +4084,12 @@ async function loadTreinoFromDB(){
     var sess = await dbFetch(TREINO_SESSAO_API+'?order=created_at.desc&limit=60');
     var pesos = await dbFetch(TREINO_PESO_API+'?order=created_at.desc&limit=60');
     var cron = await dbFetch(TREINO_CRONOGRAMA_API+'?order=id.desc&limit=1');
+    var nutri = await dbFetch(TREINO_NUTRICAO_API+'?order=created_at.desc&limit=60');
     treinoCheckins = ci||[];
     treinoSessoes = sess||[];
     treinoPesos = pesos||[];
     cronogramaTreino = (cron && cron[0]) ? cron[0] : null;
+    treinoNutricao = nutri||[];
     treinoLoaded = true;
   }catch(e){ showToast('Erro ao carregar dados de treino','urgente'); }
 }
@@ -4118,6 +4120,7 @@ function renderTreino(){
       '<div class="pessoal-card full" id="treino-checkin-card"></div>' +
       '<div class="pessoal-card full" id="treino-registro-card"></div>' +
       '<div class="pessoal-card" id="treino-peso-card"></div>' +
+      '<div class="pessoal-card" id="treino-nutricao-card"></div>' +
       '<div class="pessoal-card" id="treino-painel-card"></div>' +
       '<div class="pessoal-card full" id="treino-tecnico-card"></div>' +
     '</div>';
@@ -4125,12 +4128,15 @@ function renderTreino(){
   renderTreinoCheckinCard();
   renderTreinoRegistroCard();
   renderTreinoPesoCard();
+  renderTreinoNutricaoCard();
   renderTreinoPainelCard();
   renderModoTecnicoCard();
 }
 
 // ── CRONOGRAMA SEMANAL ──
 var TREINO_CRONOGRAMA_API = SUPABASE_URL + '/rest/v1/treino_cronograma';
+var TREINO_NUTRICAO_API = SUPABASE_URL + '/rest/v1/treino_nutricao';
+var treinoNutricao = [];
 var cronogramaTreino = null;
 var cronogramaEditando = false;
 
@@ -4363,10 +4369,17 @@ function treinoCamposJiuJitsu(){
     '<div class="treino-field"><label>Faixas dos parceiros</label><input type="text" id="r-faixas" placeholder="ex: azul, roxa"></div>' +
     '<div class="treino-row">' +
       '<div class="treino-field"><label>Finalizou alguém?</label><select id="r-finalizou"><option value="">—</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>' +
-      '<div class="treino-field"><label>Foi finalizado?</label><select id="r-foi-finalizado"><option value="">—</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>' +
+      '<div class="treino-field"><label>Foi finalizado?</label><select id="r-foi-finalizado" onchange="toggleReacaoDerrota()"><option value="">—</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>' +
     '</div>' +
     '<div class="treino-field"><label>Técnicas que deram certo</label><textarea id="r-tecnicas-certo"></textarea></div>' +
-    '<div class="treino-field"><label>Técnicas que deram errado</label><textarea id="r-tecnicas-errado"></textarea></div>';
+    '<div class="treino-field"><label>Técnicas que deram errado</label><textarea id="r-tecnicas-errado"></textarea></div>' +
+    '<div class="treino-field" id="reacao-derrota-container" style="display:none;"><label>Como você reagiu a ser finalizado?</label><textarea id="r-reacao-derrota" placeholder="honestidade aqui vale mais que qualquer outro campo"></textarea></div>';
+}
+function toggleReacaoDerrota(){
+  var sel = document.getElementById('r-foi-finalizado');
+  var box = document.getElementById('reacao-derrota-container');
+  if(!sel || !box) return;
+  box.style.display = sel.value==='sim' ? 'block' : 'none';
 }
 function treinoCamposBola(){
   return '' +
@@ -4442,6 +4455,7 @@ async function salvarTreinoRegistro(){
     body.rolas = treinoVal('r-rolas')||null; body.tempo = treinoVal('r-tempo')||null;
     body.parceiros = treinoVal('r-parceiros')||null; body.faixas = treinoVal('r-faixas')||null;
     body.finalizou = treinoVal('r-finalizou')||null; body.foi_finalizado = treinoVal('r-foi-finalizado')||null;
+    body.reacao_derrota = treinoVal('r-reacao-derrota')||null;
     body.tecnicas_certo = treinoVal('r-tecnicas-certo')||null; body.tecnicas_errado = treinoVal('r-tecnicas-errado')||null;
   } else {
     body.tempo = treinoVal('r-tempo')||null; body.posicao = treinoVal('r-posicao')||null;
@@ -4530,6 +4544,73 @@ function renderTreinoPesoHistorico(){
         '<button class="treino-delete-btn" onclick="excluirTreinoPeso('+it.id+')" title="Excluir registro">✕</button>' +
         '</div>';
     }).join('');
+}
+
+// ── NUTRIÇÃO ──
+function renderTreinoNutricaoCard(){
+  var card = document.getElementById('treino-nutricao-card');
+  if(!card) return;
+  card.innerHTML =
+    '<div class="pessoal-card-header"><div class="pessoal-card-title">🍽 Nutrição</div></div>' +
+    '<div class="pessoal-card-body">' +
+      '<div class="treino-row">' +
+        '<div class="treino-field"><label>Momento</label><select id="n-momento">' +
+          '<option value="café da manhã">Café da manhã</option>' +
+          '<option value="almoço">Almoço</option>' +
+          '<option value="lanche">Lanche</option>' +
+          '<option value="jantar">Jantar</option>' +
+          '<option value="pós-treino">Pós-treino</option>' +
+        '</select></div>' +
+      '</div>' +
+      '<div class="treino-field"><label>O que comeu</label><textarea id="n-descricao" placeholder="ex: arroz, bife acebolado, purê de abóbora..."></textarea></div>' +
+      '<button class="pessoal-add-btn" style="width:100%;padding:9px 0;" id="n-salvar-btn">Registrar refeição</button>' +
+      '<div id="n-resultado"></div>' +
+      '<div id="n-historico" style="margin-top:12px;"></div>' +
+    '</div>';
+  var btn = card.querySelector('#n-salvar-btn');
+  if(btn) btn.addEventListener('click', salvarNutricao);
+  renderTreinoNutricaoHistorico();
+}
+
+async function salvarNutricao(){
+  var btn = document.getElementById('n-salvar-btn');
+  if(btn){ if(btn.disabled) return; btn.disabled=true; }
+  var descricao = treinoVal('n-descricao').trim();
+  if(!descricao){ showToast('Descreva o que comeu','urgente'); if(btn) btn.disabled=false; return; }
+  try{
+    var body = { data: toDateStrTreino(new Date()), momento: treinoVal('n-momento'), descricao: descricao };
+    var data = await dbFetch(TREINO_NUTRICAO_API, {method:'POST', body:JSON.stringify(body)});
+    if(data && data[0]) treinoNutricao.unshift(data[0]);
+    document.getElementById('n-descricao').value='';
+    document.getElementById('n-resultado').innerHTML = '<div class="treino-sugestao">Refeição registrada.</div>';
+    renderTreinoNutricaoHistorico();
+  }catch(e){
+    document.getElementById('n-resultado').innerHTML = '<div class="treino-alerta">Erro ao salvar.</div>';
+  }
+  finally{ if(btn) btn.disabled=false; }
+}
+
+function renderTreinoNutricaoHistorico(){
+  var box = document.getElementById('n-historico');
+  if(!box) return;
+  var items = treinoNutricao.slice(0,8);
+  box.innerHTML = items.length===0 ? '<div class="treino-empty">Nenhuma refeição registrada ainda.</div>' :
+    items.map(function(it){
+      return '<div class="treino-list-item" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
+        '<div><span class="treino-tag">'+it.momento+'</span> '+fmtDateTreino(it.data)+'<div class="meta">'+it.descricao+'</div></div>' +
+        '<button class="treino-delete-btn" onclick="excluirNutricao('+it.id+')" title="Excluir registro">✕</button>' +
+        '</div>';
+    }).join('');
+}
+
+async function excluirNutricao(id){
+  if(!confirm('Excluir este registro de refeição?')) return;
+  try{
+    await dbFetch(TREINO_NUTRICAO_API+'?id=eq.'+id, {method:'DELETE'});
+    treinoNutricao = treinoNutricao.filter(function(n){return n.id!==id;});
+    renderTreinoNutricaoHistorico();
+    showToast('Registro excluído','');
+  }catch(e){ showToast('Erro ao excluir','urgente'); }
 }
 
 async function excluirTreinoPeso(id){
@@ -4638,7 +4719,7 @@ function renderModoTecnicoCard(){
       '<div style="font-size:10px;color:var(--text3);margin:14px 0 6px;font-family:\'DM Mono\',monospace;">MAIS CITADAS — ERROS</div>' +
       listaHTML(erros,'var(--amber)') +
       '<button class="pessoal-add-btn" style="width:100%;margin-top:14px;" id="gerar-relatorio-btn">Gerar relatório de performance</button>' +
-      '<div style="font-size:10px;color:var(--text3);margin-top:8px;line-height:1.5;">Abre uma conversa nova comigo com todo o dado real disponível. Onde não houver dado suficiente (ex: mental, que hoje só existe em conversa, não em registro), o relatório vai dizer isso em vez de inventar.</div>' +
+      '<div style="font-size:10px;color:var(--text3);margin-top:8px;line-height:1.5;">Abre uma conversa nova comigo com todo o dado real disponível — agora incluindo nutrição e reação a derrotas. Onde ainda não houver dado suficiente (ex: mental fora do gatilho de derrota), o relatório vai dizer isso em vez de inventar.</div>' +
     '</div>';
 
   var btn = document.getElementById('gerar-relatorio-btn');
@@ -4648,12 +4729,14 @@ function renderModoTecnicoCard(){
 function abrirRelatorioPerformance(){
   var recentes = treinoSessoes.slice(0,10);
   var checkinsRecentes = treinoCheckins.slice(0,10);
+  var nutricaoRecente = treinoNutricao.slice(0,14);
 
   var resumoSessoes = recentes.map(function(s){
     return s.data+' ['+s.tipo+'] cansaço:'+(s.cansaco||'—')+' dor:'+(s.dor||0)+
       (s.tecnicas_certo?' | funcionou: '+s.tecnicas_certo:'')+
       (s.tecnicas_errado?' | errou: '+s.tecnicas_errado:'')+
       (s.foi_finalizado==='sim'?' | foi finalizado':'')+
+      (s.reacao_derrota?' | reação à derrota: '+s.reacao_derrota:'')+
       (s.gols?' | gols:'+s.gols:'')+(s.assist?' assist:'+s.assist:'');
   }).join('\n');
 
@@ -4662,10 +4745,15 @@ function abrirRelatorioPerformance(){
       ' dorJoelho:'+(c.dor_joelho||0)+' dorBraço:'+(c.dor_braco||0)+(c.alerta?' [ALERTA]':'');
   }).join('\n');
 
+  var resumoNutricao = nutricaoRecente.length>0 ?
+    nutricaoRecente.map(function(n){ return n.data+' ['+n.momento+'] '+n.descricao; }).join('\n') :
+    '(nenhum registro de nutrição ainda)';
+
   var msg = '[CONTEXTO] Caio, 40 anos, jiu-jítsu e futsal, reconstrução de LCA + placas no antebraço esquerdo. Extremamente competitivo, não aceita perder. Quer um relatório de performance real cobrindo 6 pilares: físico, técnico, tático, mental, nutricional, recuperação.\n\n'+
     '[DADO REAL — sessões recentes]\n'+resumoSessoes+'\n\n'+
     '[DADO REAL — check-ins recentes]\n'+resumoCheckins+'\n\n'+
-    '[PEDIDO] Me dê uma avaliação sincera cobrindo os 6 pilares com o dado acima. Onde não houver dado real suficiente para um pilar (ex: mental e nutricional podem estar incompletos), diga isso claramente em vez de inventar uma avaliação. Não valide automaticamente meu impulso competitivo — aponte se os dados mostram isso acontecendo.';
+    '[DADO REAL — nutrição recente]\n'+resumoNutricao+'\n\n'+
+    '[PEDIDO] Me dê uma avaliação sincera cobrindo os 6 pilares com o dado acima. Onde não houver dado real suficiente para um pilar, diga isso claramente em vez de inventar uma avaliação. Não valide automaticamente meu impulso competitivo — aponte se os dados mostram isso acontecendo.';
 
   window.open('https://claude.ai/new?q='+encodeURIComponent(msg),'_blank');
 }
