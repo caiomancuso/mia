@@ -398,7 +398,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .dash-card-big::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 90% 10%, var(--accent-dim), transparent 60%);pointer-events:none;}
 .dash-card-big .top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;}
 .dash-card-big .name{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;}
-.dash-card-big .bignum{font-family:'Orbitron',sans-serif;font-size:30px;font-weight:700;color:var(--accent);position:relative;}
+.dash-card-big .bignum{font-family:'DM Mono',monospace;font-size:30px;font-weight:700;color:var(--accent);position:relative;}
 .dash-card-big .bignum sup{font-size:11px;color:var(--text2);font-weight:500;}
 .dash-card-big .foot{font-size:10px;color:var(--text2);position:relative;line-height:1.5;}
 .dash-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -406,7 +406,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .dash-card-mini:hover{border-color:var(--accent);}
 .dash-card-mini .top{display:flex;justify-content:space-between;align-items:center;}
 .dash-card-mini .name{font-size:11px;color:var(--text2);}
-.dash-card-mini .val{font-family:'Orbitron',sans-serif;font-size:17px;font-weight:700;}
+.dash-card-mini .val{font-family:'DM Mono',monospace;font-size:17px;font-weight:700;}
 .dash-card-mini .val small{font-size:9px;color:var(--text3);font-weight:400;}
 .dash-card-mini.warn .val{color:var(--amber);}
 .dash-card-mini.ok .val{color:var(--teal);}
@@ -419,7 +419,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .dash-quick-btn:hover{border-color:var(--accent);}
 .dash-quick-btn .ic{width:26px;height:26px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:13px;}
 .dash-quick-btn .lbl{font-size:9px;color:var(--text2);text-align:center;}
-@media(max-width:640px){
+@media(max-width:600px){
   .dash-areas{grid-template-columns:1fr;}
   .dash-greeting{font-size:16px;}
   .dash-card-big .bignum{font-size:24px;}
