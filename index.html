@@ -4605,6 +4605,10 @@ async function salvarTreinoCheckin(){
 // ── REGISTRO PÓS-TREINO ──
 function treinoCamposJiuJitsu(){
   return '' +
+    '<div class="treino-field" style="display:flex;align-items:center;gap:8px;">' +
+      '<input type="checkbox" id="r-conta-graduacao" checked style="width:16px;height:16px;accent-color:var(--accent);">' +
+      '<label style="margin:0;">Conta para graduação (aula na Guigo)</label>' +
+    '</div>' +
     '<div class="treino-row">' +
       '<div class="treino-field"><label>Número de rolas</label><input type="number" id="r-rolas" min="0"></div>' +
       '<div class="treino-field"><label>Tempo total lutado (min)</label><input type="number" id="r-tempo" min="0"></div>' +
@@ -4700,6 +4704,8 @@ async function salvarTreinoRegistro(){
     body.parceiros = treinoVal('r-parceiros')||null; body.faixas = treinoVal('r-faixas')||null;
     body.finalizou = treinoVal('r-finalizou')||null; body.foi_finalizado = treinoVal('r-foi-finalizado')||null;
     body.reacao_derrota = treinoVal('r-reacao-derrota')||null;
+    var chkGrad = document.getElementById('r-conta-graduacao');
+    body.conta_graduacao = chkGrad ? chkGrad.checked : true;
     body.tecnicas_certo = treinoVal('r-tecnicas-certo')||null; body.tecnicas_errado = treinoVal('r-tecnicas-errado')||null;
   } else {
     body.tempo = treinoVal('r-tempo')||null; body.posicao = treinoVal('r-posicao')||null;
@@ -4947,6 +4953,17 @@ function renderModoTecnicoCard(){
   var erros = contarFrases('tecnicas_errado');
   var totalComTecnica = treinoSessoes.filter(function(s){return s.tecnicas_certo || s.tecnicas_errado;}).length;
 
+  // ── Progresso de graduação (Guigo: 35 aulas/grau, 175 aulas/faixa) ──
+  var AULAS_POR_GRAU = 35;
+  var AULAS_POR_FAIXA = 175;
+  var aulasValidas = treinoSessoes.filter(function(s){return s.tipo==='jiujitsu' && s.conta_graduacao!==false;}).length;
+  var grauAtual = Math.floor(aulasValidas / AULAS_POR_GRAU);
+  var aulasNoGrau = aulasValidas % AULAS_POR_GRAU;
+  var faltamGrau = AULAS_POR_GRAU - aulasNoGrau;
+  var faltamFaixa = AULAS_POR_FAIXA - aulasValidas;
+  var pctGrau = Math.round((aulasNoGrau/AULAS_POR_GRAU)*100);
+  var pctFaixa = Math.round((aulasValidas/AULAS_POR_FAIXA)*100);
+
   function listaHTML(itens, corVar){
     if(itens.length===0) return '<div class="treino-empty">Sem registro suficiente ainda.</div>';
     return itens.map(function(it){
@@ -4958,6 +4975,22 @@ function renderModoTecnicoCard(){
     '<div class="pessoal-card-header"><div class="pessoal-card-title">🥋 Modo Técnico</div></div>' +
     '<div class="pessoal-card-body">' +
       '<div style="font-size:11px;color:var(--text3);margin-bottom:10px;">6 pilares: físico, técnico, tático, mental, nutricional, recuperação — jiu-jítsu e futsal. Baseado em '+totalComTecnica+' sessão(ões) com técnica/tática registrada.</div>' +
+
+      '<div style="font-size:10px;color:var(--text3);margin-bottom:8px;font-family:\'DM Mono\',monospace;">PROGRESSO DE GRADUAÇÃO — GUIGO</div>' +
+      '<div class="treino-stat-grid" style="margin-bottom:8px;">' +
+        '<div class="treino-stat"><div class="num">'+aulasValidas+'</div><div class="lbl">Aulas válidas</div></div>' +
+        '<div class="treino-stat"><div class="num">'+grauAtual+'</div><div class="lbl">Graus conquistados</div></div>' +
+        '<div class="treino-stat"><div class="num">'+faltamGrau+'</div><div class="lbl">Faltam p/ próx. grau</div></div>' +
+      '</div>' +
+      '<div class="project-progress" style="margin-bottom:4px;">' +
+        '<div class="project-progress-label"><span>Grau atual ('+aulasNoGrau+'/'+AULAS_POR_GRAU+')</span><span>'+pctGrau+'%</span></div>' +
+        '<div class="project-progress-bar"><div class="project-progress-fill" style="width:'+pctGrau+'%"></div></div>' +
+      '</div>' +
+      '<div class="project-progress" style="margin-bottom:12px;">' +
+        '<div class="project-progress-label"><span>Faixa ('+aulasValidas+'/'+AULAS_POR_FAIXA+') — faltam '+faltamFaixa+'</span><span>'+pctFaixa+'%</span></div>' +
+        '<div class="project-progress-bar"><div class="project-progress-fill" style="width:'+pctFaixa+'%;background:var(--purple);"></div></div>' +
+      '</div>' +
+
       '<div style="font-size:10px;color:var(--text3);margin-bottom:6px;font-family:\'DM Mono\',monospace;">MAIS CITADAS — O QUE FUNCIONOU</div>' +
       listaHTML(acertos,'var(--teal)') +
       '<div style="font-size:10px;color:var(--text3);margin:14px 0 6px;font-family:\'DM Mono\',monospace;">MAIS CITADAS — ERROS</div>' +
