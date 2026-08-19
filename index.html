@@ -4380,7 +4380,9 @@ function treinoCamposBola(){
       '<div class="treino-field"><label>Finalizações</label><input type="number" id="r-finalizacoes" min="0"></div>' +
       '<div class="treino-field"><label>Erros</label><input type="number" id="r-erros" min="0"></div>' +
     '</div>' +
-    '<div class="treino-field"><label>Distância (km, se souber)</label><input type="number" step="0.1" id="r-distancia"></div>';
+    '<div class="treino-field"><label>Distância (km, se souber)</label><input type="number" step="0.1" id="r-distancia"></div>' +
+    '<div class="treino-field"><label>Jogada que funcionou (tática)</label><textarea id="r-tecnicas-certo" placeholder="ex: leitura de jogo, posicionamento, jogada ensaiada..."></textarea></div>' +
+    '<div class="treino-field"><label>Erro tático</label><textarea id="r-tecnicas-errado" placeholder="ex: decisão errada, espaço mal ocupado..."></textarea></div>';
 }
 
 function renderTreinoRegistroCard(){
@@ -4444,6 +4446,7 @@ async function salvarTreinoRegistro(){
     body.gols = treinoVal('r-gols')||null; body.assist = treinoVal('r-assist')||null;
     body.finalizacoes = treinoVal('r-finalizacoes')||null; body.erros = treinoVal('r-erros')||null;
     body.distancia = treinoVal('r-distancia')||null;
+    body.tecnicas_certo = treinoVal('r-tecnicas-certo')||null; body.tecnicas_errado = treinoVal('r-tecnicas-errado')||null;
   }
   try{
     var data = await dbFetch(TREINO_SESSAO_API, {method:'POST', body:JSON.stringify(body)});
