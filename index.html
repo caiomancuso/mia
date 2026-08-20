@@ -377,7 +377,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 
 /* FOCO DIÁRIO */
-.foco-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.foco-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;align-items:start;}
 
 /* ── DASHBOARD (painel-resumo) ── */
 .dash-header{padding:2px 0 16px;border-bottom:1px solid var(--border);margin-bottom:16px;}
@@ -5211,8 +5211,8 @@ function renderFocoPessoal(){
     '<div style="margin-top:14px;display:flex;gap:12px;flex-wrap:wrap;">'+
       '<div><div class="foco-big" style="font-size:22px;color:'+(checkinHoje?'var(--teal)':'var(--amber)')+';">'+(checkinHoje?'✓':'—')+'</div><div class="foco-sub">check-in hoje</div></div>'+
       '<div><div class="foco-big" style="font-size:22px;color:'+(sessaoHoje?'var(--teal)':'var(--text3)')+';">'+(sessaoHoje?'✓':'—')+'</div><div class="foco-sub">sessão registrada</div></div>'+
-      '<div><div class="foco-big" style="font-size:22px;color:'+(contasHoje.length>0?'var(--red)':'var(--teal)')+';">'+contasHoje.length+'</div><div class="foco-sub">contas vencendo</div></div>'+
-      '<div><div class="foco-big" style="font-size:22px;color:var(--purple);">'+streak+'</div><div class="foco-sub">streak (dias)</div></div>'+
+      '<div><div class="foco-big" style="font-size:22px;font-family:\'DM Mono\',monospace;color:'+(contasHoje.length>0?'var(--red)':'var(--teal)')+';">'+contasHoje.length+'</div><div class="foco-sub">contas vencendo</div></div>'+
+      '<div><div class="foco-big" style="font-size:22px;font-family:\'DM Mono\',monospace;color:var(--purple);">'+streak+'</div><div class="foco-sub">streak (dias)</div></div>'+
     '</div>';
   grid.appendChild(c1);
 
@@ -5228,9 +5228,9 @@ function renderFocoPessoal(){
   grid.appendChild(c2);
   frag.appendChild(grid);
 
-  // ── Fechamento semanal (semana calendário seg-dom) ──
+  // ── Fechamento semanal (semana calendário dom-sáb) ──
   var diaSemanaHoje = now.getDay();
-  var diffSeg = diaSemanaHoje===0 ? -6 : 1-diaSemanaHoje;
+  var diffSeg = -diaSemanaHoje;
   var segunda = new Date(now); segunda.setDate(now.getDate()+diffSeg); segunda.setHours(0,0,0,0);
   var domingo = new Date(segunda); domingo.setDate(segunda.getDate()+6);
   var segundaISO = toDateStrTreino(segunda), domingoISO = toDateStrTreino(domingo);
@@ -5270,7 +5270,7 @@ function renderFocoPessoal(){
   }
 
   // gráfico de barras dia a dia (seg-dom), maior cansaço registrado no dia + ícone do esporte
-  var diasSemana = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  var diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   var ICONES_ESPORTE = {jiujitsu:'🥋', futsal:'⚽', futebol:'⚽', academia:'🏋'};
   var barrasHTML = '';
   for(var di=0; di<7; di++){
@@ -6654,10 +6654,10 @@ function renderFoco(){
       (todayTasks.length===0?'✓':todayTasks.length)+'</div>'+
     '<div class="foco-sub">'+(todayTasks.length===0?'Tudo em dia':todayTasks.length+' tarefa'+(todayTasks.length>1?'s':'')+' abertas')+'</div>'+
     '<div style="margin-top:14px;display:flex;gap:12px;flex-wrap:wrap;">'+
-      '<div><div class="foco-big red" style="font-size:22px;">'+criticas.length+'</div><div class="foco-sub">críticas</div></div>'+
-      '<div><div class="foco-big amber" style="font-size:22px;">'+reunioes.length+'</div><div class="foco-sub">reuniões</div></div>'+
-      '<div><div class="foco-big teal" style="font-size:22px;">'+todayDone.length+'</div><div class="foco-sub">concluídas</div></div>'+
-      '<div><div class="foco-big" style="font-size:22px;color:var(--purple);">'+bloqueios.length+'</div><div class="foco-sub">bloqueios</div></div>'+
+      '<div><div class="foco-big red" style="font-size:22px;font-family:\'DM Mono\',monospace;">'+criticas.length+'</div><div class="foco-sub">críticas</div></div>'+
+      '<div><div class="foco-big amber" style="font-size:22px;font-family:\'DM Mono\',monospace;">'+reunioes.length+'</div><div class="foco-sub">reuniões</div></div>'+
+      '<div><div class="foco-big teal" style="font-size:22px;font-family:\'DM Mono\',monospace;">'+todayDone.length+'</div><div class="foco-sub">concluídas</div></div>'+
+      '<div><div class="foco-big" style="font-size:22px;font-family:\'DM Mono\',monospace;color:var(--purple);">'+bloqueios.length+'</div><div class="foco-sub">bloqueios</div></div>'+
     '</div>';
   grid.appendChild(c1);
 
