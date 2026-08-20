@@ -4981,13 +4981,12 @@ function renderModoTecnicoCard(){
       return formatarData(d);
     }
     forecastHTML =
-      '<div style="font-size:10px;color:var(--text3);margin:14px 0 6px;font-family:\'DM Mono\',monospace;">FORECAST (extrapolação linear — regra de três pelo ritmo real)</div>' +
-      '<div class="rows" style="margin-bottom:4px;">' +
-        '<div class="row"><span class="row-lbl">Ritmo real</span><span class="row-val">1 aula a cada '+ritmoDiasPorAula.toFixed(1)+' dias</span></div>' +
-        '<div class="row"><span class="row-lbl">Próximo grau ('+faltamGrau+' aulas)</span><span class="row-val" style="color:var(--accent);">'+preverData(faltamGrau)+'</span></div>' +
-        '<div class="row"><span class="row-lbl">Próxima faixa ('+faltamFaixa+' aulas)</span><span class="row-val" style="color:var(--purple);">'+preverData(faltamFaixa)+'</span></div>' +
+      '<div style="font-size:10px;color:var(--text3);margin:14px 0 8px;font-family:\'DM Mono\',monospace;">FORECAST — EXTRAPOLAÇÃO LINEAR (ritmo real: 1 aula a cada '+ritmoDiasPorAula.toFixed(1)+' dias)</div>' +
+      '<div class="dash-mini-grid" style="margin-bottom:6px;">' +
+        '<div class="dash-card-mini" style="cursor:default;"><div class="top"><span class="name">Próximo grau</span></div><div class="val" style="font-size:13px;color:var(--accent);line-height:1.3;">'+preverData(faltamGrau)+'</div><div style="font-size:9px;color:var(--text3);margin-top:3px;">faltam '+faltamGrau+' aula(s)</div></div>' +
+        '<div class="dash-card-mini" style="cursor:default;"><div class="top"><span class="name">Próxima faixa</span></div><div class="val" style="font-size:13px;color:var(--purple);line-height:1.3;">'+preverData(faltamFaixa)+'</div><div style="font-size:9px;color:var(--text3);margin-top:3px;">faltam '+faltamFaixa+' aula(s)</div></div>' +
       '</div>' +
-      '<div style="font-size:10px;color:var(--text3);line-height:1.5;margin-bottom:12px;">Baseado em '+datasAulas.length+' aula(s) — quanto mais aulas registradas, mais confiável fica essa previsão. Não é o cronograma ideal, é o ritmo real que você tem mantido.</div>';
+      '<div style="font-size:10px;color:var(--text3);line-height:1.5;margin-bottom:14px;">Baseado em '+datasAulas.length+' aula(s) — quanto mais aulas registradas, mais confiável fica essa previsão. Não é o cronograma ideal, é o ritmo real que você tem mantido.</div>';
   } else {
     forecastHTML = '<div class="treino-empty" style="margin-bottom:12px;">Forecast precisa de pelo menos 2 aulas registradas.</div>';
   }
