@@ -495,6 +495,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .foco-week-tile-cmp{font-size:9px;margin-top:4px;font-family:'DM Mono',monospace;}
 .foco-week-bars{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;}
 .foco-week-bar-col{display:flex;flex-direction:column;align-items:center;}
+.foco-week-bar-icon{font-size:13px;height:16px;line-height:16px;margin-bottom:2px;opacity:0.9;}
 .foco-week-bar-value{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:3px;height:12px;}
 .foco-week-bar-track{width:100%;height:70px;background:var(--surface2);border-radius:4px;display:flex;align-items:flex-end;overflow:hidden;}
 .foco-week-bar-fill{width:100%;border-radius:4px 4px 0 0;transition:height 0.3s;}
@@ -1169,6 +1170,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   .foco-week-bar-track{height:50px;}
   .foco-week-bar-label{font-size:8px;}
   .foco-week-bar-value{font-size:8px;height:10px;}
+  .foco-week-bar-icon{font-size:11px;height:13px;line-height:13px;}
 
   /* Tabelas do cronograma — scroll horizontal em vez de estourar a tela */
   .cronograma-view{overflow-x:auto;}
@@ -5267,20 +5269,28 @@ function renderFocoPessoal(){
     return '<div class="foco-week-tile-cmp" style="color:'+cor+';">'+seta+' vs '+(anterior%1===0?anterior.toFixed(0):anterior.toFixed(1))+'</div>';
   }
 
-  // gráfico de barras dia a dia (seg-dom), maior cansaço registrado no dia
+  // gráfico de barras dia a dia (seg-dom), maior cansaço registrado no dia + ícone do esporte
   var diasSemana = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  var ICONES_ESPORTE = {jiujitsu:'🥋', futsal:'⚽', futebol:'⚽', academia:'🏋'};
   var barrasHTML = '';
   for(var di=0; di<7; di++){
     var diaData = new Date(segunda); diaData.setDate(segunda.getDate()+di);
     var diaISO = toDateStrTreino(diaData);
     var sessoesDoDia = sessoesCal.filter(function(s){return s.data===diaISO;});
     var maxCansacoDia = 0;
-    sessoesDoDia.forEach(function(s){ var c=parseFloat(s.cansaco); if(!isNaN(c)&&c>maxCansacoDia) maxCansacoDia=c; });
+    var tipoDoDia = null;
+    sessoesDoDia.forEach(function(s){
+      var c=parseFloat(s.cansaco);
+      if(!isNaN(c)&&c>=maxCansacoDia){ maxCansacoDia=c; tipoDoDia=s.tipo; }
+    });
+    if(!tipoDoDia && sessoesDoDia.length>0) tipoDoDia = sessoesDoDia[0].tipo;
     var alturaPct = maxCansacoDia>0 ? Math.max(8,(maxCansacoDia/10)*100) : 0;
     var corBarra = maxCansacoDia===0 ? 'var(--border2)' : maxCansacoDia>=9 ? 'var(--red)' : maxCansacoDia>=6 ? 'var(--amber)' : 'var(--teal)';
     var isHoje = diaISO===toDateStrTreino(now);
+    var iconeEsporte = tipoDoDia ? (ICONES_ESPORTE[tipoDoDia]||'•') : '';
     barrasHTML +=
       '<div class="foco-week-bar-col">' +
+        '<div class="foco-week-bar-icon" title="'+(tipoDoDia||'')+'">'+iconeEsporte+'</div>' +
         '<div class="foco-week-bar-value">'+(maxCansacoDia>0?maxCansacoDia:'')+'</div>' +
         '<div class="foco-week-bar-track"><div class="foco-week-bar-fill" style="height:'+alturaPct+'%;background:'+corBarra+';"></div></div>' +
         '<div class="foco-week-bar-label'+(isHoje?' hoje':'')+'">'+diasSemana[di]+'</div>' +
