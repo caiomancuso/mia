@@ -4964,6 +4964,34 @@ function renderModoTecnicoCard(){
   var pctGrau = Math.round((aulasNoGrau/AULAS_POR_GRAU)*100);
   var pctFaixa = Math.round((aulasValidas/AULAS_POR_FAIXA)*100);
 
+  // Forecast por extrapolação linear (regra de três simples): ritmo real = dias decorridos / (aulas-1)
+  var datasAulas = treinoSessoes.filter(function(s){return s.tipo==='jiujitsu' && s.conta_graduacao!==false;})
+    .map(function(s){return new Date(s.data+'T12:00:00');})
+    .sort(function(a,b){return a-b;});
+  var forecastHTML = '';
+  if(datasAulas.length>=2){
+    var primeira = datasAulas[0], ultima = datasAulas[datasAulas.length-1];
+    var diasDecorridos = (ultima-primeira)/86400000;
+    var ritmoDiasPorAula = diasDecorridos / (datasAulas.length-1);
+    var mesesPt = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+    function formatarData(d){ return d.getDate()+' de '+mesesPt[d.getMonth()]+' de '+d.getFullYear(); }
+    function preverData(aulasFaltando){
+      var dias = Math.round(aulasFaltando * ritmoDiasPorAula);
+      var d = new Date(); d.setDate(d.getDate()+dias);
+      return formatarData(d);
+    }
+    forecastHTML =
+      '<div style="font-size:10px;color:var(--text3);margin:14px 0 6px;font-family:\'DM Mono\',monospace;">FORECAST (extrapolação linear — regra de três pelo ritmo real)</div>' +
+      '<div class="rows" style="margin-bottom:4px;">' +
+        '<div class="row"><span class="row-lbl">Ritmo real</span><span class="row-val">1 aula a cada '+ritmoDiasPorAula.toFixed(1)+' dias</span></div>' +
+        '<div class="row"><span class="row-lbl">Próximo grau ('+faltamGrau+' aulas)</span><span class="row-val" style="color:var(--accent);">'+preverData(faltamGrau)+'</span></div>' +
+        '<div class="row"><span class="row-lbl">Próxima faixa ('+faltamFaixa+' aulas)</span><span class="row-val" style="color:var(--purple);">'+preverData(faltamFaixa)+'</span></div>' +
+      '</div>' +
+      '<div style="font-size:10px;color:var(--text3);line-height:1.5;margin-bottom:12px;">Baseado em '+datasAulas.length+' aula(s) — quanto mais aulas registradas, mais confiável fica essa previsão. Não é o cronograma ideal, é o ritmo real que você tem mantido.</div>';
+  } else {
+    forecastHTML = '<div class="treino-empty" style="margin-bottom:12px;">Forecast precisa de pelo menos 2 aulas registradas.</div>';
+  }
+
   function listaHTML(itens, corVar){
     if(itens.length===0) return '<div class="treino-empty">Sem registro suficiente ainda.</div>';
     return itens.map(function(it){
@@ -4990,6 +5018,7 @@ function renderModoTecnicoCard(){
         '<div class="project-progress-label"><span>Faixa ('+aulasValidas+'/'+AULAS_POR_FAIXA+') — faltam '+faltamFaixa+'</span><span>'+pctFaixa+'%</span></div>' +
         '<div class="project-progress-bar"><div class="project-progress-fill" style="width:'+pctFaixa+'%;background:var(--purple);"></div></div>' +
       '</div>' +
+      forecastHTML +
 
       '<div style="font-size:10px;color:var(--text3);margin-bottom:6px;font-family:\'DM Mono\',monospace;">MAIS CITADAS — O QUE FUNCIONOU</div>' +
       listaHTML(acertos,'var(--teal)') +
