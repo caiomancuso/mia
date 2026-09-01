@@ -384,6 +384,22 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .dash-greeting{font-family:'Orbitron',sans-serif;font-size:19px;font-weight:700;color:var(--text);}
 .dash-subline{font-size:12px;color:var(--text2);margin-top:7px;line-height:1.6;max-width:640px;}
 .dash-subline b{color:var(--accent);font-weight:600;}
+.mia-home-row{display:flex;align-items:flex-start;gap:16px;}
+.mia-home-text{flex:1;min-width:0;}
+.mia-avatar-wrap{position:relative;width:60px;height:60px;flex-shrink:0;cursor:pointer;}
+.mia-avatar-ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 180deg,var(--accent),transparent 30%,transparent 70%,var(--accent));opacity:.45;animation:mia-spin 8s linear infinite;}
+.mia-avatar-ring::after{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--bg);}
+.mia-avatar-core{position:absolute;inset:8px;border-radius:50%;background:radial-gradient(circle at 32% 26%,#8cffb0,var(--accent) 55%,#063d1e 100%);box-shadow:0 0 16px 2px var(--accent-glow);display:flex;align-items:center;justify-content:center;gap:6px;animation:mia-float 4s ease-in-out infinite;}
+.mia-avatar-eye{width:5px;height:5px;border-radius:50%;background:#04150a;animation:mia-blink 5.5s ease-in-out infinite;}
+.mia-avatar-eye:nth-child(2){animation-delay:.12s;}
+.mia-avatar-bubble{margin-top:10px;font-size:12px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;display:inline-block;max-width:420px;opacity:0;transform:translateY(4px);transition:opacity .3s,transform .3s;}
+.mia-avatar-bubble.show{opacity:1;transform:translateY(0);}
+@keyframes mia-spin{to{transform:rotate(360deg);}}
+@keyframes mia-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);}}
+@keyframes mia-blink{0%,90%,100%{transform:scaleY(1);}95%{transform:scaleY(.15);}}
+@media(prefers-reduced-motion:reduce){
+  .mia-avatar-ring,.mia-avatar-core,.mia-avatar-eye{animation:none;}
+}
 .dash-stat-strip{display:flex;gap:8px;overflow-x:auto;padding:14px 0 4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .dash-stat-strip::-webkit-scrollbar{display:none;}
 .dash-stat-pill{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:7px;white-space:nowrap;flex-shrink:0;}
@@ -1779,6 +1795,23 @@ function renderSidebarPessoal(){
 }
 
 // ── HOME ───────────────────────────────────────────────
+var MIA_AVATAR_LINES = [
+  'Bora organizar o dia?',
+  'Clima e notícias, atualizando.',
+  'Se travar em algo, é só chamar.',
+  'Profissional e pessoal, na mesma tela.',
+  'Foco curto, descanso combinado.'
+];
+function miaAvatarSay(){
+  var b = document.getElementById('mia-avatar-bubble');
+  if(!b) return;
+  var linha = MIA_AVATAR_LINES[Math.floor(Math.random()*MIA_AVATAR_LINES.length)];
+  b.textContent = linha;
+  b.classList.remove('show');
+  void b.offsetWidth;
+  b.classList.add('show');
+}
+
 async function renderHome(){
   var container = document.getElementById('home-container');
   if(!container) return;
@@ -1788,8 +1821,17 @@ async function renderHome(){
 
   container.innerHTML =
     '<div class="dash-header">'+
-      '<div class="dash-greeting">'+saudacao+', Caio.</div>'+
-      '<div class="dash-subline">Sua central de acompanhamento — clima, notícias e resumo real dos dois ambientes.</div>'+
+      '<div class="mia-home-row">'+
+        '<div class="mia-avatar-wrap" id="mia-avatar-wrap" onclick="miaAvatarSay()" title="Cutucar a MIA">'+
+          '<div class="mia-avatar-ring"></div>'+
+          '<div class="mia-avatar-core"><span class="mia-avatar-eye"></span><span class="mia-avatar-eye"></span></div>'+
+        '</div>'+
+        '<div class="mia-home-text">'+
+          '<div class="dash-greeting">'+saudacao+', Caio.</div>'+
+          '<div class="dash-subline">Sua central de acompanhamento — clima, notícias e resumo real dos dois ambientes.</div>'+
+          '<div class="mia-avatar-bubble" id="mia-avatar-bubble"></div>'+
+        '</div>'+
+      '</div>'+
     '</div>'+
     '<div class="home-grid">'+
       '<div class="home-widget full" id="home-weather"><div class="home-widget-title">🌤 Clima — São Paulo</div><div class="home-widget-body">Carregando...</div></div>'+
@@ -1801,6 +1843,7 @@ async function renderHome(){
   carregarClimaHome();
   carregarNoticiasHome();
   carregarResumoSetores();
+  setTimeout(miaAvatarSay, 700);
 }
 
 function weatherCodeDesc(code){
