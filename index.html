@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MIA — Assistente Comercial</title>
+<title>MIA — Assistente Pessoal</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -389,7 +389,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .home-sidebar{position:sticky;top:16px;min-width:0;}
 .home-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:30px 12px 26px;border-bottom:1px solid var(--border);margin-bottom:18px;}
 .mia-avatar-wrap{position:relative;width:168px;height:168px;flex-shrink:0;cursor:pointer;}
-.mia-avatar-halo{position:absolute;inset:-26px;border-radius:50%;background:radial-gradient(circle,var(--accent-glow),transparent 72%);animation:mia-halo-pulse 3.6s ease-in-out infinite;pointer-events:none;}
+.mia-avatar-halo{position:absolute;inset:-30px;border-radius:50%;background:radial-gradient(circle,rgba(34,197,94,0.55),rgba(34,197,94,0.18) 45%,transparent 72%);animation:mia-halo-pulse 3.6s ease-in-out infinite;pointer-events:none;}
 .mia-avatar-core{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 32% 26%,#8cffb0,var(--accent) 55%,#063d1e 100%);box-shadow:0 0 30px 6px var(--accent-glow),0 6px 16px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;animation:mia-bounce 3.2s ease-in-out infinite;}
 .mia-avatar-wrap.mia-pop .mia-avatar-core{animation:mia-pop-anim .5s ease;}
 .mia-avatar-face{width:70%;height:70%;}
@@ -413,7 +413,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   75%{transform:scale(1.05,0.97);}
   100%{transform:scale(1,1);}
 }
-@keyframes mia-halo-pulse{0%,100%{opacity:.55;transform:scale(1);}50%{opacity:.9;transform:scale(1.1);}}
+@keyframes mia-halo-pulse{0%,100%{opacity:.7;transform:scale(1);}50%{opacity:1;transform:scale(1.12);}}
 @keyframes mia-eqbar{0%,100%{transform:scaleY(.4);}50%{transform:scaleY(1);}}
 @media(max-width:900px){
   .home-body{grid-template-columns:1fr;}
@@ -459,7 +459,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 /* ── HOME ── */
 .home-container{display:block;}
-.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;align-items:start;}
 .home-widget{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;}
 .home-widget.full{grid-column:1/-1;}
 .home-widget-title{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;}
@@ -478,7 +478,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .home-news-tab{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;color:var(--text2);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:.15s;}
 .home-news-tab:hover{border-color:var(--accent);}
 .home-news-tab.active{background:var(--accent);border-color:var(--accent);color:#04121a;font-weight:700;}
-.home-news-list{max-height:340px;overflow-y:auto;}
+.home-news-list{max-height:calc(100vh - 260px);min-height:340px;overflow-y:auto;}
 .home-clickable{cursor:pointer;transition:.15s;}
 .home-clickable:hover{border-color:var(--accent);background:var(--accent-dim);}
 @media(max-width:600px){
@@ -1253,14 +1253,14 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 <div class="rel-modal-overlay" id="rel-modal" style="display:none;">
   <div class="rel-modal">
     <div class="rel-modal-title">📄 Relatório de Status</div>
-    <div class="rel-modal-sub">Gera o relatório no formato aprovado — Inteligência Comercial Yamá Cosméticos.</div>
+    <div class="rel-modal-sub">Gera o relatório no formato aprovado — Inteligência Comercial.</div>
     <div class="rel-preview">
       <div class="rel-preview-label">Conteúdo do relatório</div>
       <div id="rel-preview-content"></div>
     </div>
     <div class="rel-preview-label" style="margin-bottom:8px;">Estrutura do documento</div>
     <div class="rel-estrutura">
-      <div class="rel-estrutura-item">Cabeçalho — Inteligência Comercial · Yamá Cosméticos · Data · Analista</div>
+      <div class="rel-estrutura-item">Cabeçalho — Inteligência Comercial · Data · Analista</div>
       <div class="rel-estrutura-item">Seção 1 — Status das demandas (tabela completa)</div>
       <div class="rel-estrutura-item">Seção 2 — Riscos e pontos de atenção</div>
       <div class="rel-estrutura-item">Seção 3 — Prioridades imediatas (próximas 48h)</div>
@@ -1354,9 +1354,17 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 </div>
 <div class="login-overlay" id="login-overlay">
   <div class="login-box">
-    <div class="login-logo">MIA</div>
-    <div class="login-title">Assistente Comercial</div>
-    <div class="login-sub">Caio Mancuso · Yamá Cosméticos</div>
+    <div class="login-logo">
+      <svg viewBox="0 0 120 120" style="width:100%;height:100%;display:block;" aria-hidden="true">
+        <rect class="mia-eqbar" x="24" y="38" width="7" height="44" rx="3.5" fill="#ffffff" style="animation-duration:.8s;animation-delay:0s;"/>
+        <rect class="mia-eqbar" x="40" y="38" width="7" height="44" rx="3.5" fill="#ffffff" style="animation-duration:1s;animation-delay:.15s;"/>
+        <rect class="mia-eqbar" x="56" y="38" width="7" height="44" rx="3.5" fill="#ffffff" style="animation-duration:.9s;animation-delay:.25s;"/>
+        <rect class="mia-eqbar" x="72" y="38" width="7" height="44" rx="3.5" fill="#ffffff" style="animation-duration:1.1s;animation-delay:.1s;"/>
+        <rect class="mia-eqbar" x="88" y="38" width="7" height="44" rx="3.5" fill="#ffffff" style="animation-duration:.85s;animation-delay:.3s;"/>
+      </svg>
+    </div>
+    <div class="login-title">Assistente Pessoal</div>
+    <div class="login-sub">Caio Mancuso</div>
     <label class="login-label">Email</label>
     <input class="login-input" id="login-email" type="email" placeholder="seu@email.com" autocomplete="email"/>
     <label class="login-label">Senha</label>
@@ -1370,10 +1378,18 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 <div class="app">
   <div class="header">
     <div class="header-left">
-      <div class="logo" style="flex-shrink:0;">MIA</div>
+      <div class="logo" style="flex-shrink:0;cursor:pointer;" onclick="switchAppMode('home')" title="Ir para a Home">
+        <svg viewBox="0 0 120 120" style="width:100%;height:100%;display:block;" aria-hidden="true">
+          <rect class="mia-eqbar" x="27" y="42" width="6" height="36" rx="3" fill="#ffffff" style="animation-duration:.8s;animation-delay:0s;"/>
+          <rect class="mia-eqbar" x="40" y="42" width="6" height="36" rx="3" fill="#ffffff" style="animation-duration:1s;animation-delay:.15s;"/>
+          <rect class="mia-eqbar" x="53" y="42" width="6" height="36" rx="3" fill="#ffffff" style="animation-duration:.9s;animation-delay:.25s;"/>
+          <rect class="mia-eqbar" x="66" y="42" width="6" height="36" rx="3" fill="#ffffff" style="animation-duration:1.1s;animation-delay:.1s;"/>
+          <rect class="mia-eqbar" x="79" y="42" width="6" height="36" rx="3" fill="#ffffff" style="animation-duration:.85s;animation-delay:.3s;"/>
+        </svg>
+      </div>
       <div>
-        <div class="header-title">Assistente Comercial</div>
-        <div class="header-sub">Caio Mancuso · Yamá Cosméticos</div>
+        <div class="header-title">Assistente Pessoal</div>
+        <div class="header-sub">Caio Mancuso</div>
       </div>
     </div>
     <div class="header-right" id="header-right">
@@ -1821,19 +1837,20 @@ function renderSidebarPessoal(){
 
 // ── HOME ───────────────────────────────────────────────
 var MIA_AVATAR_LINES = [
-  'Bora organizar o dia?',
-  'Clima e notícias, atualizando.',
   'Se travar em algo, é só chamar.',
-  'Profissional e pessoal, na mesma tela.',
   'Foco curto, descanso combinado.'
 ];
-function setMiaBubble(titulo, sub){
-  var b = document.getElementById('mia-avatar-bubble');
-  if(!b) return;
-  b.innerHTML = '<div class="mia-bubble-title">'+titulo+'</div>'+(sub?('<div class="mia-bubble-sub">'+sub+'</div>'):'');
-  b.classList.remove('show');
-  void b.offsetWidth;
-  b.classList.add('show');
+function miaDataLines(){
+  var s = window.miaHomeStats;
+  if(!s) return [];
+  var linhas = [];
+  linhas.push(s.criticas>0 ? s.criticas+' tarefa(s) crítica(s) hoje — bora nelas primeiro.' : 'Nenhuma tarefa crítica hoje. Respira.');
+  linhas.push(s.abertas+' tarefa(s) em aberto no total.');
+  linhas.push(s.projetos>0 ? s.projetos+' projeto(s) pedindo atenção.' : 'Nenhum projeto em aberto agora.');
+  linhas.push(s.sessoes>0 ? s.sessoes+' sessão(ões) de treino essa semana. Bom ritmo.' : 'Nenhum treino registrado nos últimos 7 dias.');
+  linhas.push(s.contas>0 ? s.contas+' conta(s) pendente(s) esse mês.' : 'Contas em dia por enquanto.');
+  if(s.riscos>0) linhas.push(s.riscos+' risco(s) de carreira em aberto — vale revisar.');
+  return linhas;
 }
 function miaAvatarSay(){
   var wrap = document.getElementById('mia-avatar-wrap');
@@ -1843,8 +1860,17 @@ function miaAvatarSay(){
     wrap.classList.add('mia-pop');
     setTimeout(function(){ wrap.classList.remove('mia-pop'); }, 560);
   }
-  var linha = MIA_AVATAR_LINES[Math.floor(Math.random()*MIA_AVATAR_LINES.length)];
+  var pool = MIA_AVATAR_LINES.concat(miaDataLines());
+  var linha = pool[Math.floor(Math.random()*pool.length)];
   setMiaBubble(linha, null);
+}
+function setMiaBubble(titulo, sub){
+  var b = document.getElementById('mia-avatar-bubble');
+  if(!b) return;
+  b.innerHTML = '<div class="mia-bubble-title">'+titulo+'</div>'+(sub?('<div class="mia-bubble-sub">'+sub+'</div>'):'');
+  b.classList.remove('show');
+  void b.offsetWidth;
+  b.classList.add('show');
 }
 
 async function renderHome(){
@@ -2010,6 +2036,15 @@ async function carregarResumoSetores(){
   if(treinoNutricao.length===0) pontosPes.push('🍽 Nutrição sem registro ainda.');
 
   elPes.querySelector('.home-widget-body').innerHTML = pontosPes.map(function(i){return '<div class="home-insight-item">'+i+'</div>';}).join('');
+
+  window.miaHomeStats = {
+    criticas: criticasHoje.length,
+    abertas: allOpenH.length,
+    projetos: projAtivosH.length,
+    sessoes: sessoesSemana.length,
+    contas: pendentesContas.length,
+    riscos: riscos.length
+  };
 }
 
 function switchTab(tabId,btn){
@@ -2571,7 +2606,7 @@ function openHelp(id){
       projRelacionado=' Projeto relacionado: '+p.name+'.';
     }
   });
-  var ctx='[CONTEXTO] Caio Mancuso, Analista de Inteligência Comercial, Yamá Cosméticos. Canais: Alimentar, Perfumaria e Farma. BI interno, base desde 2019.';
+  var ctx='[CONTEXTO] Caio Mancuso, Analista de Inteligência Comercial. Canais: Alimentar, Perfumaria e Farma. BI interno, base desde 2019.';
   var taskCtx='[TAREFA] '+task.name+tipo+' '+(task.desc||'')+' '+st+' '+nt+projRelacionado;
   var msg=ctx+' '+taskCtx+' O que você sugere como próximo passo ou como estruturar a execução desta tarefa?';window.open('https://claude.ai/new?q='+encodeURIComponent(msg),'_blank');
 }
@@ -6319,7 +6354,7 @@ async function gerarRelatorioWord(){
             new D.Paragraph({
               border:{bottom:{style:D.BorderStyle.SINGLE,size:6,color:COR_TITULO,space:1}},
               children:[
-                makeText('INTELIGÊNCIA COMERCIAL — YAMÁ COSMÉTICOS',{bold:true,color:COR_TITULO,size:18}),
+                makeText('INTELIGÊNCIA COMERCIAL',{bold:true,color:COR_TITULO,size:18}),
                 new D.TextRun({text:'  •  Analista: Caio Mancuso',font:'Arial',size:18,color:'666666'}),
               ]
             })
@@ -6331,7 +6366,7 @@ async function gerarRelatorioWord(){
           children:[
             new D.Paragraph({
               border:{top:{style:D.BorderStyle.SINGLE,size:4,color:COR_BORDA,space:1}},
-              children:[makeText('Documento gerado em '+now.toLocaleDateString('pt-BR')+' • Yamá Cosméticos — Inteligência Comercial',{size:16,color:'999999'})]
+              children:[makeText('Documento gerado em '+now.toLocaleDateString('pt-BR')+' • Inteligência Comercial',{size:16,color:'999999'})]
             })
           ]
         })
@@ -6825,7 +6860,7 @@ function renderFoco(){
       item.appendChild(text);
       item.onclick=(function(pergunta){return function(){
         var todayTasks=tasks.filter(function(t){return !t.done;}).slice(0,3).map(function(t){return t.name;}).join(', ');
-        var msg='[CONTEXTO] Caio Mancuso, Analista de Inteligência Comercial, Yamá Cosméticos. Canais: Alimentar, Perfumaria e Farma. [PERGUNTA ANALÍTICA] '+pergunta+'. Me ajude a estruturar o raciocínio para responder essa questão. Seja direto e estratégico.';
+        var msg='[CONTEXTO] Caio Mancuso, Analista de Inteligência Comercial. Canais: Alimentar, Perfumaria e Farma. [PERGUNTA ANALÍTICA] '+pergunta+'. Me ajude a estruturar o raciocínio para responder essa questão. Seja direto e estratégico.';
         window.open('https://claude.ai/new?q='+encodeURIComponent(msg),'_blank');
       };})(q.texto);
       aCard.appendChild(item);
@@ -6922,37 +6957,37 @@ var TEMPLATES=[
     id:'insight',cor:'verde',icon:'📊',
     nome:'Insight Executivo',
     desc:'Estrutura um insight de análise comercial com contexto, dados e recomendação.',
-    prompt:'Preciso estruturar um insight executivo sobre [TEMA]. Contexto: sou Analista de Inteligência Comercial na Yamá Cosméticos. Me ajude a montar: 1) Contexto do cenário, 2) Principal achado, 3) Causa raiz provável, 4) Impacto no negócio, 5) Recomendação de ação. Seja direto, executivo e objetivo.'
+    prompt:'Preciso estruturar um insight executivo sobre [TEMA]. Contexto: sou Analista de Inteligência Comercial. Me ajude a montar: 1) Contexto do cenário, 2) Principal achado, 3) Causa raiz provável, 4) Impacto no negócio, 5) Recomendação de ação. Seja direto, executivo e objetivo.'
   },
   {
     id:'plano',cor:'azul',icon:'🎯',
     nome:'Plano de Ação',
     desc:'Transforma uma tarefa ou problema em um plano estruturado com etapas e responsáveis.',
-    prompt:'Preciso montar um plano de ação para [OBJETIVO]. Contexto: sou Analista de Inteligência Comercial na Yamá Cosméticos. Estruture: 1) Diagnóstico do problema, 2) Etapas de execução em ordem, 3) Dependências e bloqueios potenciais, 4) Critério de conclusão. Seja prático e direto.'
+    prompt:'Preciso montar um plano de ação para [OBJETIVO]. Contexto: sou Analista de Inteligência Comercial. Estruture: 1) Diagnóstico do problema, 2) Etapas de execução em ordem, 3) Dependências e bloqueios potenciais, 4) Critério de conclusão. Seja prático e direto.'
   },
   {
     id:'diretoria',cor:'amber',icon:'📋',
     nome:'Resumo para Diretoria',
     desc:'Formata uma análise para comunicação executiva — direto, sem ruído.',
-    prompt:'Preciso formatar este conteúdo para apresentar à diretoria: [CONTEÚDO]. Contexto: sou Analista de Inteligência Comercial na Yamá Cosméticos. Estruture em: 1) Situação atual (2 linhas), 2) Principal achado, 3) Impacto, 4) Próximos passos recomendados. Linguagem executiva, sem jargões desnecessários.'
+    prompt:'Preciso formatar este conteúdo para apresentar à diretoria: [CONTEÚDO]. Contexto: sou Analista de Inteligência Comercial. Estruture em: 1) Situação atual (2 linhas), 2) Principal achado, 3) Impacto, 4) Próximos passos recomendados. Linguagem executiva, sem jargões desnecessários.'
   },
   {
     id:'reuniao',cor:'roxo',icon:'🤝',
     nome:'Narrativa para Reunião',
     desc:'Monta a pauta e narrativa de uma reunião com lógica clara de apresentação.',
-    prompt:'Preciso estruturar a narrativa para uma reunião sobre [TEMA]. Contexto: sou Analista de Inteligência Comercial na Yamá Cosméticos. Monte: 1) Abertura e contexto (30s), 2) Principais pontos a cobrir em ordem lógica, 3) Dados/evidências necessários para cada ponto, 4) Encerramento com próximos passos. Foco em clareza e objetividade.'
+    prompt:'Preciso estruturar a narrativa para uma reunião sobre [TEMA]. Contexto: sou Analista de Inteligência Comercial. Monte: 1) Abertura e contexto (30s), 2) Principais pontos a cobrir em ordem lógica, 3) Dados/evidências necessários para cada ponto, 4) Encerramento com próximos passos. Foco em clareza e objetividade.'
   },
   {
     id:'analitica',cor:'teal',icon:'🔍',
     nome:'Estrutura Analítica',
     desc:'Quebra uma análise complexa em dimensões e perguntas a responder.',
-    prompt:'Preciso estruturar uma análise de [TEMA]. Contexto: sou Analista de Inteligência Comercial na Yamá Cosméticos. Me ajude a: 1) Definir as dimensões de análise relevantes, 2) Listar as perguntas que a análise deve responder, 3) Identificar os dados necessários para cada dimensão, 4) Sugerir a sequência lógica de construção. Não execute a análise — estruture o raciocínio.'
+    prompt:'Preciso estruturar uma análise de [TEMA]. Contexto: sou Analista de Inteligência Comercial. Me ajude a: 1) Definir as dimensões de análise relevantes, 2) Listar as perguntas que a análise deve responder, 3) Identificar os dados necessários para cada dimensão, 4) Sugerir a sequência lógica de construção. Não execute a análise — estruture o raciocínio.'
   },
   {
     id:'fechamento',cor:'red',icon:'📅',
     nome:'Preparar Fechamento',
     desc:'Estrutura o processo de fechamento mensal para as regionais.',
-    prompt:'Vou preparar o fechamento mensal das regionais na Yamá Cosméticos (SP, Sudeste, Nordeste, Sul e Norte/Centro-Oeste). Canais: Alimentar, Perfumaria e Farma (nessa sequência). Me ajude a: 1) Definir a sequência ideal de análise por regional, 2) Listar os pontos críticos a verificar em cada canal, 3) Identificar o que comparar (vs mês anterior, vs meta, vs ano anterior), 4) Estruturar os destaques positivos e pontos de atenção. Não preciso de números — preciso da estrutura de raciocínio.'
+    prompt:'Vou preparar o fechamento mensal das regionais (SP, Sudeste, Nordeste, Sul e Norte/Centro-Oeste). Canais: Alimentar, Perfumaria e Farma (nessa sequência). Me ajude a: 1) Definir a sequência ideal de análise por regional, 2) Listar os pontos críticos a verificar em cada canal, 3) Identificar o que comparar (vs mês anterior, vs meta, vs ano anterior), 4) Estruturar os destaques positivos e pontos de atenção. Não preciso de números — preciso da estrutura de raciocínio.'
   },
 ];
 
@@ -6980,7 +7015,7 @@ function renderTemplates(){
     card.onclick=(function(t){return function(){
       var todayCtx=tasks.filter(function(x){return !x.done;}).slice(0,3).map(function(x){return x.name;}).join(', ');
       var projCtx=projects.filter(function(p){return p.status==='atencao'||p.status==='ativo';}).slice(0,3).map(function(p){return p.name;}).join(', ');
-      var fullPrompt='[CONTEXTO] Caio Mancuso, Analista de Inteligência Comercial, Yamá Cosméticos. Canais: Alimentar, Perfumaria e Farma. Tarefas abertas: '+todayCtx+'. Projetos ativos: '+projCtx+'. '+t.prompt;
+      var fullPrompt='[CONTEXTO] Caio Mancuso, Analista de Inteligência Comercial. Canais: Alimentar, Perfumaria e Farma. Tarefas abertas: '+todayCtx+'. Projetos ativos: '+projCtx+'. '+t.prompt;
       window.open('https://claude.ai/new?q='+encodeURIComponent(fullPrompt),'_blank');
     };})(tmpl);
     grid.appendChild(card);
