@@ -4163,7 +4163,7 @@ function renderPessoalGraficos(container) {
     // Arco pago
     var arcPago = document.createElementNS(svgNS, 'circle');
     arcPago.setAttribute('cx', cx); arcPago.setAttribute('cy', cy); arcPago.setAttribute('r', r);
-    arcPago.setAttribute('fill', 'none'); arcPago.setAttribute('stroke', '#38e0c8');
+    arcPago.setAttribute('fill', 'none'); arcPago.setAttribute('stroke', 'var(--teal)');
     arcPago.setAttribute('stroke-width', stroke);
     arcPago.setAttribute('stroke-dasharray', dashPago + ' ' + (circ - dashPago));
     arcPago.setAttribute('stroke-dashoffset', circ * 0.25);
@@ -4174,7 +4174,7 @@ function renderPessoalGraficos(container) {
     if (dashPend > 2) {
       var arcPend = document.createElementNS(svgNS, 'circle');
       arcPend.setAttribute('cx', cx); arcPend.setAttribute('cy', cy); arcPend.setAttribute('r', r);
-      arcPend.setAttribute('fill', 'none'); arcPend.setAttribute('stroke', '#ffb347');
+      arcPend.setAttribute('fill', 'none'); arcPend.setAttribute('stroke', 'var(--amber)');
       arcPend.setAttribute('stroke-width', stroke);
       arcPend.setAttribute('stroke-dasharray', dashPend + ' ' + (circ - dashPend));
       arcPend.setAttribute('stroke-dashoffset', -(circ * 0.25) - dashPago + circ);
@@ -4187,7 +4187,7 @@ function renderPessoalGraficos(container) {
   var txtPct = document.createElementNS(svgNS, 'text');
   txtPct.setAttribute('x', cx); txtPct.setAttribute('y', cy - 4);
   txtPct.setAttribute('text-anchor', 'middle'); txtPct.setAttribute('font-size', '14');
-  txtPct.setAttribute('font-weight', '700'); txtPct.setAttribute('fill', '#dff4ff');
+  txtPct.setAttribute('font-weight', '700'); txtPct.setAttribute('fill', 'var(--text)');
   txtPct.setAttribute('font-family', 'Syne, sans-serif');
   txtPct.textContent = Math.round(pctPago * 100) + '%';
   svg.appendChild(txtPct);
@@ -4195,7 +4195,7 @@ function renderPessoalGraficos(container) {
   var txtLabel = document.createElementNS(svgNS, 'text');
   txtLabel.setAttribute('x', cx); txtLabel.setAttribute('y', cy + 10);
   txtLabel.setAttribute('text-anchor', 'middle'); txtLabel.setAttribute('font-size', '9');
-  txtLabel.setAttribute('fill', '#7fb8d4'); txtLabel.setAttribute('font-family', 'monospace');
+  txtLabel.setAttribute('fill', 'var(--text2)'); txtLabel.setAttribute('font-family', 'monospace');
   txtLabel.textContent = 'pago';
   svg.appendChild(txtLabel);
 
@@ -4206,9 +4206,9 @@ function renderPessoalGraficos(container) {
   var legend = document.createElement('div');
   legend.className = 'pessoal-donut-legend';
   var items = [
-    { label: 'Pago', val: totalPago, cor: '#38e0c8' },
-    { label: 'Pendente', val: totalPend, cor: '#ffb347' },
-    { label: 'Total', val: totalMes, cor: '#7fb8d4' },
+    { label: 'Pago', val: totalPago, cor: 'var(--teal)' },
+    { label: 'Pendente', val: totalPend, cor: 'var(--amber)' },
+    { label: 'Total', val: totalMes, cor: 'var(--text2)' },
   ];
   items.forEach(function(item) {
     var li = document.createElement('div');
@@ -4241,8 +4241,8 @@ function renderPessoalGraficos(container) {
   } else {
     pessoalContas.forEach(function(c) {
       var pago = isContaPaga(c.id);
-      var cor = pago ? '#38e0c8' : diasParaConta(c.dia_vencimento) <= 0 ? '#ff5d6c' :
-                diasParaConta(c.dia_vencimento) <= 3 ? '#ffb347' : '#3ecbf0';
+      var cor = pago ? 'var(--teal)' : diasParaConta(c.dia_vencimento) <= 0 ? 'var(--red)' :
+                diasParaConta(c.dia_vencimento) <= 3 ? 'var(--amber)' : 'var(--accent)';
       var row = document.createElement('div');
       row.className = 'pessoal-progress-row';
       var lbl = document.createElement('div');
@@ -4258,7 +4258,7 @@ function renderPessoalGraficos(container) {
       var pct = document.createElement('div');
       pct.className = 'pessoal-progress-pct';
       pct.textContent = pago ? '✓' : formatCurrency(c.valor).replace('R$ ', 'R$');
-      pct.style.color = pago ? '#38e0c8' : '#7fb8d4';
+      pct.style.color = pago ? 'var(--teal)' : 'var(--text2)';
       pct.style.fontSize = '10px';
       row.appendChild(lbl); row.appendChild(track); row.appendChild(pct);
       progBody.appendChild(row);
@@ -4930,10 +4930,9 @@ function renderTreinoPainelCard(){
 }
 
 // ── MODO TÉCNICO ───────────────────────────────────────
-function contarFrases(campo, tipoFiltro){
+function contarFrases(campo){
   var contagem = {};
   treinoSessoes.forEach(function(s){
-    if(tipoFiltro && s.tipo!==tipoFiltro) return;
     var valor = s[campo];
     if(!valor) return;
     valor.split(/[,;]/).forEach(function(parte){
@@ -4948,51 +4947,51 @@ function contarFrases(campo, tipoFiltro){
     .slice(0,6);
 }
 
-var CATEGORIAS_MODO_TECNICO = [
-  {chave:'jiujitsu', label:'🥋 Jiu-Jitsu'},
-  {chave:'futsal', label:'⚽ Futsal'},
-  {chave:'futebol', label:'⚽ Futebol (SERVA)'}
-];
-var modoTecnicoCategoriaAtual = 'jiujitsu';
-
 function renderModoTecnicoCard(){
   var card = document.getElementById('treino-tecnico-card');
   if(!card) return;
 
+  var acertos = contarFrases('tecnicas_certo');
+  var erros = contarFrases('tecnicas_errado');
   var totalComTecnica = treinoSessoes.filter(function(s){return s.tecnicas_certo || s.tecnicas_errado;}).length;
 
-  var tabsHTML = CATEGORIAS_MODO_TECNICO.map(function(c){
-    return '<button class="home-news-tab'+(c.chave===modoTecnicoCategoriaAtual?' active':'')+'" onclick="mudarCategoriaModoTecnico(\''+c.chave+'\')">'+c.label+'</button>';
-  }).join('');
+  // ── Progresso de graduação (Guigo: 35 aulas/grau, 175 aulas/faixa) ──
+  var AULAS_POR_GRAU = 35;
+  var AULAS_POR_FAIXA = 175;
+  var aulasValidas = treinoSessoes.filter(function(s){return s.tipo==='jiujitsu' && s.conta_graduacao!==false;}).length;
+  var grauAtual = Math.floor(aulasValidas / AULAS_POR_GRAU);
+  var aulasNoGrau = aulasValidas % AULAS_POR_GRAU;
+  var faltamGrau = AULAS_POR_GRAU - aulasNoGrau;
+  var faltamFaixa = AULAS_POR_FAIXA - aulasValidas;
+  var pctGrau = Math.round((aulasNoGrau/AULAS_POR_GRAU)*100);
+  var pctFaixa = Math.round((aulasValidas/AULAS_POR_FAIXA)*100);
 
-  card.innerHTML =
-    '<div class="pessoal-card-header"><div class="pessoal-card-title">🥋 Modo Técnico</div></div>' +
-    '<div class="pessoal-card-body">' +
-      '<div style="font-size:11px;color:var(--text3);margin-bottom:10px;">6 pilares: físico, técnico, tático, mental, nutricional, recuperação. Baseado em '+totalComTecnica+' sessão(ões) com técnica/tática registrada.</div>' +
-      '<div class="home-news-tabs" style="margin-bottom:14px;">'+tabsHTML+'</div>' +
-      '<div id="modo-tecnico-corpo"></div>' +
-      '<button class="pessoal-add-btn" style="width:100%;margin-top:14px;" id="gerar-relatorio-btn">Gerar relatório de performance</button>' +
-      '<div style="font-size:10px;color:var(--text3);margin-top:8px;line-height:1.5;">Abre uma conversa nova comigo com todo o dado real disponível de todas as categorias — agora incluindo nutrição e reação a derrotas. Onde ainda não houver dado suficiente, o relatório vai dizer isso em vez de inventar.</div>' +
-    '</div>';
-
-  var btn = document.getElementById('gerar-relatorio-btn');
-  if(btn) btn.onclick = abrirRelatorioPerformance;
-
-  renderModoTecnicoCorpo();
-}
-
-function mudarCategoriaModoTecnico(chave){
-  modoTecnicoCategoriaAtual = chave;
-  renderModoTecnicoCard();
-}
-
-function renderModoTecnicoCorpo(){
-  var corpo = document.getElementById('modo-tecnico-corpo');
-  if(!corpo) return;
-  var tipo = modoTecnicoCategoriaAtual;
-
-  var acertos = contarFrases('tecnicas_certo', tipo);
-  var erros = contarFrases('tecnicas_errado', tipo);
+  // Forecast por extrapolação linear (regra de três simples): ritmo real = dias decorridos / (aulas-1)
+  var datasAulas = treinoSessoes.filter(function(s){return s.tipo==='jiujitsu' && s.conta_graduacao!==false;})
+    .map(function(s){return new Date(s.data+'T12:00:00');})
+    .sort(function(a,b){return a-b;});
+  var forecastHTML = '';
+  if(datasAulas.length>=2){
+    var primeira = datasAulas[0], ultima = datasAulas[datasAulas.length-1];
+    var diasDecorridos = (ultima-primeira)/86400000;
+    var ritmoDiasPorAula = diasDecorridos / (datasAulas.length-1);
+    var mesesPt = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+    function formatarData(d){ return d.getDate()+' de '+mesesPt[d.getMonth()]+' de '+d.getFullYear(); }
+    function preverData(aulasFaltando){
+      var dias = Math.round(aulasFaltando * ritmoDiasPorAula);
+      var d = new Date(); d.setDate(d.getDate()+dias);
+      return formatarData(d);
+    }
+    forecastHTML =
+      '<div style="font-size:10px;color:var(--text3);margin:14px 0 8px;font-family:\'DM Mono\',monospace;">FORECAST — EXTRAPOLAÇÃO LINEAR (ritmo real: 1 aula a cada '+ritmoDiasPorAula.toFixed(1)+' dias)</div>' +
+      '<div class="dash-mini-grid" style="margin-bottom:6px;">' +
+        '<div class="dash-card-mini" style="cursor:default;"><div class="top"><span class="name">Próximo grau</span></div><div class="val" style="font-size:13px;color:var(--accent);line-height:1.3;">'+preverData(faltamGrau)+'</div><div style="font-size:9px;color:var(--text3);margin-top:3px;">faltam '+faltamGrau+' aula(s)</div></div>' +
+        '<div class="dash-card-mini" style="cursor:default;"><div class="top"><span class="name">Próxima faixa</span></div><div class="val" style="font-size:13px;color:var(--purple);line-height:1.3;">'+preverData(faltamFaixa)+'</div><div style="font-size:9px;color:var(--text3);margin-top:3px;">faltam '+faltamFaixa+' aula(s)</div></div>' +
+      '</div>' +
+      '<div style="font-size:10px;color:var(--text3);line-height:1.5;margin-bottom:14px;">Baseado em '+datasAulas.length+' aula(s) — quanto mais aulas registradas, mais confiável fica essa previsão. Não é o cronograma ideal, é o ritmo real que você tem mantido.</div>';
+  } else {
+    forecastHTML = '<div class="treino-empty" style="margin-bottom:12px;">Forecast precisa de pelo menos 2 aulas registradas.</div>';
+  }
 
   function listaHTML(itens, corVar){
     if(itens.length===0) return '<div class="treino-empty">Sem registro suficiente ainda.</div>';
@@ -5001,45 +5000,11 @@ function renderModoTecnicoCorpo(){
     }).join('');
   }
 
-  var graduacaoHTML = '';
-  if(tipo==='jiujitsu'){
-    var AULAS_POR_GRAU = 35;
-    var AULAS_POR_FAIXA = 175;
-    var aulasValidas = treinoSessoes.filter(function(s){return s.tipo==='jiujitsu' && s.conta_graduacao!==false;}).length;
-    var grauAtual = Math.floor(aulasValidas / AULAS_POR_GRAU);
-    var aulasNoGrau = aulasValidas % AULAS_POR_GRAU;
-    var faltamGrau = AULAS_POR_GRAU - aulasNoGrau;
-    var faltamFaixa = AULAS_POR_FAIXA - aulasValidas;
-    var pctGrau = Math.round((aulasNoGrau/AULAS_POR_GRAU)*100);
-    var pctFaixa = Math.round((aulasValidas/AULAS_POR_FAIXA)*100);
+  card.innerHTML =
+    '<div class="pessoal-card-header"><div class="pessoal-card-title">🥋 Modo Técnico</div></div>' +
+    '<div class="pessoal-card-body">' +
+      '<div style="font-size:11px;color:var(--text3);margin-bottom:10px;">6 pilares: físico, técnico, tático, mental, nutricional, recuperação — jiu-jítsu e futsal. Baseado em '+totalComTecnica+' sessão(ões) com técnica/tática registrada.</div>' +
 
-    var datasAulas = treinoSessoes.filter(function(s){return s.tipo==='jiujitsu' && s.conta_graduacao!==false;})
-      .map(function(s){return new Date(s.data+'T12:00:00');})
-      .sort(function(a,b){return a-b;});
-    var forecastHTML = '';
-    if(datasAulas.length>=2){
-      var primeira = datasAulas[0], ultima = datasAulas[datasAulas.length-1];
-      var diasDecorridos = (ultima-primeira)/86400000;
-      var ritmoDiasPorAula = diasDecorridos / (datasAulas.length-1);
-      var mesesPt = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-      function formatarData(d){ return d.getDate()+' de '+mesesPt[d.getMonth()]+' de '+d.getFullYear(); }
-      function preverData(aulasFaltando){
-        var dias = Math.round(aulasFaltando * ritmoDiasPorAula);
-        var d = new Date(); d.setDate(d.getDate()+dias);
-        return formatarData(d);
-      }
-      forecastHTML =
-        '<div style="font-size:10px;color:var(--text3);margin:14px 0 8px;font-family:\'DM Mono\',monospace;">FORECAST — EXTRAPOLAÇÃO LINEAR (ritmo real: 1 aula a cada '+ritmoDiasPorAula.toFixed(1)+' dias)</div>' +
-        '<div class="dash-mini-grid" style="margin-bottom:6px;">' +
-          '<div class="dash-card-mini" style="cursor:default;"><div class="top"><span class="name">Próximo grau</span></div><div class="val" style="font-size:13px;color:var(--accent);line-height:1.3;">'+preverData(faltamGrau)+'</div><div style="font-size:9px;color:var(--text3);margin-top:3px;">faltam '+faltamGrau+' aula(s)</div></div>' +
-          '<div class="dash-card-mini" style="cursor:default;"><div class="top"><span class="name">Próxima faixa</span></div><div class="val" style="font-size:13px;color:var(--purple);line-height:1.3;">'+preverData(faltamFaixa)+'</div><div style="font-size:9px;color:var(--text3);margin-top:3px;">faltam '+faltamFaixa+' aula(s)</div></div>' +
-        '</div>' +
-        '<div style="font-size:10px;color:var(--text3);line-height:1.5;margin-bottom:14px;">Baseado em '+datasAulas.length+' aula(s) — quanto mais aulas registradas, mais confiável fica essa previsão.</div>';
-    } else {
-      forecastHTML = '<div class="treino-empty" style="margin-bottom:12px;">Forecast precisa de pelo menos 2 aulas registradas.</div>';
-    }
-
-    graduacaoHTML =
       '<div style="font-size:10px;color:var(--text3);margin-bottom:8px;font-family:\'DM Mono\',monospace;">PROGRESSO DE GRADUAÇÃO — GUIGO</div>' +
       '<div class="treino-stat-grid" style="margin-bottom:8px;">' +
         '<div class="treino-stat"><div class="num">'+aulasValidas+'</div><div class="lbl">Aulas válidas</div></div>' +
@@ -5054,15 +5019,18 @@ function renderModoTecnicoCorpo(){
         '<div class="project-progress-label"><span>Faixa ('+aulasValidas+'/'+AULAS_POR_FAIXA+') — faltam '+faltamFaixa+'</span><span>'+pctFaixa+'%</span></div>' +
         '<div class="project-progress-bar"><div class="project-progress-fill" style="width:'+pctFaixa+'%;background:var(--purple);"></div></div>' +
       '</div>' +
-      forecastHTML;
-  }
+      forecastHTML +
 
-  corpo.innerHTML =
-    graduacaoHTML +
-    '<div style="font-size:10px;color:var(--text3);margin-bottom:6px;font-family:\'DM Mono\',monospace;">MAIS CITADAS — O QUE FUNCIONOU</div>' +
-    listaHTML(acertos,'var(--teal)') +
-    '<div style="font-size:10px;color:var(--text3);margin:14px 0 6px;font-family:\'DM Mono\',monospace;">MAIS CITADAS — ERROS</div>' +
-    listaHTML(erros,'var(--amber)');
+      '<div style="font-size:10px;color:var(--text3);margin-bottom:6px;font-family:\'DM Mono\',monospace;">MAIS CITADAS — O QUE FUNCIONOU</div>' +
+      listaHTML(acertos,'var(--teal)') +
+      '<div style="font-size:10px;color:var(--text3);margin:14px 0 6px;font-family:\'DM Mono\',monospace;">MAIS CITADAS — ERROS</div>' +
+      listaHTML(erros,'var(--amber)') +
+      '<button class="pessoal-add-btn" style="width:100%;margin-top:14px;" id="gerar-relatorio-btn">Gerar relatório de performance</button>' +
+      '<div style="font-size:10px;color:var(--text3);margin-top:8px;line-height:1.5;">Abre uma conversa nova comigo com todo o dado real disponível — agora incluindo nutrição e reação a derrotas. Onde ainda não houver dado suficiente (ex: mental fora do gatilho de derrota), o relatório vai dizer isso em vez de inventar.</div>' +
+    '</div>';
+
+  var btn = document.getElementById('gerar-relatorio-btn');
+  if(btn) btn.onclick = abrirRelatorioPerformance;
 }
 
 function abrirRelatorioPerformance(){
