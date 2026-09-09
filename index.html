@@ -1850,6 +1850,8 @@ function miaDataLines(){
   linhas.push(s.sessoes>0 ? s.sessoes+' sessão(ões) de treino essa semana. Bom ritmo.' : 'Nenhum treino registrado nos últimos 7 dias.');
   linhas.push(s.contas>0 ? s.contas+' conta(s) pendente(s) esse mês.' : 'Contas em dia por enquanto.');
   if(s.riscos>0) linhas.push(s.riscos+' risco(s) de carreira em aberto — vale revisar.');
+  if(s.padraoTecnica) linhas.push('Reparei um padrão seu: '+s.padraoTecnica);
+  if(s.proximoGrau) linhas.push('No ritmo atual, seu próximo grau de jiu-jítsu deve sair em '+s.proximoGrau+'.');
   return linhas;
 }
 function miaAvatarSay(){
@@ -2037,17 +2039,21 @@ async function carregarResumoSetores(){
 
   // ── Insight cruzado, mesma lógica do Modo Técnico ──
   var acertosGeral = contarFrases('tecnicas_certo');
+  var padraoTecnicaTexto = null;
   if(acertosGeral.length>0 && acertosGeral[0].vezes>=2){
-    pontosPes.push('📌 Padrão confirmado: "'+acertosGeral[0].frase+'" já apareceu '+acertosGeral[0].vezes+'x no seu treino.');
+    padraoTecnicaTexto = '"'+acertosGeral[0].frase+'" já apareceu '+acertosGeral[0].vezes+'x no seu treino.';
+    pontosPes.push('📌 Padrão confirmado: '+padraoTecnicaTexto);
   }
   var aulasJJValidas = treinoSessoes.filter(function(s){return s.tipo==='jiujitsu' && s.conta_graduacao!==false;});
+  var proximoGrauTexto = null;
   if(aulasJJValidas.length>=2){
     var datasJJ = aulasJJValidas.map(function(s){return new Date(s.data+'T12:00:00');}).sort(function(a,b){return a-b;});
     var ritmoJJ = (datasJJ[datasJJ.length-1]-datasJJ[0])/86400000/(datasJJ.length-1);
     var faltamGrauHome = 35-(aulasJJValidas.length%35);
     var dPrev = new Date(); dPrev.setDate(dPrev.getDate()+Math.round(faltamGrauHome*ritmoJJ));
     var mesesPtHome = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-    pontosPes.push('🥋 Próximo grau de jiu-jítsu previsto: '+dPrev.getDate()+' de '+mesesPtHome[dPrev.getMonth()]+'.');
+    proximoGrauTexto = dPrev.getDate()+' de '+mesesPtHome[dPrev.getMonth()];
+    pontosPes.push('🥋 Próximo grau de jiu-jítsu previsto: '+proximoGrauTexto+'.');
   }
 
   elPes.querySelector('.home-widget-body').innerHTML = pontosPes.map(function(i){return '<div class="home-insight-item">'+i+'</div>';}).join('');
@@ -2058,7 +2064,9 @@ async function carregarResumoSetores(){
     projetos: projAtivosH.length,
     sessoes: sessoesSemana.length,
     contas: pendentesContas.length,
-    riscos: riscos.length
+    riscos: riscos.length,
+    padraoTecnica: padraoTecnicaTexto,
+    proximoGrau: proximoGrauTexto
   };
 }
 
@@ -5175,7 +5183,7 @@ function renderModoTecnicoCard(){
     var repertorioVoltou = repertorioAntigo.some(function(t){return todasTecnicasJJ.indexOf(t)!==-1;});
 
     roteiroHTML =
-      (!repertorioVoltou ? '<div class="treino-alerta" style="margin-top:0;margin-bottom:10px;"><b>AINDA NÃO VOLTOU</b>Kimura, triângulo, estrangulamento de lapela e armlock (repertório de 2019) não aparecem em nenhuma sessão registrada desde a volta. Não é esquecimento — é reconstrução de acesso sob pressão, que costuma vir depois da base.</div>' : '') +
+      (!repertorioVoltou ? '<div class="treino-alerta" style="margin-top:0;margin-bottom:10px;"><b>AINDA NÃO VOLTOU</b> Kimura, triângulo, estrangulamento de lapela e armlock (repertório de 2019) não aparecem em nenhuma sessão registrada desde a volta. Não é esquecimento — é reconstrução de acesso sob pressão, que costuma vir depois da base.</div>' : '') +
       '<div style="font-size:10px;color:var(--text3);margin:12px 0 6px;">ROTEIRO MENTAL RÁPIDO</div>' +
       '<div class="ciclo-item"><span class="ciclo-name">Por baixo</span><span class="badge normal" style="color:var(--teal);">Respira → Cria espaço → Meia guarda → Ataca</span></div>' +
       '<div class="ciclo-item"><span class="ciclo-name">Guarda fechada</span><span class="badge normal" style="color:var(--accent);">Desequilibra → Faz reagir → Ataca</span></div>' +
@@ -5186,10 +5194,10 @@ function renderModoTecnicoCard(){
   var padroesHTML = '';
   if(acertos.length>0 && acertos[0].vezes>=2){
     var top2 = acertos.slice(0,2).map(function(a){return a.frase+' ('+a.vezes+'x)';}).join(', ');
-    padroesHTML += '<div class="treino-sugestao" style="margin-top:0;margin-bottom:10px;"><b>CONFIRMADO NO REGISTRO</b>'+top2+' — isso já apareceu mais de uma vez nas suas sessões de '+esporteLabel+', é padrão real, não coincidência.</div>';
+    padroesHTML += '<div class="treino-sugestao" style="margin-top:0;margin-bottom:10px;"><b>CONFIRMADO NO REGISTRO</b> '+top2+' — isso já apareceu mais de uma vez nas suas sessões de '+esporteLabel+', é padrão real, não coincidência.</div>';
   }
   if(erros.length>0 && erros[0].vezes>=2){
-    padroesHTML += '<div class="treino-alerta" style="margin-top:0;margin-bottom:10px;"><b>PADRÃO DE ERRO RECORRENTE</b>'+erros[0].frase+' já apareceu '+erros[0].vezes+'x — vale foco específico nisso no próximo treino, não é acaso isolado.</div>';
+    padroesHTML += '<div class="treino-alerta" style="margin-top:0;margin-bottom:10px;"><b>PADRÃO DE ERRO RECORRENTE</b> '+erros[0].frase+' já apareceu '+erros[0].vezes+'x — vale foco específico nisso no próximo treino, não é acaso isolado.</div>';
   }
   if(padroesHTML===''){
     padroesHTML = '<div class="treino-empty" style="margin-bottom:10px;">Ainda não há repetição suficiente em '+esporteLabel+' pra apontar um padrão confirmado — isso muda conforme mais sessões forem registradas.</div>';
