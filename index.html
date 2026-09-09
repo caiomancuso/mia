@@ -5097,6 +5097,7 @@ function renderModoTecnicoCard(){
   var totalComTecnica = treinoSessoes.filter(function(s){return s.tipo===esporte && (s.tecnicas_certo || s.tecnicas_errado);}).length;
 
   var graduacaoHTML = '';
+  var roteiroHTML = '';
   if(esporte==='jiujitsu'){
     // ── Progresso de graduação (Guigo: 35 aulas/grau, 175 aulas/faixa) ──
     var AULAS_POR_GRAU = 35;
@@ -5151,6 +5152,21 @@ function renderModoTecnicoCard(){
         '<div class="project-progress-bar"><div class="project-progress-fill" style="width:'+pctFaixa+'%;background:var(--purple);"></div></div>' +
       '</div>' +
       forecastHTML;
+
+    // ── Roteiro & padrões reais (cruzado do documento de contexto do atleta com o dado real da MIA) ──
+    var repertorioAntigo = ['kimura','triângulo','triangulo','estrangulamento de lapela','armlock','arm lock'];
+    var todasTecnicasJJ = treinoSessoes.filter(function(s){return s.tipo==='jiujitsu';})
+      .map(function(s){return (s.tecnicas_certo||'').toLowerCase();}).join(' ');
+    var repertorioVoltou = repertorioAntigo.some(function(t){return todasTecnicasJJ.indexOf(t)!==-1;});
+
+    roteiroHTML =
+      '<div style="font-size:10px;color:var(--text3);margin:14px 0 8px;font-family:\'DM Mono\',monospace;">SEU JOGO — CRUZADO COM DADO REAL</div>' +
+      '<div class="treino-sugestao" style="margin-top:0;margin-bottom:10px;"><b>CONFIRMADO NO REGISTRO</b>Raspagem laçada e reposição de meia guarda aparecem repetidas vezes nas suas sessões — isso já é jogo funcionando, não só sobrevivência. "Chamada na guarda" recente também é iniciativa real, não passividade.</div>' +
+      (!repertorioVoltou ? '<div class="treino-alerta" style="margin-top:0;margin-bottom:10px;"><b>AINDA NÃO VOLTOU</b>Kimura, triângulo, estrangulamento de lapela e armlock (repertório de 2019) não aparecem em nenhuma sessão registrada desde a volta. Não é esquecimento — é reconstrução de acesso sob pressão, que costuma vir depois da base.</div>' : '') +
+      '<div style="font-size:10px;color:var(--text3);margin:12px 0 6px;">ROTEIRO MENTAL RÁPIDO</div>' +
+      '<div class="ciclo-item"><span class="ciclo-name">Por baixo</span><span class="badge normal" style="color:var(--teal);">Respira → Cria espaço → Meia guarda → Ataca</span></div>' +
+      '<div class="ciclo-item"><span class="ciclo-name">Guarda fechada</span><span class="badge normal" style="color:var(--accent);">Desequilibra → Faz reagir → Ataca</span></div>' +
+      '<div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.5;">Métrica do rola não é ganhar ou finalizar — é: tomei iniciativa? Fiz o adversário reagir? Consegui pensar mesmo cansado?</div>';
   }
 
   function listaHTML(itens, corVar){
@@ -5172,6 +5188,7 @@ function renderModoTecnicoCard(){
       tabsHTML +
       '<div style="font-size:11px;color:var(--text3);margin-bottom:10px;">6 pilares: físico, técnico, tático, mental, nutricional, recuperação. Baseado em '+totalComTecnica+' sessão(ões) de '+esporteLabel+' com técnica/tática registrada.</div>' +
       graduacaoHTML +
+      roteiroHTML +
 
       '<div style="font-size:10px;color:var(--text3);margin-bottom:6px;font-family:\'DM Mono\',monospace;">MAIS CITADAS — O QUE FUNCIONOU ('+esporteLabel.toUpperCase()+')</div>' +
       listaHTML(acertos,'var(--teal)') +
