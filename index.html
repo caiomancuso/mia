@@ -1912,6 +1912,11 @@ async function renderHome(){
         '</div>'+
       '</div>'+
       '<aside class="home-sidebar">'+
+        '<div class="home-widget full">'+
+          '<div class="home-widget-title">📊 Revisão Semanal</div>'+
+          '<div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:12px;">Toda sexta a MIA avisa. Quando quiser, aperta aqui — puxo tudo que aconteceu na semana (profissional e pessoal) e escrevo a revisão com você, na hora.</div>'+
+          '<button class="dash-action-btn" style="width:100%;" onclick="abrirRevisaoSemanal()">Gerar revisão semanal</button>'+
+        '</div>'+
         '<div class="home-widget full" id="home-news"><div class="home-widget-title">🥋 Notícias</div><div class="home-widget-body">Carregando...</div></div>'+
       '</aside>'+
     '</div>';
@@ -5252,6 +5257,48 @@ function renderModoTecnicoCard(){
 
   var btn = document.getElementById('gerar-relatorio-btn');
   if(btn) btn.onclick = abrirRelatorioPerformance;
+}
+
+function abrirRevisaoSemanal(){
+  var seteDiasAtras = new Date(); seteDiasAtras.setDate(seteDiasAtras.getDate()-7);
+  var seteDiasISO = toDateStr(seteDiasAtras);
+  var hojeISO = toDateStr(new Date());
+
+  // ── Profissional ──
+  var tarefasSemana = (typeof tasks!=='undefined'?tasks:[]).filter(function(t){
+    return t.task_date && t.task_date>=seteDiasISO && t.task_date<=hojeISO;
+  });
+  var concluidasSemana = tarefasSemana.filter(function(t){return t.done;});
+  var resumoTarefas = tarefasSemana.length>0 ?
+    tarefasSemana.map(function(t){return t.task_date+' ['+(t.done?'concluída':'aberta')+(t.prio==='urgente'?' | urgente':'')+'] '+t.name;}).join('\n') :
+    '(nenhuma tarefa com data nessa janela)';
+  var projetosResumo = (typeof projects!=='undefined'?projects:[]).map(function(p){return p.name+' — status: '+p.status;}).join('\n') || '(sem projetos)';
+
+  // ── Pessoal ──
+  var sessoesSemana = treinoSessoes.filter(function(s){return s.data>=seteDiasISO && s.data<=hojeISO;});
+  var resumoTreino = sessoesSemana.length>0 ?
+    sessoesSemana.map(function(s){
+      return s.data+' ['+s.tipo+'] cansaço:'+(s.cansaco||'—')+
+        (s.tecnicas_certo?' | funcionou: '+s.tecnicas_certo:'')+
+        (s.gols?' | gols:'+s.gols:'')+(s.assist?' assist:'+s.assist:'');
+    }).join('\n') : '(nenhum treino essa semana)';
+
+  var nutricaoSemana = treinoNutricao.filter(function(n){return n.data>=seteDiasISO && n.data<=hojeISO;});
+  var resumoNutricaoSemana = nutricaoSemana.length>0 ?
+    nutricaoSemana.map(function(n){return n.data+' ['+n.momento+'] '+n.descricao;}).join('\n') : '(sem registro de nutrição essa semana)';
+
+  var pendentesContasSemana = (typeof pessoalContas!=='undefined'?pessoalContas:[]).filter(function(c){return !isContaPaga(c.id);});
+  var riscosCarreira = (typeof carreiraItems!=='undefined'?carreiraItems:[]).filter(function(c){return c.status==='risco';});
+
+  var msg = '[CONTEXTO] Caio Mancuso, analista de inteligência comercial na Yamá Cosméticos, e também pratica jiu-jítsu/futsal/futebol e acompanha carreira/financeiro pessoal pela MIA. Quer uma revisão semanal real — desenvolvimento, insights, aprendizados — cobrindo profissional e pessoal juntos, dos últimos 7 dias ('+seteDiasISO+' a '+hojeISO+').\n\n'+
+    '[DADO REAL — tarefas da semana]\n'+resumoTarefas+'\n\n'+
+    '[DADO REAL — projetos ativos]\n'+projetosResumo+'\n\n'+
+    '[DADO REAL — treino da semana]\n'+resumoTreino+'\n\n'+
+    '[DADO REAL — nutrição da semana]\n'+resumoNutricaoSemana+'\n\n'+
+    '[DADO REAL — financeiro e carreira]\nContas pendentes: '+pendentesContasSemana.length+'. Riscos de carreira ativos: '+riscosCarreira.length+(riscosCarreira.length>0?' ('+riscosCarreira.map(function(r){return r.titulo||r.name||'sem título';}).join(', ')+')':'')+'\n\n'+
+    '[PEDIDO] Escreva uma revisão semanal de verdade com o dado acima — o que se desenvolveu, insights reais (não genéricos), e aprendizados da semana, cruzando profissional e pessoal onde fizer sentido. Onde não houver dado suficiente numa área, diga isso em vez de preencher com generalidade. Não elogie automaticamente — se algo estagnou ou piorou na semana, aponte.';
+
+  window.open('https://claude.ai/new?q='+encodeURIComponent(msg),'_blank');
 }
 
 function abrirRelatorioPerformance(){
