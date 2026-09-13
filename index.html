@@ -2016,9 +2016,10 @@ async function carregarResumoSetores(){
 
   var elFechamento = document.getElementById('home-fechamento-semana');
   if(elFechamento){
-    var fechamentoHome = gerarFechamentoSemana();
-    elFechamento.querySelector('.home-widget-title').textContent = fechamentoHome.titulo;
-    elFechamento.querySelector('.home-widget-body').innerHTML = fechamentoHome.corpo;
+    var fechamentoTexto = gerarFechamentoSemana();
+    var textoFechamento = gerarFechamentoSemanaTexto();
+    elFechamento.querySelector('.home-widget-title').textContent = fechamentoTexto.titulo;
+    elFechamento.querySelector('.home-widget-body').innerHTML = '<p style="font-size:13px;color:var(--text2);line-height:1.6;margin:0;">'+textoFechamento+'</p>';
   }
 
   var hojeISO = toDateStr(new Date());
@@ -5410,8 +5411,39 @@ function gerarFechamentoSemana(){
 
   return {
     titulo: '📊 Fechamento da semana ('+fmtDateTreino(segundaISO)+' – '+fmtDateTreino(domingoISO)+')',
-    corpo: corpo
+    corpo: corpo,
+    dados: {
+      segundaISO: segundaISO, domingoISO: domingoISO,
+      sessoes: sessoesCal.length, sessoesAnt: sessoesAnt.length,
+      cansacoMedio: cansacoMedio, cansacoMedioAnt: cansacoMedioAnt,
+      diasComDor: diasComDor, diasComDorAnt: diasComDorAnt,
+      sessoesExcesso: sessoesExcesso, porTipoTxt: porTipoTxt
+    }
   };
+}
+
+function gerarFechamentoSemanaTexto(){
+  var f = gerarFechamentoSemana();
+  var d = f.dados;
+  if(d.sessoes===0){
+    return 'Nenhuma sessão de treino registrada essa semana ('+fmtDateTreino(d.segundaISO)+' – '+fmtDateTreino(d.domingoISO)+').';
+  }
+  var partes = [];
+  partes.push(d.sessoes+' sessão'+(d.sessoes>1?'ões':'')+' essa semana ('+d.porTipoTxt+')');
+  if(d.cansacoMedio!==null){
+    var cmp = '';
+    if(d.cansacoMedioAnt!==null){
+      var diff = d.cansacoMedio-d.cansacoMedioAnt;
+      if(Math.abs(diff)>=0.3) cmp = diff>0 ? ', subindo em relação à semana passada' : ', caindo em relação à semana passada';
+    }
+    partes.push('cansaço médio de '+d.cansacoMedio.toFixed(1)+cmp);
+  }
+  partes.push(d.diasComDor>0 ? d.diasComDor+' check-in'+(d.diasComDor>1?'s':'')+' com dor relevante (≥4)' : 'sem dor articular relevante');
+  var texto = partes.join(', ')+'.';
+  if(d.sessoesExcesso>0){
+    texto += ' '+d.sessoesExcesso+' sessão'+(d.sessoesExcesso>1?'ões':'')+' com cansaço ≥9 — vale ficar de olho se virar padrão.';
+  }
+  return texto;
 }
 
 function renderFocoPessoal(){
