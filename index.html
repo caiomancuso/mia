@@ -1913,6 +1913,7 @@ async function renderHome(){
           '<div class="home-widget full" id="home-weather"><div class="home-widget-title">🌤 Clima — São Paulo</div><div class="home-widget-body">Carregando...</div></div>'+
           '<div class="home-widget home-clickable" id="home-summary-prof" onclick="switchAppMode(\'profissional\')"><div class="home-widget-title">💼 Profissional</div><div class="home-widget-body">Carregando...</div></div>'+
           '<div class="home-widget home-clickable" id="home-summary-pes" onclick="switchAppMode(\'pessoal\')"><div class="home-widget-title">🏠 Pessoal</div><div class="home-widget-body">Carregando...</div></div>'+
+          '<div class="home-widget full" id="home-fechamento-semana"><div class="home-widget-title">📊 Fechamento da Semana</div><div class="home-widget-body">Carregando...</div></div>'+
         '</div>'+
       '</div>'+
       '<aside class="home-sidebar">'+
@@ -2012,6 +2013,13 @@ async function carregarResumoSetores(){
   var pTre = treinoLoaded ? Promise.resolve() : loadTreinoFromDB();
   var pCar = (typeof carreiraLoaded!=='undefined' && carreiraLoaded) ? Promise.resolve() : loadCarreiraFromDB();
   await Promise.all([pTre, pCar]);
+
+  var elFechamento = document.getElementById('home-fechamento-semana');
+  if(elFechamento){
+    var fechamentoHome = gerarFechamentoSemana();
+    elFechamento.querySelector('.home-widget-title').textContent = fechamentoHome.titulo;
+    elFechamento.querySelector('.home-widget-body').innerHTML = fechamentoHome.corpo;
+  }
 
   var hojeISO = toDateStr(new Date());
 
@@ -5321,6 +5329,91 @@ function gerarPerguntasPessoal(checkins){
   return perguntas.slice(0,4);
 }
 
+function gerarFechamentoSemana(){
+  var now = new Date();
+  var diaSemanaHoje = now.getDay();
+  var diffSeg = -diaSemanaHoje;
+  var segunda = new Date(now); segunda.setDate(now.getDate()+diffSeg); segunda.setHours(0,0,0,0);
+  var domingo = new Date(segunda); domingo.setDate(segunda.getDate()+6);
+  var segundaISO = toDateStrTreino(segunda), domingoISO = toDateStrTreino(domingo);
+
+  var segundaAnt = new Date(segunda); segundaAnt.setDate(segunda.getDate()-7);
+  var domingoAnt = new Date(segundaAnt); domingoAnt.setDate(segundaAnt.getDate()+6);
+  var segundaAntISO = toDateStrTreino(segundaAnt), domingoAntISO = toDateStrTreino(domingoAnt);
+
+  var sessoesCal = treinoSessoes.filter(function(s){ return s.data>=segundaISO && s.data<=domingoISO; });
+  var checkinsCal = treinoCheckins.filter(function(c){ return c.data>=segundaISO && c.data<=domingoISO; });
+  var sessoesAnt = treinoSessoes.filter(function(s){ return s.data>=segundaAntISO && s.data<=domingoAntISO; });
+  var checkinsAnt = treinoCheckins.filter(function(c){ return c.data>=segundaAntISO && c.data<=domingoAntISO; });
+
+  var cansacos = sessoesCal.map(function(s){return parseFloat(s.cansaco);}).filter(function(n){return !isNaN(n);});
+  var cansacoMedio = cansacos.length ? (cansacos.reduce(function(a,b){return a+b;},0)/cansacos.length) : null;
+  var cansacosAnt = sessoesAnt.map(function(s){return parseFloat(s.cansaco);}).filter(function(n){return !isNaN(n);});
+  var cansacoMedioAnt = cansacosAnt.length ? (cansacosAnt.reduce(function(a,b){return a+b;},0)/cansacosAnt.length) : null;
+
+  var diasComDor = checkinsCal.filter(function(c){ return (c.dor_joelho>=4) || (c.dor_braco>=4); }).length;
+  var diasComDorAnt = checkinsAnt.filter(function(c){ return (c.dor_joelho>=4) || (c.dor_braco>=4); }).length;
+  var porTipo = {};
+  sessoesCal.forEach(function(s){ porTipo[s.tipo]=(porTipo[s.tipo]||0)+1; });
+  var porTipoTxt = Object.keys(porTipo).length ? Object.keys(porTipo).map(function(t){return porTipo[t]+'x '+t;}).join(', ') : 'nenhuma sessão ainda';
+
+  var sessoesExcesso = sessoesCal.filter(function(s){ return parseFloat(s.cansaco)>=9; }).length;
+
+  function setaComparativa(atual, anterior, maiorEhPior){
+    if(atual===null || anterior===null || sessoesAnt.length===0) return '<div class="foco-week-tile-cmp" style="color:var(--text3);">sem comparação</div>';
+    var diff = atual-anterior;
+    if(Math.abs(diff)<0.3) return '<div class="foco-week-tile-cmp" style="color:var(--text3);">= semana passada</div>';
+    var subiu = diff>0;
+    var corBoa = maiorEhPior ? !subiu : subiu;
+    var seta = subiu ? '↑' : '↓';
+    var cor = corBoa ? 'var(--teal)' : 'var(--amber)';
+    return '<div class="foco-week-tile-cmp" style="color:'+cor+';">'+seta+' vs '+(anterior%1===0?anterior.toFixed(0):anterior.toFixed(1))+'</div>';
+  }
+
+  var diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var ICONES_ESPORTE = {jiujitsu:'🥋', futsal:'⚽', futebol:'⚽', academia:'🏋'};
+  var barrasHTML = '';
+  for(var di=0; di<7; di++){
+    var diaData = new Date(segunda); diaData.setDate(segunda.getDate()+di);
+    var diaISO = toDateStrTreino(diaData);
+    var sessoesDoDia = sessoesCal.filter(function(s){return s.data===diaISO;});
+    var maxCansacoDia = 0;
+    var tipoDoDia = null;
+    sessoesDoDia.forEach(function(s){
+      var c=parseFloat(s.cansaco);
+      if(!isNaN(c)&&c>=maxCansacoDia){ maxCansacoDia=c; tipoDoDia=s.tipo; }
+    });
+    if(!tipoDoDia && sessoesDoDia.length>0) tipoDoDia = sessoesDoDia[0].tipo;
+    var alturaPct = maxCansacoDia>0 ? Math.max(8,(maxCansacoDia/10)*100) : 0;
+    var corBarra = maxCansacoDia===0 ? 'var(--border2)' : maxCansacoDia>=9 ? 'var(--red)' : maxCansacoDia>=6 ? 'var(--amber)' : 'var(--teal)';
+    var isHoje = diaISO===toDateStrTreino(now);
+    var iconeEsporte = tipoDoDia ? (ICONES_ESPORTE[tipoDoDia]||'•') : '';
+    barrasHTML +=
+      '<div class="foco-week-bar-col">' +
+        '<div class="foco-week-bar-icon" title="'+(tipoDoDia||'')+'">'+iconeEsporte+'</div>' +
+        '<div class="foco-week-bar-value">'+(maxCansacoDia>0?maxCansacoDia:'')+'</div>' +
+        '<div class="foco-week-bar-track"><div class="foco-week-bar-fill" style="height:'+alturaPct+'%;background:'+corBarra+';"></div></div>' +
+        '<div class="foco-week-bar-label'+(isHoje?' hoje':'')+'">'+diasSemana[di]+'</div>' +
+      '</div>';
+  }
+
+  var corpo =
+    '<div class="foco-week-stats">' +
+      '<div class="foco-week-tile"><div class="foco-week-tile-num">'+sessoesCal.length+'</div><div class="foco-week-tile-lbl">Sessões</div>'+setaComparativa(sessoesCal.length, sessoesAnt.length, false)+'</div>' +
+      '<div class="foco-week-tile"><div class="foco-week-tile-num">'+(cansacoMedio!==null?cansacoMedio.toFixed(1):'—')+'</div><div class="foco-week-tile-lbl">Cansaço médio</div>'+setaComparativa(cansacoMedio, cansacoMedioAnt, true)+'</div>' +
+      '<div class="foco-week-tile'+(diasComDor>0?' warn':'')+'"><div class="foco-week-tile-num">'+diasComDor+'</div><div class="foco-week-tile-lbl">Dor ≥4</div>'+setaComparativa(diasComDor, diasComDorAnt, true)+'</div>' +
+      '<div class="foco-week-tile'+(sessoesExcesso>0?' warn':'')+'"><div class="foco-week-tile-num">'+sessoesExcesso+'</div><div class="foco-week-tile-lbl">Cansaço ≥9</div><div class="foco-week-tile-cmp" style="color:var(--text3);">de '+sessoesCal.length+' sessões</div></div>' +
+    '</div>' +
+    '<div style="font-size:10px;color:var(--text3);margin:14px 0 6px;font-family:\'DM Mono\',monospace;">CANSAÇO POR DIA ('+porTipoTxt+')</div>' +
+    '<div class="foco-week-bars">'+barrasHTML+'</div>' +
+    (sessoesExcesso>0 ? '<div class="treino-alerta" style="margin-top:10px;">Isso é um proxy simples, não detecção exata — cansaço ≥9 nem sempre significa que você passou do combinado, pode ser um treino puxado de verdade. Mas vale olhar se tem padrão se repetindo.</div>' : '');
+
+  return {
+    titulo: '📊 Fechamento da semana ('+fmtDateTreino(segundaISO)+' – '+fmtDateTreino(domingoISO)+')',
+    corpo: corpo
+  };
+}
+
 function renderFocoPessoal(){
   var container = document.getElementById('foco-pessoal-container');
   if(!container) return;
@@ -5449,87 +5542,10 @@ function renderFocoPessoal(){
   grid.appendChild(c2);
   frag.appendChild(grid);
 
-  // ── Fechamento semanal (semana calendário dom-sáb) ──
-  var diaSemanaHoje = now.getDay();
-  var diffSeg = -diaSemanaHoje;
-  var segunda = new Date(now); segunda.setDate(now.getDate()+diffSeg); segunda.setHours(0,0,0,0);
-  var domingo = new Date(segunda); domingo.setDate(segunda.getDate()+6);
-  var segundaISO = toDateStrTreino(segunda), domingoISO = toDateStrTreino(domingo);
-
-  var segundaAnt = new Date(segunda); segundaAnt.setDate(segunda.getDate()-7);
-  var domingoAnt = new Date(segundaAnt); domingoAnt.setDate(segundaAnt.getDate()+6);
-  var segundaAntISO = toDateStrTreino(segundaAnt), domingoAntISO = toDateStrTreino(domingoAnt);
-
-  var sessoesCal = treinoSessoes.filter(function(s){ return s.data>=segundaISO && s.data<=domingoISO; });
-  var checkinsCal = treinoCheckins.filter(function(c){ return c.data>=segundaISO && c.data<=domingoISO; });
-  var sessoesAnt = treinoSessoes.filter(function(s){ return s.data>=segundaAntISO && s.data<=domingoAntISO; });
-  var checkinsAnt = treinoCheckins.filter(function(c){ return c.data>=segundaAntISO && c.data<=domingoAntISO; });
-
-  var cansacos = sessoesCal.map(function(s){return parseFloat(s.cansaco);}).filter(function(n){return !isNaN(n);});
-  var cansacoMedio = cansacos.length ? (cansacos.reduce(function(a,b){return a+b;},0)/cansacos.length) : null;
-  var cansacosAnt = sessoesAnt.map(function(s){return parseFloat(s.cansaco);}).filter(function(n){return !isNaN(n);});
-  var cansacoMedioAnt = cansacosAnt.length ? (cansacosAnt.reduce(function(a,b){return a+b;},0)/cansacosAnt.length) : null;
-
-  var diasComDor = checkinsCal.filter(function(c){ return (c.dor_joelho>=4) || (c.dor_braco>=4); }).length;
-  var diasComDorAnt = checkinsAnt.filter(function(c){ return (c.dor_joelho>=4) || (c.dor_braco>=4); }).length;
-  var alertasSemana = checkinsCal.filter(function(c){ return c.alerta; }).length;
-  var porTipo = {};
-  sessoesCal.forEach(function(s){ porTipo[s.tipo]=(porTipo[s.tipo]||0)+1; });
-  var porTipoTxt = Object.keys(porTipo).length ? Object.keys(porTipo).map(function(t){return porTipo[t]+'x '+t;}).join(', ') : 'nenhuma sessão ainda';
-
-  var sessoesExcesso = sessoesCal.filter(function(s){ return parseFloat(s.cansaco)>=9; }).length;
-
-  function setaComparativa(atual, anterior, maiorEhPior){
-    if(atual===null || anterior===null || sessoesAnt.length===0) return '<div class="foco-week-tile-cmp" style="color:var(--text3);">sem comparação</div>';
-    var diff = atual-anterior;
-    if(Math.abs(diff)<0.3) return '<div class="foco-week-tile-cmp" style="color:var(--text3);">= semana passada</div>';
-    var subiu = diff>0;
-    var corBoa = maiorEhPior ? !subiu : subiu;
-    var seta = subiu ? '↑' : '↓';
-    var cor = corBoa ? 'var(--teal)' : 'var(--amber)';
-    return '<div class="foco-week-tile-cmp" style="color:'+cor+';">'+seta+' vs '+(anterior%1===0?anterior.toFixed(0):anterior.toFixed(1))+'</div>';
-  }
-
-  // gráfico de barras dia a dia (seg-dom), maior cansaço registrado no dia + ícone do esporte
-  var diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-  var ICONES_ESPORTE = {jiujitsu:'🥋', futsal:'⚽', futebol:'⚽', academia:'🏋'};
-  var barrasHTML = '';
-  for(var di=0; di<7; di++){
-    var diaData = new Date(segunda); diaData.setDate(segunda.getDate()+di);
-    var diaISO = toDateStrTreino(diaData);
-    var sessoesDoDia = sessoesCal.filter(function(s){return s.data===diaISO;});
-    var maxCansacoDia = 0;
-    var tipoDoDia = null;
-    sessoesDoDia.forEach(function(s){
-      var c=parseFloat(s.cansaco);
-      if(!isNaN(c)&&c>=maxCansacoDia){ maxCansacoDia=c; tipoDoDia=s.tipo; }
-    });
-    if(!tipoDoDia && sessoesDoDia.length>0) tipoDoDia = sessoesDoDia[0].tipo;
-    var alturaPct = maxCansacoDia>0 ? Math.max(8,(maxCansacoDia/10)*100) : 0;
-    var corBarra = maxCansacoDia===0 ? 'var(--border2)' : maxCansacoDia>=9 ? 'var(--red)' : maxCansacoDia>=6 ? 'var(--amber)' : 'var(--teal)';
-    var isHoje = diaISO===toDateStrTreino(now);
-    var iconeEsporte = tipoDoDia ? (ICONES_ESPORTE[tipoDoDia]||'•') : '';
-    barrasHTML +=
-      '<div class="foco-week-bar-col">' +
-        '<div class="foco-week-bar-icon" title="'+(tipoDoDia||'')+'">'+iconeEsporte+'</div>' +
-        '<div class="foco-week-bar-value">'+(maxCansacoDia>0?maxCansacoDia:'')+'</div>' +
-        '<div class="foco-week-bar-track"><div class="foco-week-bar-fill" style="height:'+alturaPct+'%;background:'+corBarra+';"></div></div>' +
-        '<div class="foco-week-bar-label'+(isHoje?' hoje':'')+'">'+diasSemana[di]+'</div>' +
-      '</div>';
-  }
+  var fechamento = gerarFechamentoSemana();
 
   var wCard=document.createElement('div');wCard.className='foco-card';wCard.style.marginBottom='14px';
-  wCard.innerHTML =
-    '<div class="foco-card-title">📊 Fechamento da semana ('+fmtDateTreino(segundaISO)+' – '+fmtDateTreino(domingoISO)+')</div>' +
-    '<div class="foco-week-stats">' +
-      '<div class="foco-week-tile"><div class="foco-week-tile-num">'+sessoesCal.length+'</div><div class="foco-week-tile-lbl">Sessões</div>'+setaComparativa(sessoesCal.length, sessoesAnt.length, false)+'</div>' +
-      '<div class="foco-week-tile"><div class="foco-week-tile-num">'+(cansacoMedio!==null?cansacoMedio.toFixed(1):'—')+'</div><div class="foco-week-tile-lbl">Cansaço médio</div>'+setaComparativa(cansacoMedio, cansacoMedioAnt, true)+'</div>' +
-      '<div class="foco-week-tile'+(diasComDor>0?' warn':'')+'"><div class="foco-week-tile-num">'+diasComDor+'</div><div class="foco-week-tile-lbl">Dor ≥4</div>'+setaComparativa(diasComDor, diasComDorAnt, true)+'</div>' +
-      '<div class="foco-week-tile'+(sessoesExcesso>0?' warn':'')+'"><div class="foco-week-tile-num">'+sessoesExcesso+'</div><div class="foco-week-tile-lbl">Cansaço ≥9</div><div class="foco-week-tile-cmp" style="color:var(--text3);">de '+sessoesCal.length+' sessões</div></div>' +
-    '</div>' +
-    '<div style="font-size:10px;color:var(--text3);margin:14px 0 6px;font-family:\'DM Mono\',monospace;">CANSAÇO POR DIA ('+porTipoTxt+')</div>' +
-    '<div class="foco-week-bars">'+barrasHTML+'</div>' +
-    (sessoesExcesso>0 ? '<div class="treino-alerta" style="margin-top:10px;">Isso é um proxy simples, não detecção exata — cansaço ≥9 nem sempre significa que você passou do combinado, pode ser um treino puxado de verdade. Mas vale olhar se tem padrão se repetindo.</div>' : '');
+  wCard.innerHTML = '<div class="foco-card-title">'+fechamento.titulo+'</div>' + fechamento.corpo;
   frag.appendChild(wCard);
 
   var sCard=document.createElement('div');sCard.className='foco-card';sCard.style.marginBottom='14px';
